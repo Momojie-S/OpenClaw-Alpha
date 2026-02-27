@@ -1,13 +1,24 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
 [project]
 name = "openclaw-alpha"
 version = "0.1.0"
-description = "OpenClaw stock & finance analysis skill"
-requires-python = ">=3.10"
+description = "OpenClaw 股票金融数据获取和分析技能库"
+readme = "README.md"
+requires-python = ">=3.13"
 dependencies = [
-    "tushare>=1.4.0",
-    "pandas>=2.0.0",
-    "numpy>=1.24.0",
+    "tushare>=1.4.24",
 ]
 
-[tool.uv]
-dev-dependencies = []
+[dependency-groups]
+dev = [
+    "pyright>=1.1.408",
+    "pytest>=8.0.0",
+    "pytest-asyncio>=0.24.0",
+    "ruff>=0.8.0",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/openclaw_alpha"]

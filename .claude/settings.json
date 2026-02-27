@@ -1,0 +1,15 @@
+{
+  "env": {
+    "ENABLE_LSP_TOOL": "true"
+  },
+  "enabledPlugins": {
+    "context7@claude-plugins-official": true,
+    "claude-md-management@claude-plugins-official": true,
+    "uv-pyright-lsp@onedragon-cc-plugins": true
+  },
+  "permissions": {
+    "allow": [
+      "Bash(openspec:*)"
+    ]
+  }
+}
