@@ -2,22 +2,41 @@
 
 ## 项目概述
 
-OpenClaw-Alpha 是一个股票金融数据获取和分析的 Python 技能模块。
+OpenClaw-Alpha 是一个股票金融数据获取和分析的 Python 技能模块，为 OpenClaw 智能体提供多个分析能力 skill。
 
 ## 技术栈
 
 - **包管理**: uv
 - **语言**: Python
-- **数据源**: AKShare
+- **数据源**: AKShare, Tushare
 
 ## 目录结构
 
 ```text
 OpenClaw-Alpha/
-├── src/                # Python 代码主入口
-├── docs/               # 项目文档
-└── .env                # 环境变量配置
+├── SKILL.md                    # 主入口（汇总说明）
+├── skills/                     # 子 skill 目录
+│   ├── industry-trend/         # 产业趋势分析
+│   │   └── SKILL.md
+│   └── stock-quote/            # 股票行情查询
+│       └── SKILL.md
+├── src/openclaw_alpha/         # Python 代码
+│   ├── core/                   # 核心框架（strategy, registry）
+│   ├── strategies/             # 策略实现
+│   └── data_sources/           # 数据源实现
+├── docs/                       # 项目文档
+└── .env                        # 环境变量配置
 ```
+
+## Skill 架构
+
+项目采用"主入口 + 子 skill"的架构：
+
+- **主 SKILL.md**：作为汇总入口，描述项目整体能力
+- **skills/ 目录**：每个子目录是一个独立的 skill，包含 SKILL.md（元数据 + 分析思路）
+- **src/ 目录**：所有 Python 代码实现，被 skill 调用
+
+OpenClaw 通过 `extraDirs` 配置加载 `skills/` 目录下的子 skill，实现精确触发。
 
 ## 环境说明
 

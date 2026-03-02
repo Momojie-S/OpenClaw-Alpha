@@ -4,6 +4,70 @@ OpenClaw 是一种智能体（Agent），它可以加载多个 skill。
 
 当前项目主要目的是为 OpenClaw 提供 skill，同时尽量兼容其他类型的智能体。
 
+## Skills 扫描机制
+
+OpenClaw 从以下位置加载 skills，按优先级从高到低：
+
+| 位置 | 路径 | 优先级 |
+|------|------|--------|
+| 工作区 Skills | `<workspace>/skills` | 最高 |
+| 托管/本地 Skills | `~/.openclaw/skills` | 中 |
+| 内置 Skills | 随安装包发布 | 最低 |
+
+### 扫描规则
+
+OpenClaw **只扫描一层子目录**，不会递归扫描。例如：
+
+```
+<workspace>/skills/
+├── skill-a/
+│   └── SKILL.md          # ✅ 会被加载
+├── skill-b/
+│   └── SKILL.md          # ✅ 会被加载
+└── skill-pack/
+    ├── SKILL.md          # ✅ 会被加载（如果存在）
+    └── sub-skill/
+        └── SKILL.md      # ❌ 不会被扫描（嵌套太深）
+```
+
+### 在项目中提供多个 Skill
+
+如果项目需要提供多个 skill，有两种方式：
+
+**方式一：extraDirs 配置**
+
+在 `~/.openclaw/openclaw.json` 中添加：
+
+```json
+{
+  "skills": {
+    "load": {
+      "extraDirs": ["~/.openclaw/workspace/skills/OpenClaw-Alpha/skills"]
+    }
+  }
+}
+```
+
+**方式二：扁平目录结构**
+
+将多个 skill 平铺在 `<workspace>/skills/` 下：
+
+```
+<workspace>/skills/
+└── openclaw-alpha/          # 项目容器目录
+    ├── quote/
+    │   └── SKILL.md
+    ├── backtest/
+    │   └── SKILL.md
+    └── shared/              # 共享代码（无 SKILL.md）
+```
+
+### 优先级冲突
+
+如果同名 skill 存在于多个位置，优先级为：
+
+`工作区 > 托管/本地 > 内置`
+
 ## SKILL.md
 
 每个 skill 必须包含一个 `SKILL.md` 文件，定义 skill 的元数据和使用说明。

@@ -9,6 +9,7 @@ description = "OpenClaw 股票金融数据获取和分析技能库"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
+    "akshare>=1.17.49",
     "tushare>=1.4.24",
 ]
 
