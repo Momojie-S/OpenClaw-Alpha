@@ -1,11 +1,20 @@
 # -*- coding: utf-8 -*-
 """申万行业 Tushare 数据获取器"""
 
+import os
 from datetime import datetime
 from typing import Any
 
 import pandas as pd
+from tenacity import retry, stop_after_attempt, wait_exponential
 
+from openclaw_alpha.core.exceptions import (
+    AuthenticationError,
+    NetworkError,
+    RateLimitError,
+    ServerError,
+    TimeoutError,
+)
 from openclaw_alpha.core.fetcher import DataFetcher
 from openclaw_alpha.fetchers.sw_industry.models import (
     SwIndustryFetchParams,
@@ -33,17 +42,27 @@ class SwIndustryTushareFetcher(
     required_data_source = "tushare"
     priority = 1
 
-    async def fetch(self, params: SwIndustryFetchParams) -> SwIndustryFetchResult:
-        """获取申万行业行情数据
+    @retry(
+        stop=stop_after_attempt(3),
+        wait=wait_exponential(multiplier=1, min=1, max=30),
+        reraise=True,
+    )
+    def _call_api(self, trade_date: str) -> pd.DataFrame:
+        """调用 Tushare API 获取申万行业指数日行情
 
         Args:
-            params: 获取参数
+            trade_date: 交易日期 (YYYYMMDD)
 
         Returns:
-            申万行业获取结果
-        """
-        import os
+            原始 API 响应 DataFrame
 
+        Raises:
+            AuthenticationError: 认证失败
+            RateLimitError: 请求限流
+            TimeoutError: 请求超时
+            ServerError: 服务端错误
+            NetworkError: 网络错误
+        """
         import tushare as ts
 
         api_token = os.environ.get("TUSHARE_TOKEN")
@@ -52,21 +71,40 @@ class SwIndustryTushareFetcher(
 
         pro = ts.pro_api(api_token)
 
-        # 处理日期参数
-        trade_date = params.trade_date
-        if trade_date is None:
-            trade_date = datetime.now().strftime("%Y%m%d")
+        try:
+            df: pd.DataFrame = pro.sw_daily(trade_date=trade_date)
+            return df
+        except Exception as e:
+            error_msg = str(e).lower()
+            # 根据错误信息转换为对应异常
+            if "token" in error_msg or "auth" in error_msg or "401" in error_msg:
+                raise AuthenticationError(f"Tushare 认证失败: {e}") from e
+            elif "429" in error_msg or "limit" in error_msg or "freq" in error_msg:
+                raise RateLimitError(f"Tushare 请求限流: {e}") from e
+            elif "timeout" in error_msg or "timed out" in error_msg:
+                raise TimeoutError(f"Tushare 请求超时: {e}") from e
+            elif "500" in error_msg or "502" in error_msg or "503" in error_msg:
+                raise ServerError(f"Tushare 服务端错误: {e}") from e
+            elif "connect" in error_msg or "network" in error_msg or "dns" in error_msg:
+                raise NetworkError(f"Tushare 网络错误: {e}") from e
+            else:
+                # 其他异常不重试，直接抛出
+                raise
 
-        # 调用 Tushare API 获取申万行业指数日行情
-        df: pd.DataFrame = pro.sw_daily(trade_date=trade_date)
+    def _transform(
+        self, df: pd.DataFrame, params: SwIndustryFetchParams
+    ) -> list[SwIndustryItem]:
+        """将原始 API 响应转换为业务模型
 
+        Args:
+            df: 原始 API 响应 DataFrame
+            params: 获取参数
+
+        Returns:
+            申万行业列表
+        """
         if df is None or df.empty:
-            return SwIndustryFetchResult(
-                trade_date=trade_date,
-                level=params.level,
-                data_source="Tushare",
-                items=[],
-            )
+            return []
 
         # 行业层级筛选
         df = self._filter_by_level(df, params.level)
@@ -90,12 +128,7 @@ class SwIndustryTushareFetcher(
             item = self._parse_row(idx, row)
             items.append(item)
 
-        return SwIndustryFetchResult(
-            trade_date=trade_date,
-            level=params.level,
-            data_source="Tushare",
-            items=items,
-        )
+        return items
 
     def _filter_by_level(self, df: pd.DataFrame, level: str) -> pd.DataFrame:
         """按行业层级筛选
@@ -109,13 +142,13 @@ class SwIndustryTushareFetcher(
         """
         if level == "L1":
             # 一级行业：代码以 801 开头
-            df = df[df["ts_code"].str.startswith("801")]
+            df = df[df["ts_code"].str.startswith("801")]  # type: ignore[assignment]
         elif level == "L2":
             # 二级行业：代码以 801 开头
-            df = df[df["ts_code"].str.startswith("801")]
+            df = df[df["ts_code"].str.startswith("801")]  # type: ignore[assignment]
         elif level == "L3":
             # 三级行业：代码以 85 开头
-            df = df[df["ts_code"].str.startswith("85")]
+            df = df[df["ts_code"].str.startswith("85")]  # type: ignore[assignment]
         return df
 
     def _calculate_turnover_rate(self, df: pd.DataFrame) -> pd.DataFrame:
@@ -182,3 +215,50 @@ class SwIndustryTushareFetcher(
             pe=round(float(getattr(row, "pe", 0) or 0), 2),
             pb=round(float(getattr(row, "pb", 0) or 0), 2),
         )
+
+    async def fetch(self, params: SwIndustryFetchParams) -> SwIndustryFetchResult:
+        """获取申万行业行情数据
+
+        Args:
+            params: 获取参数
+
+        Returns:
+            申万行业获取结果
+        """
+        # 处理日期参数
+        trade_date = params.trade_date
+        if trade_date is None:
+            trade_date = datetime.now().strftime("%Y%m%d")
+
+        # 调用 API 获取原始数据
+        df = self._call_api(trade_date)
+
+        # 转换数据
+        items = self._transform(df, params)
+
+        return SwIndustryFetchResult(
+            trade_date=trade_date,
+            level=params.level,
+            data_source="Tushare",
+            items=items,
+        )
+
+
+if __name__ == "__main__":
+    import asyncio
+
+    async def main() -> None:
+        """调试入口"""
+        fetcher = SwIndustryTushareFetcher()
+        result = await fetcher.fetch(SwIndustryFetchParams(top=10))
+        print(f"数据源: {result.data_source}")
+        print(f"日期: {result.trade_date}")
+        print(f"层级: {result.level}")
+        print(f"数量: {len(result.items)}")
+        for item in result.items[:5]:
+            print(
+                f"  {item.rank}. {item.board_name} ({item.board_code}) "
+                f"涨跌幅: {item.change_pct}%"
+            )
+
+    asyncio.run(main())

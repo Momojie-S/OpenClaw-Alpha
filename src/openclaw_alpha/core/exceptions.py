@@ -63,3 +63,89 @@ class NoAvailableFetcherError(Exception):
     def __init__(self, data_type: str) -> None:
         self.data_type = data_type
         super().__init__(f"数据类型 '{data_type}' 没有可用的 Fetcher")
+
+
+# =============================================================================
+# API 重试相关异常
+# =============================================================================
+
+
+class RetryableError(Exception):
+    """可重试异常基类
+
+    临时性故障，重试可能成功。所有可重试异常应继承此类。
+    """
+
+    pass
+
+
+class RateLimitError(RetryableError):
+    """请求限流异常
+
+    当 API 请求频率超过限制时抛出（HTTP 429）。
+    """
+
+    pass
+
+
+class TimeoutError(RetryableError):
+    """请求超时异常
+
+    当 API 请求超时时抛出。
+    """
+
+    pass
+
+
+class ServerError(RetryableError):
+    """服务端错误异常
+
+    当 API 返回服务端错误时抛出（HTTP 5xx）。
+    """
+
+    pass
+
+
+class NetworkError(RetryableError):
+    """网络连接异常
+
+    当网络连接出现问题时抛出。
+    """
+
+    pass
+
+
+class AuthenticationError(Exception):
+    """认证失败异常
+
+    当 API 认证失败时抛出（HTTP 401）。此异常不可重试。
+    """
+
+    pass
+
+
+class PermissionError(Exception):
+    """权限不足异常
+
+    当 API 请求权限不足时抛出（HTTP 403）。此异常不可重试。
+    """
+
+    pass
+
+
+class NotFoundError(Exception):
+    """资源不存在异常
+
+    当请求的资源不存在时抛出（HTTP 404）。此异常不可重试。
+    """
+
+    pass
+
+
+class ValidationError(Exception):
+    """参数验证失败异常
+
+    当请求参数验证失败时抛出（HTTP 400）。此异常不可重试。
+    """
+
+    pass
