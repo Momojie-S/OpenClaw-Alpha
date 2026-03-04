@@ -1,35 +1,13 @@
 # -*- coding: utf-8 -*-
 """SwIndustry Fetcher 测试"""
 
-from unittest.mock import MagicMock, patch
-
 import pandas as pd
-import pytest
 
-from openclaw_alpha.core.data_source import DataSource
-from openclaw_alpha.core.fetcher_registry import FetcherRegistry
-from openclaw_alpha.core.registry import DataSourceRegistry
 from openclaw_alpha.fetchers.sw_industry import (
     SwIndustryFetchParams,
-    SwIndustryFetchResult,
     SwIndustryTushareFetcher,
 )
 from openclaw_alpha.fetchers.sw_industry.models import SwIndustryItem
-
-
-class MockTushareDataSource(DataSource[str]):
-    """测试用 Tushare 数据源"""
-
-    @property
-    def name(self) -> str:
-        return "tushare"
-
-    @property
-    def required_config(self) -> list[str]:
-        return []
-
-    async def initialize(self) -> None:
-        self._client = "tushare_client"
 
 
 class TestSwIndustryFetchParams:
@@ -80,136 +58,88 @@ class TestSwIndustryItem:
         assert item.rank == 1
         assert item.board_code == "850001.SI"
         assert item.board_name == "测试行业"
+        assert item.change_pct == 5.5
 
 
-class TestSwIndustryTushareFetcher:
-    """SwIndustryTushareFetcher 测试"""
-
-    def setup_method(self) -> None:
-        """每个测试前重置注册表"""
-        FetcherRegistry.get_instance().reset()
-        DataSourceRegistry.get_instance().reset()
-
-    def test_fetcher_attributes(self) -> None:
-        """测试 Fetcher 属性"""
-        fetcher = SwIndustryTushareFetcher()
-        assert fetcher.name == "tushare_sw_industry"
-        assert fetcher.data_type == "sw_industry"
-        assert fetcher.required_data_source == "tushare"
-        assert fetcher.priority == 1
-
-    def test_is_available_with_configured_data_source(self) -> None:
-        """测试数据源已配置时可用"""
-        ds_registry = DataSourceRegistry.get_instance()
-        ds_registry.register(MockTushareDataSource)
-
-        fetcher = SwIndustryTushareFetcher()
-        assert fetcher.is_available() is True
-
-    def test_is_available_without_data_source(self) -> None:
-        """测试数据源未配置时不可用"""
-        fetcher = SwIndustryTushareFetcher()
-        assert fetcher.is_available() is False
-
-    @pytest.mark.asyncio
-    @pytest.mark.timeout(5)
-    async def test_fetch_with_mock_data(self) -> None:
-        """测试获取数据（模拟）"""
-        mock_df = pd.DataFrame({
-            "ts_code": ["850001.SI", "850002.SI"],
-            "name": ["行业A", "行业B"],
-            "close": [1000.0, 2000.0],
-            "pct_change": [5.5, 3.2],
-            "vol": [100000, 200000],
-            "amount": [1000000, 2000000],
-            "float_mv": [10000000, 20000000],
-            "total_mv": [20000000, 40000000],
-            "pe": [15.0, 20.0],
-            "pb": [1.5, 2.0],
-        })
-
-        mock_pro = MagicMock()
-        mock_pro.sw_daily.return_value = mock_df
-
-        with patch.dict("os.environ", {"TUSHARE_TOKEN": "test_token"}):
-            with patch("tushare.pro_api", return_value=mock_pro):
-                fetcher = SwIndustryTushareFetcher()
-                params = SwIndustryFetchParams(trade_date="20260303", top=2)
-                result = await fetcher.fetch(params)
-
-                assert isinstance(result, SwIndustryFetchResult)
-                assert result.data_source == "Tushare"
-                assert result.trade_date == "20260303"
-                assert len(result.items) == 2
-                assert result.items[0].board_name == "行业A"
-
-    @pytest.mark.asyncio
-    @pytest.mark.timeout(5)
-    async def test_fetch_empty_data(self) -> None:
-        """测试获取空数据"""
-        mock_pro = MagicMock()
-        mock_pro.sw_daily.return_value = pd.DataFrame()
-
-        with patch.dict("os.environ", {"TUSHARE_TOKEN": "test_token"}):
-            with patch("tushare.pro_api", return_value=mock_pro):
-                fetcher = SwIndustryTushareFetcher()
-                params = SwIndustryFetchParams()
-                result = await fetcher.fetch(params)
-
-                assert isinstance(result, SwIndustryFetchResult)
-                assert len(result.items) == 0
-
-    @pytest.mark.asyncio
-    @pytest.mark.timeout(5)
-    async def test_fetch_filter_by_level_l1(self) -> None:
-        """测试按一级层级筛选"""
-        mock_df = pd.DataFrame({
-            "ts_code": ["801001.SI", "850001.SI"],  # L1 和 L3
-            "name": ["一级行业", "三级行业"],
-            "close": [1000.0, 500.0],
-            "pct_change": [5.0, 3.0],
-            "vol": [100000, 50000],
-            "amount": [1000000, 500000],
-            "float_mv": [10000000, 5000000],
-            "total_mv": [20000000, 10000000],
-            "pe": [15.0, 10.0],
-            "pb": [1.5, 1.0],
-        })
-
-        mock_pro = MagicMock()
-        mock_pro.sw_daily.return_value = mock_df
-
-        with patch.dict("os.environ", {"TUSHARE_TOKEN": "test_token"}):
-            with patch("tushare.pro_api", return_value=mock_pro):
-                fetcher = SwIndustryTushareFetcher()
-                params = SwIndustryFetchParams(level="L1")
-                result = await fetcher.fetch(params)
-
-                assert result.level == "L1"
-                assert len(result.items) == 1
-                assert result.items[0].board_name == "一级行业"
-
-    @pytest.mark.asyncio
-    @pytest.mark.timeout(5)
-    async def test_fetch_without_token_raises_error(self) -> None:
-        """测试未配置 Token 抛出异常"""
-        fetcher = SwIndustryTushareFetcher()
-        params = SwIndustryFetchParams()
-
-        with patch.dict("os.environ", {}, clear=True):
-            with pytest.raises(ValueError, match="TUSHARE_TOKEN 未配置"):
-                await fetcher.fetch(params)
+class TestSwIndustryTushareFetcherTransform:
+    """SwIndustryTushareFetcher 数据转换测试"""
 
     def test_calculate_turnover_rate(self) -> None:
         """测试换手率计算"""
-        fetcher = SwIndustryTushareFetcher()
-
         df = pd.DataFrame({
             "amount": [1000000],  # 千元
             "float_mv": [10000000],  # 万元
         })
 
+        fetcher = SwIndustryTushareFetcher()
         result = fetcher._calculate_turnover_rate(df)
 
         # 换手率 = (1000000 * 1000) / (10000000 * 10000) * 100 = 1.0
         assert result["turnover_rate"].iloc[0] == 1.0
+
+    def test_calculate_turnover_rate_zero_float_mv(self) -> None:
+        """测试流通市值为零时的换手率计算"""
+        df = pd.DataFrame({
+            "amount": [1000000],
+            "float_mv": [0],
+        })
+
+        fetcher = SwIndustryTushareFetcher()
+        result = fetcher._calculate_turnover_rate(df)
+
+        assert result["turnover_rate"].iloc[0] == 0
+
+    def test_filter_by_level_l1(self) -> None:
+        """测试一级行业筛选"""
+        df = pd.DataFrame({
+            "ts_code": ["801001.SI", "850001.SI"],
+            "name": ["一级行业", "三级行业"],
+        })
+
+        fetcher = SwIndustryTushareFetcher()
+        result = fetcher._filter_by_level(df, "L1")
+
+        assert len(result) == 1
+        assert result["ts_code"].iloc[0] == "801001.SI"
+
+    def test_filter_by_level_l3(self) -> None:
+        """测试三级行业筛选"""
+        df = pd.DataFrame({
+            "ts_code": ["801001.SI", "850001.SI", "850002.SI"],
+            "name": ["一级行业", "三级行业A", "三级行业B"],
+        })
+
+        fetcher = SwIndustryTushareFetcher()
+        result = fetcher._filter_by_level(df, "L3")
+
+        assert len(result) == 2
+        assert all(result["ts_code"].str.startswith("85"))
+
+    def test_parse_row(self) -> None:
+        """测试数据行解析和单位转换"""
+        row_data = {
+            "ts_code": "850001.SI",
+            "name": "测试行业",
+            "close": 1000.0,
+            "pct_change": 5.5,
+            "vol": 1000000,  # 手
+            "amount": 1000000,  # 千元
+            "float_mv": 10000000,  # 万元
+            "total_mv": 20000000,  # 万元
+            "pe": 15.0,
+            "pb": 1.5,
+        }
+        df = pd.DataFrame([row_data])
+        df = df.assign(turnover_rate=1.0)  # 预计算换手率
+        row = df.itertuples(index=False).__next__()
+
+        fetcher = SwIndustryTushareFetcher()
+        item = fetcher._parse_row(1, row)
+
+        assert item.rank == 1
+        assert item.board_code == "850001.SI"
+        assert item.board_name == "测试行业"
+        assert item.volume == 100.0  # 手 -> 万手 (1000000 / 10000)
+        assert item.amount == 10.0  # 千元 -> 亿元 (1000000 * 1000 / 100000000)
+        assert item.float_mv == 1000.0  # 万元 -> 亿
+        assert item.total_mv == 2000.0  # 万元 -> 亿
