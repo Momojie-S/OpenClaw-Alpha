@@ -1,5 +1,7 @@
 # 策略框架设计
 
+> **v2.0 - 2026-03-04**：扩展为包含 DataFetcher、DataProcessor、FetcherRegistry 的分层架构
+
 ## 设计目标
 
 为 OpenClaw 提供一套统一的策略执行框架，解决以下问题：
@@ -8,6 +10,8 @@
 - 同一策略可以有多种实现方式，依赖不同的数据源
 - 运行时自动选择当前环境可用的实现
 - 策略调用方无需关心具体使用了哪个数据源
+- **v2.0 新增**：职责分离，数据获取（DataFetcher）与数据加工（DataProcessor）解耦
+- **v2.0 新增**：权限自动推导，按 data_type 分组计算
 
 ## 核心概念
 
@@ -44,11 +48,72 @@
 
 **异步执行**：所有策略的 `run()` 方法都是异步的，适应 I/O 密集型的数据获取场景。
 
+### 数据获取器（DataFetcher）- v2.0 新增
+
+DataFetcher 专门负责数据获取，一个实现只用一种数据源。
+
+**关键属性**：
+- `name` - Fetcher 标识，如 `tushare_concept`
+- `data_type` - 数据类型，如 `concept_board`（按此分组，同组可互换）
+- `required_data_source` - 需要的数据源名称（单元素）
+- `priority` - 优先级（数值越大越优先）
+
+**运行时行为**：
+1. 从 DataSourceRegistry 获取数据源客户端
+2. 调用 API 获取原始数据
+3. 转换为标准格式返回
+
+**示例**：
+```
+concept_board 类型下可有两个实现：
+  - TushareConceptFetcher（priority=1，优先）
+  - AkshareConceptFetcher（priority=0，备选）
+```
+
+### 数据加工器（DataProcessor）- v2.0 新增
+
+DataProcessor 组合多个 Fetcher，只做数据加工，不直接获取数据。
+
+**关键属性**：
+- `name` - Processor 标识
+- `required_fetchers` - 需要的 Fetcher 名称列表
+
+**运行时行为**：
+1. 从 FetcherRegistry 获取声明的 Fetcher
+2. 检查每个 Fetcher 的数据源是否可用
+3. 选择可用的 Fetcher 调用 fetch() 获取数据
+4. 执行加工逻辑
+
+**权限自动推导**：
+- 按 data_type 分组，组内 OR（同类型 Fetcher 任一可用即可）
+- 组间 AND（不同类型的 Fetcher 都需要可用）
+
+### Fetcher 注册表（FetcherRegistry）- v2.0 新增
+
+全局单例，管理所有 Fetcher 实例。
+
+**关键方法**：
+- `register(fetcher)` - 注册 Fetcher
+- `get(name)` - 按名称获取
+- `get_by_data_type(data_type)` - 按数据类型获取所有实现
+- `get_available(data_type)` - 获取数据类型下所有可用的 Fetcher
+
+### 数据格式约定 - v2.0 新增
+
+**用 `name` 关联，不用 `code`**：
+- 不同数据源的代码格式不同（如 Tushare: `000001.SZ`，AKShare: `000001`）
+- 使用 `board_name` / `stock_name` 作为跨数据源关联字段
+- `code` 仅作为数据源内部标识
+
 ### 异常
 
 - **NoAvailableImplementationError**：当所有实现的数据源都不可用时抛出
+- **NoAvailableFetcherError** - v2.0 新增：当某数据类型的所有 Fetcher 都不可用时抛出
+- **DuplicateFetcherError** - v2.0 新增：注册重名 Fetcher 时抛出
 
 ## 类层级结构
+
+### v1.0 - Strategy 模式
 
 框架提供三个核心组件，业务层实现具体的数据源和策略。
 
@@ -69,7 +134,39 @@ StockQuoteStrategy      extends Strategy（入口角色）
 └── StockQuoteAkshare   extends Strategy（实现角色）
 ```
 
+### v2.0 - Fetcher + Processor 模式（推荐）
+
+新增三个核心组件，实现职责分离。
+
+```
+框架层（core/）
+────────────────────────────────────
+DataSourceRegistry      数据源注册表（全局单例）
+FetcherRegistry         Fetcher 注册表（全局单例）
+DataSource<TClient>     数据源基类
+DataFetcher<TInput,TOutput>   数据获取器基类
+DataProcessor<TInput,TOutput> 数据加工器基类
+Strategy<TInput,TOutput>      策略基类（兼容保留）
+
+业务层（实现）
+────────────────────────────────────
+TushareDataSource       extends DataSource
+AkshareDataSource       extends DataSource
+
+# Fetcher 实现（按 data_type 组织）
+ConceptTushareFetcher   extends DataFetcher
+ConceptAkshareFetcher   extends DataFetcher
+SwIndustryTushareFetcher extends DataFetcher
+
+# Processor 实现（按业务场景组织）
+IndustryTrendProcessor  extends DataProcessor
+```
+
+**推荐使用 v2.0 模式**，职责更清晰，权限更精确。
+
 ## 目录结构
+
+### v1.0 - Strategy 模式
 
 ```
 src/openclaw_alpha/
@@ -93,10 +190,53 @@ src/openclaw_alpha/
         └── akshare.py         # StockQuoteAkshare（实现）
 ```
 
-**设计原则**：
-- 每个策略是独立的 package，入口文件统一暴露接口
-- 实现文件独立，便于维护和测试
-- 新增策略只需新建 package，不影响现有代码
+### v2.0 - Fetcher + Processor 模式
+
+```
+src/openclaw_alpha/
+├── core/                      # 框架核心（基类）
+│   ├── __init__.py
+│   ├── exceptions.py          # 自定义异常（扩展）
+│   ├── registry.py            # DataSourceRegistry
+│   ├── fetcher_registry.py    # FetcherRegistry（新增）
+│   ├── data_source.py         # DataSource 基类
+│   ├── fetcher.py             # DataFetcher 基类（新增）
+│   └── processor.py           # DataProcessor 基类（新增）
+│
+├── data_sources/              # 数据源实现
+│   ├── __init__.py
+│   ├── tushare.py
+│   └── akshare.py
+│
+├── fetchers/                  # 数据获取器（新增）
+│   ├── __init__.py
+│   ├── concept_board/         # 按 data_type 组织
+│   │   ├── __init__.py
+│   │   ├── models.py          # 数据模型
+│   │   ├── tushare.py         # Tushare 实现
+│   │   └── akshare.py         # AKShare 实现
+│   └── sw_industry/
+│       ├── __init__.py
+│       ├── models.py
+│       └── tushare.py
+│
+├── processors/                # 数据加工器（新增）
+│   ├── __init__.py
+│   └── industry_trend/        # 按业务场景组织
+│       ├── __init__.py
+│       ├── models.py
+│       └── processor.py
+│
+└── strategies/                # 策略目录（兼容保留）
+    └── stock_quote/
+        ├── __init__.py
+        └── ...
+```
+
+**组织原则**：
+- Fetcher 按 `data_type` 组织，同一类型多个实现放在同一目录
+- Processor 按业务场景组织，一个场景一个目录
+- Strategy 保留用于兼容，新功能建议用 Fetcher + Processor
 
 ## 基类接口定义
 
@@ -442,3 +582,155 @@ class DuplicateDataSourceError(Exception):
 - 不同数据源覆盖不同市场（A股 vs 港股）
 
 这种设计允许策略根据实际能力提供"完整版"和"精简版"两种实现，当某些数据源不可用时自动降级。
+
+---
+
+## v2.0 新增设计决策
+
+### 为什么分离 DataFetcher 和 DataProcessor？
+
+| 维度 | DataFetcher | DataProcessor |
+|------|-------------|---------------|
+| 职责 | 获取数据 | 加工数据 |
+| 数据源 | 一个实现只用一种 | 不直接使用 |
+| 权限 | 单一数据源 | 组合逻辑运算 |
+| 复用 | 高（按 data_type） | 低（业务特定） |
+
+分离后：Fetcher 可跨 Processor 复用，权限声明更精确，测试更容易。
+
+### 为什么 DataProcessor 用 `required_fetchers` 而非 `required_data_types`？
+
+**当前决策**：使用 `required_fetchers`（Fetcher 名称列表）
+
+**原因**：
+- 更明确：Processor 直接声明需要的 Fetcher 名称
+- 适合当前阶段：简化设计，减少抽象层
+- 易于调试：可以精确定位使用了哪个 Fetcher
+
+**未来考虑**：如果需要更灵活的自动选择，可改为 `required_data_types`，运行时自动查找可用的 Fetcher。
+
+### 为什么用 name 关联而非 code？
+
+**问题**：不同数据源的代码格式不同
+- Tushare: `000001.SZ`
+- AKShare: `000001`
+
+**决策**：用 `board_name` / `stock_name` 作为关联字段
+
+**原因**：
+- 名称在不同数据源间更稳定
+- 简单直接，无需处理代码格式转换
+
+**风险**：名称可能存在细微差异，但板块/股票名称重复和变更的概率很低，可接受。
+
+### 为什么不一次性迁移所有现有实现？
+
+**决策**：渐进式迁移，优先迁移核心功能
+
+**原因**：
+- 降低风险：避免大规模重构引入问题
+- 验证设计：先让新架构在部分场景验证
+- 逐步完善：根据使用反馈调整设计
+
+**当前状态**：
+- ✅ board_concept 命令已迁移到 Fetcher
+- ⏸️ sw_industry 命令待迁移
+- ⏸️ 其他命令按需迁移
+
+---
+
+## v2.0 新增设计决策
+
+### 为什么分离 DataFetcher 和 DataProcessor？
+
+| 维度 | DataFetcher | DataProcessor |
+|------|-------------|---------------|
+| 职责 | 获取数据 | 加工数据 |
+| 数据源 | 一个实现只用一种 | 不直接使用 |
+| 权限 | 单一数据源 | 组合逻辑运算 |
+| 复用 | 高（按 data_type） | 低（业务特定） |
+
+分离后：Fetcher 可跨 Processor 复用，权限声明更精确，测试更容易。
+
+### 为什么 DataProcessor 用 required_fetchers 而非 required_data_types？
+
+**采用 `required_fetchers`**：Processor 直接声明需要的 Fetcher 名称。
+
+**原因**：
+- **更明确**：直接知道用了哪些 Fetcher，没有歧义
+- **适合当前阶段**：简化设计，减少抽象层
+- **易于调试**：从声明就能看出依赖关系
+
+**示例**：
+```python
+class IndustryTrendProcessor:
+    required_fetchers = [
+        "tushare_concept",  # 或 "akshare_concept"
+        "tushare_sw_industry",
+    ]
+```
+
+**vs `required_data_types` 方案**：
+```python
+class IndustryTrendProcessor:
+    required_data_types = ["concept_board", "sw_industry"]
+    # 运行时从 Registry 获取该类型的所有 Fetcher
+```
+
+`required_data_types` 更灵活但更抽象，`required_fetchers` 更直接更适合当前阶段。
+
+### 为什么用 name 关联而非 code？
+
+**问题**：不同数据源的代码格式不同
+- Tushare: `000001.SZ`, `600000.SH`
+- AKShare: `000001`, `600000`
+
+**解决**：用 `board_name` / `stock_name` 关联
+- 名称在不同数据源间更稳定
+- 简单直接，无需处理代码格式转换
+
+**风险**：名称可能存在细微差异，但板块/股票名称重复和变更的概率很低，可接受。
+
+### 为什么不一次性迁移所有现有实现？
+
+**决策**：渐进式迁移，优先迁移核心功能
+
+**原因**：
+- 降低风险：避免大规模重构引入问题
+- 验证设计：先让新架构在部分场景验证
+- 逐步完善：根据使用反馈调整设计
+
+**当前状态**：
+- ✅ board_concept 命令已迁移到 Fetcher
+- ⏸️ sw_industry 命令待迁移
+- ⏸️ 其他命令按需迁移
+
+---
+
+## 迁移路径
+
+### v1.0 → v2.0
+
+**保留**：
+- DataSource 基类和 Registry
+- Strategy 基类（兼容）
+- 现有 strategies/ 目录
+
+**新增**：
+- DataFetcher 基类和 FetcherRegistry
+- DataProcessor 基类
+- fetchers/ 目录
+- processors/ 目录
+
+**迁移步骤**：
+1. 新功能用 Fetcher + Processor 实现
+2. 逐步将高频使用的 Strategy 改为 Fetcher + Processor
+3. 低频使用的 Strategy 保持不变
+4. 最终两种模式共存，根据场景选择
+
+---
+
+## 参考资料
+
+- [OpenSpec specs](../../openspec/specs/) - 当前行为规范
+- [开发规范](../standards/development-standard.md)

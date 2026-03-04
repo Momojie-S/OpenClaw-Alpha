@@ -5,6 +5,7 @@
 """
 
 import argparse
+import asyncio
 import json
 import sys
 from datetime import datetime
@@ -13,93 +14,88 @@ from typing import Any
 import akshare as ak
 import pandas as pd
 
+from openclaw_alpha.core.exceptions import NoAvailableFetcherError
+from openclaw_alpha.core.fetcher_registry import FetcherRegistry
+from openclaw_alpha.fetchers.concept_board import (
+    ConceptBoardAkshareFetcher,
+    ConceptBoardFetchParams,
+)
+
 
 def get_concept_board_data(
     top: int = 20, sort_by: str = "change_pct"
 ) -> dict[str, Any]:
     """获取概念板块行情数据.
 
+    使用 Fetcher 模式获取数据，保持向后兼容。
+
     Args:
         top: 返回前 N 个板块，默认 20
         sort_by: 排序字段，支持 change_pct（涨跌幅）、amount（成交额）、volume（成交量）、turnover（换手率）
 
     Returns:
-        包含行情数据的字典，格式如下：
-        {
-            "success": true,
-            "timestamp": "2026-03-02T10:30:00",
-            "trade_date": "2026-03-02",
-            "count": 20,
-            "data": [...]
-        }
+        包含行情数据的字典
     """
+    return asyncio.run(_get_concept_board_data_async(top, sort_by))
+
+
+async def _get_concept_board_data_async(
+    top: int, sort_by: str
+) -> dict[str, Any]:
+    """获取概念板块行情数据（异步实现）"""
     try:
-        # 调用 AKShare API 获取概念板块数据（东方财富数据源）
-        df: pd.DataFrame = ak.stock_board_concept_name_em()
+        # 注册 Akshare Fetcher（如果尚未注册）
+        registry = FetcherRegistry.get_instance()
+        try:
+            registry.get("akshare_concept")
+        except KeyError:
+            registry.register(ConceptBoardAkshareFetcher())
 
-        if df is None or df.empty:
-            return {
-                "success": False,
-                "error": "未获取到概念板块数据",
-                "timestamp": datetime.now().strftime("%Y-%m-%dT%H:%M:%S"),
-            }
+        # 使用 FetcherRegistry 获取可用的 Fetcher
+        fetcher = registry.get_available("concept_board")
+        if not fetcher:
+            raise NoAvailableFetcherError("concept_board")
 
-        # 东方财富返回字段映射：
-        # 板块代码, 板块名称, 最新价, 涨跌幅, 涨跌额, 成交量, 成交额, 换手率, 上涨家数, 下跌家数, 领涨股票, 领涨涨幅, 总市值
+        params = ConceptBoardFetchParams(
+            top=top,
+            sort_by=sort_by,
+        )
+        result = await fetcher[0].fetch(params)
 
-        # 确定排序字段
-        sort_field_map = {
-            "change_pct": "涨跌幅",
-            "amount": "总成交额",
-            "volume": "总成交量",
-            "turnover": "换手率",
-        }
-        sort_column = sort_field_map.get(sort_by, "涨跌幅")
-
-        # 按排序字段降序排列
-        if sort_column in df.columns:
-            # 处理可能的字符串类型数据
-            df[sort_column] = pd.to_numeric(df[sort_column], errors="coerce")
-            df = df.sort_values(by=sort_column, ascending=False)
-
-        # 取前 N 个
-        df = df.head(top)
-
-        # 构建结果数据
-        data_list: list[dict[str, Any]] = []
-        for idx, row in enumerate(df.itertuples(), start=1):
-            item = {
-                "rank": idx,
-                "board_code": str(getattr(row, "板块代码", "")),
-                "board_name": str(getattr(row, "板块名称", "")),
-                "price": round(float(getattr(row, "最新价", 0) or 0), 2),
-                "change_pct": round(float(getattr(row, "涨跌幅", 0) or 0), 2),
-                "change": round(float(getattr(row, "涨跌额", 0) or 0), 2),
-                "volume": round(float(getattr(row, "总成交量", 0) or 0), 2),
-                "amount": round(float(getattr(row, "总成交额", 0) or 0), 2),
-                "turnover_rate": round(float(getattr(row, "换手率", 0) or 0), 2),
-                "up_count": int(getattr(row, "上涨家数", 0) or 0),
-                "down_count": int(getattr(row, "下跌家数", 0) or 0),
-                "leader_name": str(getattr(row, "领涨股票", "")),
-                "leader_change": round(
-                    float(getattr(row, "领涨股票_涨跌幅", 0) or 0), 2
-                ),
-                "total_mv": round(float(getattr(row, "总市值", 0) or 0), 2),
-            }
-            data_list.append(item)
-
-        # 获取交易日期（当天）
-        trade_date = datetime.now().strftime("%Y-%m-%d")
+        # 转换为命令返回格式
+        items = []
+        for item in result.items:
+            items.append(
+                {
+                    "rank": item.rank,
+                    "board_code": item.board_code,
+                    "board_name": item.board_name,
+                    "price": item.price,
+                    "change_pct": item.change_pct,
+                    "change": item.change,
+                    "volume": item.volume,
+                    "amount": item.amount,
+                    "turnover_rate": item.turnover_rate,
+                    "up_count": item.up_count,
+                    "down_count": item.down_count,
+                    "leader_name": item.leader_name,
+                    "leader_change": item.leader_change,
+                    "total_mv": item.total_mv,
+                    "data_source": result.data_source,
+                }
+            )
 
         return {
             "success": True,
             "timestamp": datetime.now().strftime("%Y-%m-%dT%H:%M:%S"),
-            "trade_date": trade_date,
-            "count": len(data_list),
-            "data_source": "东方财富",
-            "data": data_list,
+            "trade_date": result.trade_date,
+            "count": len(items),
+            "data_source": result.data_source,
+            "data": items,
         }
 
+    except NoAvailableFetcherError:
+        raise
     except Exception as e:
         return {
             "success": False,

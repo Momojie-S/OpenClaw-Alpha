@@ -9,15 +9,39 @@
       "Bash(git:*)"
     ]
   },
-  "enabledPlugins": {
-    "context7@claude-plugins-official": true,
-    "claude-md-management@claude-plugins-official": true,
-    "uv-pyright-lsp@onedragon-cc-plugins": true
-  },
   "hooks": {
     "Notification": [
       {
-        "matcher": "permission_prompt|idle_prompt",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/notify-echo.sh"
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/notify-echo.sh"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/notify-echo.sh"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
         "hooks": [
           {
             "type": "command",
@@ -36,5 +60,11 @@
         ]
       }
     ]
+  },
+  "enabledPlugins": {
+    "context7@claude-plugins-official": true,
+    "claude-md-management@claude-plugins-official": true,
+    "uv-pyright-lsp@onedragon-cc-plugins": true,
+    "skill-creator@claude-plugins-official": true
   }
 }

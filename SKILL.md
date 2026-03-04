@@ -39,24 +39,3 @@ uv run {baseDir}/scripts/get_quote.py --symbol 000001
 uv run {baseDir}/scripts/backtest.py --strategy sma --symbol 000001
 ```
 
-## API Token
-
-需要 [Tushare](https://tushare.pro) Token：
-
-```bash
-export TUSHARE_TOKEN=your_token_here
-```
-
-或在 `~/.openclaw/openclaw.json` 中配置：
-
-```json
-{
-  "skills": {
-    "openclaw-alpha": {
-      "env": {
-        "TUSHARE_TOKEN": "your_token_here"
-      }
-    }
-  }
-}
-```

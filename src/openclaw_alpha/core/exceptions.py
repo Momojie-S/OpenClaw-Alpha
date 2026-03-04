@@ -35,3 +35,31 @@ class NoAvailableImplementationError(Exception):
         super().__init__(
             f"策略 '{strategy_name}' 没有可用的实现。已检查的实现: [{impl_str}]"
         )
+
+
+class DuplicateFetcherError(Exception):
+    """Fetcher 名称重复异常
+
+    当尝试注册一个已存在名称的 Fetcher 时抛出。
+
+    Args:
+        name: 重复的 Fetcher 名称
+    """
+
+    def __init__(self, name: str) -> None:
+        self.name = name
+        super().__init__(f"Fetcher 名称已存在: {name}")
+
+
+class NoAvailableFetcherError(Exception):
+    """无可用 Fetcher 异常
+
+    当某个 data_type 没有可用的 Fetcher 时抛出。
+
+    Args:
+        data_type: 数据类型
+    """
+
+    def __init__(self, data_type: str) -> None:
+        self.data_type = data_type
+        super().__init__(f"数据类型 '{data_type}' 没有可用的 Fetcher")

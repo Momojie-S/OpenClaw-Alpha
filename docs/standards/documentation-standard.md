@@ -45,11 +45,41 @@
 ## 文档组织原则
 
 ### 按职责分类
+- **specs/**: 需求文档（遵循 [spec-standard.md](./spec-standard.md)）
+- **design/**: 设计文档（遵循 [design-standard.md](./design-standard.md)）
+- **references/**: 数据源、接口清单等参考资料（遵循 [api-doc-standard.md](./api-doc-standard.md)）
 - **architecture/**: 系统架构和技术选型
-- **modules/**: 功能模块的设计和接口定义
-- **features/**: 具体功能的设计思路和实现说明
-- **database/**: 数据库设计和安全要求
-- **manual/**: 产品使用手册和操作指南
+- **standards/**: 开发规范和文档规范
+
+### Skill 文档结构
+
+每个 skill 对应一个文档目录：
+
+```
+docs/industry-trend/
+  spec.md              # 当前完整需求
+  design.md            # 当前完整设计
+  
+  2026-03-03/          # 迭代 1（开发中可保留，完成后可删除）
+    spec.md            # 本次迭代需求
+    design.md          # 本次迭代设计
+  
+  2026-03-10/          # 迭代 2
+    spec.md
+    design.md
+```
+
+**迭代流程**：
+1. 启动迭代 → 新建日期目录 `yyyy-MM-dd/`
+2. 迭代期间 → 在日期目录下编写需求/设计
+3. 迭代完成 → 合并更新主文档（spec.md / design.md）
+4. 合并后 → 可删除日期目录（openspec/changes/ 有归档）
+
+**与 OpenSpec 的关系**：
+| 位置 | 内容 | 用途 |
+|------|------|------|
+| `docs/xxx/yyyy-MM-dd/` | 人可读的需求/设计 | 迭代过程 |
+| `openspec/changes/xxx/` | spec-driven 开发流程 | 机器可读 + 归档 |
 
 ### 命名规范
 - 使用 kebab-case 命名文件和目录

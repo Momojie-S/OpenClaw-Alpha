@@ -34,6 +34,7 @@
 - **运行测试**: 运行测试时必须使用 `uv run --env-file .env pytest ...`，因为环境变量中包含 `PYTHONPATH` 指向 src 目录
 - **按功能组组织测试**: 测试文件应按功能相关性组织。对于特别复杂的方法，可以单独创建测试文件；简单方法应合并到相关功能组的测试文件中
 - **异步测试装饰器**: 所有异步测试方法必须同时包含 `@pytest.mark.asyncio` 和 `@pytest.mark.timeout` 装饰器
+- **Mock 路径规则**: Mock 时 patch 模块被导入的位置，而非定义位置。例如：`patch("openclaw_alpha.fetchers.concept_board.akshare.ak.stock_board_concept_name_em")` 而非 `patch("ak.stock_board_concept_name_em")`
 - **临时文件**: 使用当前工作目录下的 `.temp` 目录来存储临时文件
 - **保证逻辑正确**: 除非源代码逻辑有错误，否则不能因为测试不通过而修改源代码
 - **诚实原则**: 当测试用例失败且不知道原因或如何修复时，应停下来询问下一步该怎么做
@@ -41,6 +42,15 @@
   - 使用 pytest fixture 的 `yield` 和 `finalizer` 机制确保测试后清理
   - 测试数据必须使用 `test_` 前缀标记（如 id 为 `test_user_123` 或 name 为 `test_session_abc`），便于识别和清理
 - **大模型选用**: 测试时如果需要使用真实的大模型，必须要使用 `ModelScope-Free` 下的 `moonshotai/Kimi-K2.5` 模型
+
+### DataFetcher 实现规范
+
+开发 DataFetcher 时，应遵循特定的实现和测试规范，详见 [fetcher-implementation-standard.md](fetcher-implementation-standard.md)。
+
+**核心原则**：
+- 分离 API 调用（`_call_api()`）和数据转换（`_transform()`）
+- 使用真实 API 调试，使用 mock 测试转换逻辑
+- 每个 Fetcher 只需 3-5 个转换测试用例
 
 ## 测试策略
 

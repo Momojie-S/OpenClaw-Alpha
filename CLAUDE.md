@@ -6,6 +6,17 @@
 
 @docs/project-overview.md
 
+### 数据获取架构
+
+项目采用 datafetcher/dataprocessor 分离架构：
+- **DataFetcher**: 负责从单一数据源获取特定类型数据，支持优先级排序
+- **DataProcessor**: 组合多个 Fetcher 获取数据，只做加工处理
+- **FetcherRegistry**: 全局单例，管理 Fetcher 注册和查询
+- 权限计算规则：同 data_type 内 OR，不同 data_type 间 AND
+- 渐进式迁移：不强制一次性迁移所有现有实现
+
+**Fetcher 实现规范**：详见 @docs/standards/fetcher-implementation-standard.md
+
 ## 开发规范
 
 @docs/standards/development-standard.md
@@ -13,6 +24,18 @@
 ## 文档规范
 
 @docs/standards/documentation-standard.md
+
+### 需求文档规范
+
+@docs/standards/spec-standard.md
+
+### 设计文档规范
+
+@docs/standards/design-standard.md
+
+### 外部 API 文档规范
+
+@docs/standards/api-doc-standard.md
 
 ## 开发流程规范
 
@@ -33,8 +56,11 @@
 5. 验证通过后，使用 `opsx:archive` 进行归档（禁止使用 `--no-validate`）
 6. 提交到 Github 并创建 PR
 
-### 归档规范
+### openspec 使用规范
 
+- 创建tasks时，须按照其他规范文档，按步骤创建task。例如:
+  - 一个DataFetcher的实现，编写代码后，需要真实调试后，再编写后续的其他的测试。
+- 归档前先执行 `/opsx:sync` 同步 delta specs 到 main specs
 - 禁止使用移动文件夹或者复制文件夹的方式进行归档
 - 禁止使用 `--skip-specs`
 

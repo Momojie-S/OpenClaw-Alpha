@@ -1,45 +1,53 @@
 ---
 name: industry-trend
-description: 产业热度追踪。当用户询问行业板块、概念板块、题材热点、市场热度、哪个板块领涨时触发。
+description: 产业热度追踪。当用户询问行业板块、概念板块、题材热点、市场热度、哪个板块领涨、申万行业时触发。
 metadata:
   {
     "openclaw":
       {
         "emoji": "📈",
-        "requires": { "bins": ["uv"] }
+        "requires": { "bins": ["uv"], "env": ["TUSHARE_TOKEN"] }
       }
   }
 ---
 
 # 产业热度追踪
 
-追踪 A 股市场行业/概念板块热度，识别热点和趋势。
+追踪 A 股市场热度，识别热点和趋势。
+
+**工作流程：数据脚本获取数据 → Echo 分析总结 → 输出报告**
 
 ## 数据脚本
 
-| 脚本 | 功能 | 数据源 |
-|------|------|--------|
-| `board_industry.py` | 行业板块行情 | 同花顺 |
-| `board_concept.py` | 概念板块行情 | 东方财富 |
-
-*后续会持续增加更多数据接口*
+| 脚本 | 功能 | 数据源 | 需要认证 |
+|------|------|--------|----------|
+| `sw_industry.py` | 申万行业指数 | Tushare | 是（120积分）|
+| `board_concept.py` | 概念板块行情 | 东方财富 | 否 |
 
 ## 使用
 
-```bash
-# 行业板块 Top 20
-uv run --directory {baseDir}/.. python src/openclaw_alpha/commands/board_industry.py [--top N] [--sort FIELD]
+### 申万行业（推荐）
 
-# 概念板块 Top 20
+```bash
+uv run --env-file {baseDir}/../.env --directory {baseDir}/.. python src/openclaw_alpha/commands/sw_industry.py [--date DATE] [--level LEVEL] [--top N]
+```
+
+**参数**：
+- `--date` - 交易日期 (YYYYMMDD)，默认当日
+- `--level` - 行业层级 (L1/L2/L3)，默认 L3
+- `--top` - 返回数量，默认 50
+
+**注意**：必须使用 `--env-file .env` 加载 TUSHARE_TOKEN
+
+### 概念板块
+
+```bash
 uv run --directory {baseDir}/.. python src/openclaw_alpha/commands/board_concept.py [--top N] [--sort FIELD]
 ```
 
-### 参数
-
-| 参数 | 默认值 | 说明 |
-|------|--------|------|
-| --top | 20 | 返回前 N 个板块 |
-| --sort | change_pct | 排序字段 |
+**参数**：
+- `--top` - 返回数量，默认 20
+- `--sort` - 排序字段（change_pct/amount/turnover），默认 change_pct
 
 ## 输出格式
 
@@ -48,21 +56,47 @@ uv run --directory {baseDir}/.. python src/openclaw_alpha/commands/board_concept
 ```json
 {
   "success": true,
-  "timestamp": "2026-03-02T15:00:00",
-  "trade_date": "2026-03-02",
+  "timestamp": "2026-03-03T10:00:00",
+  "trade_date": "2026-03-03",
   "count": 20,
-  "data_source": "数据源",
+  "data_source": "Tushare",
   "data": [...]
 }
 ```
 
+## 字段说明
+
+### 申万行业
+
+| 字段 | 说明 |
+|------|------|
+| board_code | 指数代码 |
+| board_name | 行业名称 |
+| change_pct | 涨跌幅 |
+| turnover_rate | 换手率（可计算）|
+| amount | 成交额 |
+| float_mv | 流通市值 |
+| pe/pb | 估值指标 |
+
+### 概念板块
+
+| 字段 | 说明 |
+|------|------|
+| board_code | 板块代码 |
+| board_name | 板块名称 |
+| change_pct | 涨跌幅 |
+| turnover_rate | 换手率 |
+| up_count/down_count | 涨跌家数 |
+
+## 工作流程
+
+1. **获取数据** - 调用脚本获取结构化数据
+2. **分析总结** - Echo 基于数据进行大模型分析
+3. **输出报告** - 生成易读的热度报告
+
 ## 后续扩展
 
-- 股票热度排名
-- 资金流向
-- 板块成分股
-- 热度趋势分析
-
-## 数据源
-
-通过 AKShare，无需认证。
+- [ ] 概念板块资金流向
+- [ ] 股票热度排名
+- [ ] SQLite 历史存储
+- [ ] 热度趋势分析（环比）
