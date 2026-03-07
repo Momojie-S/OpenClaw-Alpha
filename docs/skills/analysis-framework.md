@@ -33,6 +33,7 @@
 | **index_analysis** | 6 大核心指数分析，判断大盘趋势 | Tushare |
 | **market_sentiment** | 涨跌停、资金流向，评估市场温度 | AKShare |
 | **margin_trading** | 融资融券分析，监控市场杠杆水平 | AKShare |
+| **option_analysis** | 期权 PCR + IV，判断市场多空情绪 | AKShare |
 
 ### 中观层
 
@@ -98,7 +99,7 @@
 
 **典型流程**：
 0. **综合** - market_overview 一键生成市场报告（可选）
-1. **宏观** - index_analysis 看指数，market_sentiment 看情绪，margin_trading 看杠杆
+1. **宏观** - index_analysis 看指数，market_sentiment 看情绪，margin_trading 看杠杆，option_analysis 看期权情绪
 2. **中观** - industry_trend 找热门板块，northbound_flow 看外资偏好
 3. **微观** - stock_screener 筛选个股，fundamental_analysis 看基本面，risk_alert 检查风险
 4. **事件** - news_driven_investment 找催化，limit_up_tracker 追踪热点
@@ -170,6 +171,7 @@ uv run --env-file .env python -m skills.industry_trend.scripts.crowdedness_proce
 
 | 能力 | 完成日期 | Skill |
 |------|----------|-------|
+| 期权情绪分析 | 2026-03-08 | option_analysis（PCR + IV） |
 | 财务健康三维度评分 | 2026-03-08 | fundamental_analysis（流动性+盈利质量） |
 | 量价关系分析 | 2026-03-08 | technical_indicators（volume_price_processor） |
 | 策略回测 | 2026-03-08 | backtest |
@@ -211,6 +213,19 @@ uv run --env-file .env python -m skills.industry_trend.scripts.crowdedness_proce
 | 产业链图谱 | 行业上下游关系 | 无免费 API | 📝 研究完成，延后开发 |
 
 详见：[产业链分析研究](../research/industry-chain-analysis.md)
+
+### P4 - 期权分析
+
+| 能力 | 说明 | 难点 | 状态 |
+|------|------|------|------|
+| 期权情绪分析 | PCR + 隐含波动率，判断市场情绪 | 低 | ✅ 已完成 |
+| 期权市场概况 | 各品种成交/持仓统计 | 低 | ✅ 已完成 |
+
+详见：[期权分析研究](../research/option-analysis-research.md)
+
+**已实现功能**：
+- 情绪分析：PCR 成交量/持仓量 + 情绪判断 + 信号生成
+- 市场概况：上交所/深交所期权统计汇总
 
 ---
 
