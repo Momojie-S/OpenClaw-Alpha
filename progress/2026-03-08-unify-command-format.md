@@ -43,13 +43,34 @@ OpenClaw-Alpha 的命令格式不统一：
 - [x] 验证模块方式可用 - `announcement_processor --help` 正常
 
 ## Phase 4: 提交
-- [ ] git commit
-- [ ] git push
+- [x] git commit - 762b2c6
+- [x] git push
 
 ## 状态
-- **当前阶段**：Phase 4
+- **当前阶段**：✅ 已完成
 - **进度**：正常
-- **下一步**：提交变更
+- **完成时间**：2026-03-08 02:15
+
+## 完成总结
+
+### 变更内容
+
+1. **命令格式统一**：15 个 SKILL.md 文件
+   - `python skills/xxx/scripts/yyy/yyy.py` → `python -m skills.xxx.scripts.yyy.yyy`
+   - 与 `daily-analysis-guide.md` 保持一致
+
+2. **特殊案例修复**：
+   - `news_helper.py` → `python -m skills.news_driven_investment.scripts.news_helper`
+   - `portfolio_processor/__main__.py` → `python -m skills.portfolio_analysis.scripts.portfolio_processor`
+
+### 提交记录
+
+- Commit: 762b2c6
+- 内容：docs: 统一 SKILL.md 命令格式为模块方式
+
+## 备注
+开始时间：2026-03-08 02:05
+完成时间：2026-03-08 02:15
 
 ## 备注
 开始时间：2026-03-08 02:05
