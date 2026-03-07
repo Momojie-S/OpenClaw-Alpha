@@ -176,50 +176,22 @@ class IndicatorProcessor:
         Returns:
             {"dif": float, "dea": float, "macd": float, "histogram": list}
         """
-        try:
-            import talib
+        import talib
 
-            close = self.df["close"].values
-            dif, dea, macd = talib.MACD(
-                close,
-                fastperiod=params["fast"],
-                slowperiod=params["slow"],
-                signalperiod=params["signal"],
-            )
+        close = self.df["close"].values
+        dif, dea, macd = talib.MACD(
+            close,
+            fastperiod=params["fast"],
+            slowperiod=params["slow"],
+            signalperiod=params["signal"],
+        )
 
-            # 获取最新值
-            return {
-                "dif": float(dif[-1]) if not np.isnan(dif[-1]) else 0.0,
-                "dea": float(dea[-1]) if not np.isnan(dea[-1]) else 0.0,
-                "macd": float(macd[-1]) if not np.isnan(macd[-1]) else 0.0,
-                "histogram": macd[-10:].tolist(),  # 最近 10 天的柱状图
-            }
-        except ImportError:
-            # 如果没有 talib，使用 pandas 计算
-            return self._calculate_macd_pandas(params)
-
-    def _calculate_macd_pandas(self, params: dict) -> dict:
-        """使用 pandas 计算 MACD（备选方案）"""
-        close = self.df["close"]
-
-        # EMA
-        ema_fast = close.ewm(span=params["fast"], adjust=False).mean()
-        ema_slow = close.ewm(span=params["slow"], adjust=False).mean()
-
-        # DIF
-        dif = ema_fast - ema_slow
-
-        # DEA
-        dea = dif.ewm(span=params["signal"], adjust=False).mean()
-
-        # MACD
-        macd = (dif - dea) * 2
-
+        # 获取最新值
         return {
-            "dif": float(dif.iloc[-1]),
-            "dea": float(dea.iloc[-1]),
-            "macd": float(macd.iloc[-1]),
-            "histogram": macd.iloc[-10:].tolist(),
+            "dif": float(dif[-1]) if not np.isnan(dif[-1]) else 0.0,
+            "dea": float(dea[-1]) if not np.isnan(dea[-1]) else 0.0,
+            "macd": float(macd[-1]) if not np.isnan(macd[-1]) else 0.0,
+            "histogram": macd[-10:].tolist(),  # 最近 10 天的柱状图
         }
 
     def _calculate_rsi(self, params: dict) -> dict:
@@ -231,40 +203,14 @@ class IndicatorProcessor:
         Returns:
             {"value": float, "series": list}
         """
-        try:
-            import talib
+        import talib
 
-            close = self.df["close"].values
-            rsi = talib.RSI(close, timeperiod=params["period"])
-
-            return {
-                "value": float(rsi[-1]) if not np.isnan(rsi[-1]) else 50.0,
-                "series": rsi[-10:].tolist(),
-            }
-        except ImportError:
-            return self._calculate_rsi_pandas(params)
-
-    def _calculate_rsi_pandas(self, params: dict) -> dict:
-        """使用 pandas 计算 RSI（备选方案）"""
-        close = self.df["close"]
-        period = params["period"]
-
-        # 计算价格变化
-        delta = close.diff()
-
-        # 分离上涨和下跌
-        gain = (delta.where(delta > 0, 0)).rolling(window=period).mean()
-        loss = (-delta.where(delta < 0, 0)).rolling(window=period).mean()
-
-        # 计算 RS
-        rs = gain / loss
-
-        # 计算 RSI
-        rsi = 100 - (100 / (1 + rs))
+        close = self.df["close"].values
+        rsi = talib.RSI(close, timeperiod=params["period"])
 
         return {
-            "value": float(rsi.iloc[-1]) if not np.isnan(rsi.iloc[-1]) else 50.0,
-            "series": rsi.iloc[-10:].tolist(),
+            "value": float(rsi[-1]) if not np.isnan(rsi[-1]) else 50.0,
+            "series": rsi[-10:].tolist(),
         }
 
     def _calculate_kdj(self, params: dict) -> dict:
@@ -276,66 +222,35 @@ class IndicatorProcessor:
         Returns:
             {"k": float, "d": float, "j": float, "series": dict}
         """
-        try:
-            import talib
+        import talib
 
-            high = self.df["high"].values
-            low = self.df["low"].values
-            close = self.df["close"].values
+        high = self.df["high"].values
+        low = self.df["low"].values
+        close = self.df["close"].values
 
-            # 计算随机指标
-            slowk, slowd = talib.STOCH(
-                high,
-                low,
-                close,
-                fastk_period=params["n"],
-                slowk_period=params["m1"],
-                slowk_matype=0,
-                slowd_period=params["m2"],
-                slowd_matype=0,
-            )
+        # 计算随机指标
+        slowk, slowd = talib.STOCH(
+            high,
+            low,
+            close,
+            fastk_period=params["n"],
+            slowk_period=params["m1"],
+            slowk_matype=0,
+            slowd_period=params["m2"],
+            slowd_matype=0,
+        )
 
-            # KDJ 的 J 线
-            j = 3 * slowk - 2 * slowd
-
-            return {
-                "k": float(slowk[-1]) if not np.isnan(slowk[-1]) else 50.0,
-                "d": float(slowd[-1]) if not np.isnan(slowd[-1]) else 50.0,
-                "j": float(j[-1]) if not np.isnan(j[-1]) else 50.0,
-                "series": {
-                    "k": slowk[-10:].tolist(),
-                    "d": slowd[-10:].tolist(),
-                    "j": j[-10:].tolist(),
-                },
-            }
-        except ImportError:
-            return self._calculate_kdj_pandas(params)
-
-    def _calculate_kdj_pandas(self, params: dict) -> dict:
-        """使用 pandas 计算 KDJ（备选方案）"""
-        high = self.df["high"]
-        low = self.df["low"]
-        close = self.df["close"]
-        n = params["n"]
-
-        # 计算 RSV
-        low_n = low.rolling(window=n).min()
-        high_n = high.rolling(window=n).max()
-        rsv = (close - low_n) / (high_n - low_n) * 100
-
-        # 计算 K、D、J
-        k = rsv.ewm(alpha=1 / params["m1"], adjust=False).mean()
-        d = k.ewm(alpha=1 / params["m2"], adjust=False).mean()
-        j = 3 * k - 2 * d
+        # KDJ 的 J 线
+        j = 3 * slowk - 2 * slowd
 
         return {
-            "k": float(k.iloc[-1]) if not np.isnan(k.iloc[-1]) else 50.0,
-            "d": float(d.iloc[-1]) if not np.isnan(d.iloc[-1]) else 50.0,
-            "j": float(j.iloc[-1]) if not np.isnan(j.iloc[-1]) else 50.0,
+            "k": float(slowk[-1]) if not np.isnan(slowk[-1]) else 50.0,
+            "d": float(slowd[-1]) if not np.isnan(slowd[-1]) else 50.0,
+            "j": float(j[-1]) if not np.isnan(j[-1]) else 50.0,
             "series": {
-                "k": k.iloc[-10:].tolist(),
-                "d": d.iloc[-10:].tolist(),
-                "j": j.iloc[-10:].tolist(),
+                "k": slowk[-10:].tolist(),
+                "d": slowd[-10:].tolist(),
+                "j": j[-10:].tolist(),
             },
         }
 
@@ -348,45 +263,19 @@ class IndicatorProcessor:
         Returns:
             {"upper": float, "middle": float, "lower": float, "price": float}
         """
-        try:
-            import talib
+        import talib
 
-            close = self.df["close"].values
+        close = self.df["close"].values
 
-            upper, middle, lower = talib.BBANDS(
-                close, timeperiod=params["period"], nbdevup=params["std"], nbdevdn=params["std"]
-            )
-
-            return {
-                "upper": float(upper[-1]) if not np.isnan(upper[-1]) else 0.0,
-                "middle": float(middle[-1]) if not np.isnan(middle[-1]) else 0.0,
-                "lower": float(lower[-1]) if not np.isnan(lower[-1]) else 0.0,
-                "price": float(close[-1]),
-            }
-        except ImportError:
-            return self._calculate_boll_pandas(params)
-
-    def _calculate_boll_pandas(self, params: dict) -> dict:
-        """使用 pandas 计算布林带（备选方案）"""
-        close = self.df["close"]
-        period = params["period"]
-        std_dev = params["std"]
-
-        # 中轨
-        middle = close.rolling(window=period).mean()
-
-        # 标准差
-        std = close.rolling(window=period).std()
-
-        # 上轨和下轨
-        upper = middle + std_dev * std
-        lower = middle - std_dev * std
+        upper, middle, lower = talib.BBANDS(
+            close, timeperiod=params["period"], nbdevup=params["std"], nbdevdn=params["std"]
+        )
 
         return {
-            "upper": float(upper.iloc[-1]) if not np.isnan(upper.iloc[-1]) else 0.0,
-            "middle": float(middle.iloc[-1]) if not np.isnan(middle.iloc[-1]) else 0.0,
-            "lower": float(lower.iloc[-1]) if not np.isnan(lower.iloc[-1]) else 0.0,
-            "price": float(close.iloc[-1]),
+            "upper": float(upper[-1]) if not np.isnan(upper[-1]) else 0.0,
+            "middle": float(middle[-1]) if not np.isnan(middle[-1]) else 0.0,
+            "lower": float(lower[-1]) if not np.isnan(lower[-1]) else 0.0,
+            "price": float(close[-1]),
         }
 
     def _calculate_ma(self, params: dict) -> dict:
