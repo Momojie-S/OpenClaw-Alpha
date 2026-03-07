@@ -61,6 +61,7 @@
 | **news_driven_investment** | 新闻驱动投资分析 | AKShare |
 | **limit_up_tracker** | 涨停板追踪（连板/炸板） | AKShare |
 | **announcement_analysis** | 上市公司公告解读 | AKShare |
+| **restricted_release** | 限售解禁风险监控 | AKShare |
 
 ### 组合层
 
@@ -112,6 +113,7 @@
 
 | 能力 | 完成日期 | Skill |
 |------|----------|-------|
+| 限售解禁风险监控 | 2026-03-08 | restricted_release |
 | 个股资金流向 | 2026-03-08 | stock_fund_flow |
 | 融资融券分析 | 2026-03-08 | margin_trading |
 | 综合分析 | 2026-03-08 | market_overview |
