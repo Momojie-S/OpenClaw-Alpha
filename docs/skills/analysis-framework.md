@@ -104,13 +104,39 @@
 
 | 维度 | 说明 | 理想状态 | 数据来源 |
 |------|------|----------|----------|
-| 景气度 | 行业盈利能力 | 高（ROE上行） | 财务数据（待开发） |
+| 景气度 | 行业盈利能力 | 高（估值趋势上升） | industry_trend（prosperity_processor） |
 | 趋势 | 价格走势强度 | 高（上涨） | industry_trend（heat_processor） |
 | 拥挤度 | 市场参与程度 | 低（未过热） | industry_trend（crowdedness_processor） |
 
-**黄金组合**：高趋势 + 低拥挤度 = 最佳入场机会
+**黄金三角**：高景气度 + 高热度 + 低拥挤度 = 最佳入场机会
 
 详见：[行业轮动分析研究](../research/sector-rotation-analysis.md)
+
+### 景气度使用示例
+
+```bash
+# 获取一级行业景气度
+uv run --env-file .env python -m skills.industry_trend.scripts.prosperity_processor.prosperity_processor \
+    --category L1 \
+    --top-n 10
+
+# 输出示例：
+# {
+#   "boards": [
+#     {
+#       "name": "电子",
+#       "pe": 35.2,
+#       "pb": 3.5,
+#       "pe_change_week": 2.5,
+#       "pb_change_week": 1.8,
+#       "valuation_trend": "稳定",
+#       "prosperity_score": 75.5,
+#       "level": "高景气"
+#     },
+#     ...
+#   ]
+# }
+```
 
 ### 拥挤度使用示例
 
@@ -136,6 +162,7 @@ uv run --env-file .env python -m skills.industry_trend.scripts.crowdedness_proce
 
 | 能力 | 完成日期 | Skill |
 |------|----------|-------|
+| 行业景气度 | 2026-03-08 | industry_trend（prosperity_processor） |
 | 行业轮动评分 | 2026-03-08 | industry_trend（rotation_score_processor） |
 | 板块拥挤度指标 | 2026-03-08 | industry_trend（crowdedness_processor） |
 | 限售解禁风险监控 | 2026-03-08 | restricted_release |
@@ -152,11 +179,7 @@ uv run --env-file .env python -m skills.industry_trend.scripts.crowdedness_proce
 
 ### P1 - 行业轮动
 
-| 能力 | 说明 | 难度 | 依赖 | 状态 |
-|------|------|------|------|------|
-| ~~拥挤度指标~~ | ~~换手率分位、成交额占比~~ | ~~低~~ | ~~现有数据可计算~~ | ✅ 已完成 |
-| ~~轮动评分~~ | ~~热度+拥挤度综合评分~~ | ~~低~~ | ~~现有数据~~ | ✅ 已完成 |
-| 行业景气度 | ROE趋势、利润增速追踪 | 中 | 财务数据 | 待开发 |
+~~所有 P1 能力已完成~~ ✅
 
 ### P2 - 高级功能
 
