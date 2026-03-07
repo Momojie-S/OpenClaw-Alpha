@@ -74,6 +74,31 @@ OpenClaw-Alpha/
 - **语言**: Python
 - **数据源**: AKShare, Tushare
 
+## 命令执行规范
+
+本项目使用 **`uv run`** 执行所有 Python 命令，而非直接使用 `python`。
+
+**原因**：
+- `uv run` 自动在项目虚拟环境中执行
+- 避免环境配置问题
+- 确保依赖一致性
+
+**命令格式**：
+```bash
+# 运行脚本
+uv run --env-file .env python skills/{skill_name}/scripts/{processor}/{processor}.py
+
+# 运行模块
+uv run --env-file .env python -m skills.{skill_name}.scripts.{processor}.{processor}
+
+# 运行测试
+uv run --env-file .env pytest tests/{path}/test_xxx.py
+```
+
+**注意**：
+- `--env-file .env` 用于加载环境变量（包括 PYTHONPATH）
+- 不要手动设置 PYTHONPATH
+
 ## 环境说明
 
 ### 临时文件
