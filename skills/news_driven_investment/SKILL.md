@@ -58,7 +58,7 @@ uv run --env-file .env python skills/news_driven_investment/scripts/news_fetcher
 curl -s "https://rsshub.ktachibana.party/cls/telegraph"
 ```
 
-更多可用实例见 [RSSHub 实例列表](../../docs/references/rsshub/instances.md)
+更多可用实例见 [RSSHub 实例列表](../../../docs/references/rsshub/instances.md)
 
 ---
 
@@ -152,10 +152,10 @@ uv run --env-file .env python skills/news_driven_investment/scripts/news_fetcher
 # 2. LLM 分析新闻，识别关键词：AI算力、光模块、CPO
 
 # 3. 调用产业热度分析
-uv run --env-file .env python skills/industry_trend/scripts/concept_processor/concept_processor.py --category "算力"
+uv run --env-file .env python -m skills.industry_trend.scripts.industry_trend_processor.industry_trend_processor --category concept --top-n 10
 
 # 4. 调用标的筛选
-uv run --env-file .env python skills/stock_screener/scripts/screener_processor/screener_processor.py --industry "光模块"
+uv run --env-file .env python -m skills.stock_screener.scripts.screener_processor.screener_processor --strategy volume_breakout --top-n 10
 
 # 5. LLM 综合分析，生成投资建议
 ```

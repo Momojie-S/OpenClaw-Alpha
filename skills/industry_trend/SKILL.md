@@ -19,7 +19,7 @@ metadata:
 所有脚本需在项目根目录下运行，使用 `uv run --env-file .env` 加载环境变量：
 
 ```bash
-uv run --env-file .env python skills/industry-trend/scripts/industry_trend_processor/industry_trend_processor.py [参数]
+uv run --env-file .env python -m skills.industry_trend.scripts.industry_trend_processor.industry_trend_processor [参数]
 ```
 
 **如果脚本运行失败**：
@@ -29,7 +29,7 @@ uv run --env-file .env python skills/industry-trend/scripts/industry_trend_proce
 
 ### 运行记录
 
-**进度文件位置**：`.openclaw_alpha/industry-trend/{YYYY-MM-DD}/progress.md`
+**进度文件位置**：`.openclaw_alpha/industry_trend/{YYYY-MM-DD}/progress.md`
 
 每次运行脚本后，记录：
 - 运行时间
@@ -46,14 +46,14 @@ uv run --env-file .env python skills/industry-trend/scripts/industry_trend_proce
 
 **动作**：
 ```bash
-uv run --env-file .env python skills/industry-trend/scripts/industry_trend_processor/industry_trend_processor.py \
+uv run --env-file .env python -m skills.industry_trend.scripts.industry_trend_processor.industry_trend_processor \
     --category L1 \
     --top-n 10
 ```
 
 **输出**：
 - 控制台：Top 10 一级行业热度排名
-- 文件：`.openclaw_alpha/industry-trend/{date}/heat.json`（完整数据）
+- 文件：`.openclaw_alpha/industry_trend/{date}/heat.json`（完整数据）
 
 **分析要点**：
 - 关注 `trend` 字段：加热中、降温中、稳定
@@ -66,14 +66,14 @@ uv run --env-file .env python skills/industry-trend/scripts/industry_trend_proce
 
 **动作**：
 ```bash
-uv run --env-file .env python skills/industry-trend/scripts/industry_trend_processor/industry_trend_processor.py \
+uv run --env-file .env python -m skills.industry_trend.scripts.industry_trend_processor.industry_trend_processor \
     --category concept \
     --top-n 10
 ```
 
 **输出**：
 - 控制台：Top 10 概念板块热度排名
-- 文件：`.openclaw_alpha/industry-trend/{date}/heat.json`（完整数据）
+- 文件：`.openclaw_alpha/industry_trend/{date}/heat.json`（完整数据）
 
 **分析要点**：
 - 概念板块包含涨跌家数，可以判断板块内部分化程度
@@ -84,14 +84,14 @@ uv run --env-file .env python skills/industry-trend/scripts/industry_trend_proce
 
 **二级行业**：
 ```bash
-uv run --env-file .env python skills/industry-trend/scripts/industry_trend_processor/industry_trend_processor.py \
+uv run --env-file .env python -m skills.industry_trend.scripts.industry_trend_processor.industry_trend_processor \
     --category L2 \
     --top-n 20
 ```
 
 **三级行业**：
 ```bash
-uv run --env-file .env python skills/industry-trend/scripts/industry_trend_processor/industry_trend_processor.py \
+uv run --env-file .env python -m skills.industry_trend.scripts.industry_trend_processor.industry_trend_processor \
     --category L3 \
     --top-n 30
 ```
@@ -127,7 +127,7 @@ uv run --env-file .env python skills/industry-trend/scripts/industry_trend_proce
 
 ### 文件输出
 
-位置：`.openclaw_alpha/industry-trend/{date}/heat.json`
+位置：`.openclaw_alpha/industry_trend/{date}/heat.json`
 
 包含完整数据：
 - 所有板块的热度指数
