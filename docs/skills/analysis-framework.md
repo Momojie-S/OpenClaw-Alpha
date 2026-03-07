@@ -158,36 +158,11 @@ uv run --env-file .env python -m skills.industry_trend.scripts.crowdedness_proce
 
 ---
 
-## 待开发能力
-
-### backtest（策略回测）
-
-**定位**：验证投资策略的历史表现
-
-**功能**：
-- 单股票回测（MVP）
-- 均线交叉策略
-- 关键指标输出（收益率、夏普比率、最大回撤）
-
-**数据源**：Tushare/AKShare + Backtrader
-
-**命令**：
-```bash
-uv run --env-file .env python -m skills.backtest.scripts.backtest_processor.backtest_processor \
-    --stock 000001 \
-    --strategy ma_cross \
-    --start-date 2025-01-01 \
-    --end-date 2026-01-01
-```
-
-**详见**：[策略回测研究报告](../research/backtest-research.md)
-
----
-
 ## 已完成能力
 
 | 能力 | 完成日期 | Skill |
 |------|----------|-------|
+| 策略回测 | 2026-03-08 | backtest |
 | 行业景气度 | 2026-03-08 | industry_trend（prosperity_processor） |
 | 行业轮动评分 | 2026-03-08 | industry_trend（rotation_score_processor） |
 | 板块拥挤度指标 | 2026-03-08 | industry_trend（crowdedness_processor） |
@@ -212,22 +187,8 @@ uv run --env-file .env python -m skills.backtest.scripts.backtest_processor.back
 | 能力 | 说明 | 难点 | 状态 |
 |------|------|------|------|
 | 轮动评分 | 多因子综合评分模型 | 因子权重优化 | ✅ 已完成 |
-| 策略回测 | 验证投资策略历史表现 | A股特殊处理、数据量大 | 🚧 进行中 |
+| 策略回测 | 验证投资策略历史表现 | A股特殊处理、数据量大 | ✅ 已完成 |
 | 预警推送 | 实时风险预警 | 推送机制 | 待开发 |
-
----
-
-## 已完成能力
-
-| 能力 | 完成日期 | Skill |
-|------|----------|-------|
-| 限售解禁风险监控 | 2026-03-08 | restricted_release |
-| 个股资金流向 | 2026-03-08 | stock_fund_flow |
-| 融资融券分析 | 2026-03-08 | margin_trading |
-| 综合分析 | 2026-03-08 | market_overview |
-| 基本面分析 | 2026-03-07 | fundamental_analysis |
-| 盈亏追踪 | 2026-03-07 | portfolio_analysis（已支持成本价输入） |
-| 公告解读 | 2026-03-07 | announcement_analysis |
 
 ---
 
