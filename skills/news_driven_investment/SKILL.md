@@ -5,93 +5,77 @@ metadata:
   openclaw:
     emoji: "📰"
     requires:
-      bins: []
+      bins: ["uv"]
 ---
 
 # 新闻驱动投资分析
 
 从财经新闻中发现投资机会，自动关联产业分析和标的筛选。
 
-## 核心理念
+## 使用说明
 
-**不预设固定流程**，而是根据新闻内容动态决定分析路径：
+### 获取新闻
 
+```bash
+# 获取财联社全球资讯（推荐）
+uv run --env-file .env python skills/news_driven_investment/scripts/news_fetcher/news_fetcher.py --source cls_global --limit 10
+
+# 获取财联社重点资讯
+uv run --env-file .env python skills/news_driven_investment/scripts/news_fetcher/news_fetcher.py --source cls_important --limit 5
+
+# 获取个股新闻
+uv run --env-file .env python skills/news_driven_investment/scripts/news_fetcher/news_fetcher.py --source stock --symbol 000001 --limit 5
+
+# 按关键词筛选新闻
+uv run --env-file .env python skills/news_driven_investment/scripts/news_fetcher/news_fetcher.py --source cls_global --keyword "AI" --limit 10
+
+# 按日期筛选新闻
+uv run --env-file .env python skills/news_driven_investment/scripts/news_fetcher/news_fetcher.py --source cls_global --date "2026-03-07" --limit 10
 ```
-新闻 → [LLM 识别关键信息] → 动态调用相关 Skill → 综合分析
+
+### 数据源说明
+
+**AKShare 接口**（脚本内置）：
+
+| 数据源 | 来源 | 特点 | 推荐度 |
+|--------|------|------|:------:|
+| `cls_global` | 财联社 | 实时、快速、覆盖广 | ⭐⭐⭐ |
+| `cls_important` | 财联社 | 重点精选，数量少 | ⭐⭐ |
+| `stock` | 东方财富 | 按股票代码获取个股新闻 | ⭐⭐ |
+
+### 筛选参数
+
+| 参数 | 说明 | 示例 |
+|------|------|------|
+| `--keyword` | 关键词筛选（标题和内容匹配） | `--keyword "AI"` |
+| `--date` | 日期筛选（YYYY-MM-DD） | `--date "2026-03-07"` |
+| `--limit` | 返回数量限制 | `--limit 10` |
+
+**RSSHub 公共实例**（备选）：
+
+```bash
+# 财联社电报（实时快讯）
+curl -s "https://rsshub.ktachibana.party/cls/telegraph"
 ```
 
-## 可组合的原子能力
+更多可用实例见 [RSSHub 实例列表](../../docs/references/rsshub/instances.md)
 
-| Skill | 用途 | 调用方式 |
-|-------|------|---------|
-| `industry_trend` | 产业热度分析 | 当新闻提到产业/概念时 |
-| `stock_screener` | 标的筛选 | 当确定投资方向后 |
-| `market_sentiment` | 市场情绪 | 当需要判断大盘环境 |
-| `northbound_flow` | 北向资金 | 当需要看外资动向 |
-
-## 使用场景
-
-### 场景 1：新闻热点追踪
-
-**用户**：刚才的新闻提到"AI算力需求爆发"，有什么机会？
-
-**分析流程**：
-1. **识别关键词**：AI算力、需求爆发
-2. **关联产业**：调用 `industry_trend --category "算力"`
-3. **发现热门板块**：光模块、CPO、算力租赁
-4. **筛选标的**：调用 `stock_screener --industry "光模块"`
-5. **综合分析**：结合市场情绪、资金流向
-
-### 场景 2：政策题材挖掘
-
-**用户**：政府工作报告首提"算电协同"，怎么看？
-
-**分析流程**：
-1. **理解政策**：算电协同 = 算力 + 电力协同发展
-2. **关联产业**：
-   - 电力（绿电、电网）
-   - 算力（数据中心、AI）
-3. **交叉验证**：
-   - 调用 `industry_trend` 看哪些板块在升温
-   - 调用 `northbound_flow` 看外资买了什么
-4. **筛选标的**：综合多个条件
-
-### 场景 3：突发事件响应
-
-**用户**：中东局势紧张，油价暴涨，有什么影响？
-
-**分析流程**：
-1. **影响链条**：油价 → 油气股 → 化工 → 新能源替代
-2. **调用分析**：
-   - `industry_trend --category "油气"` - 油气板块热度
-   - `stock_screener --industry "油气"` - 相关标的
-3. **延伸分析**：
-   - 油价上涨利好哪些替代能源？
-   - 调用 `industry_trend --category "新能源"`
-4. **风险提示**：高油价对哪些行业是利空？
-
-## 数据传递
-
-中间结果保存在 workspace，供后续分析使用：
-
-```
-.openclaw_alpha/news_driven_investment/{date}/
-├── keywords.json       # 提取的关键词
-├── analysis.md         # 分析报告
-└── candidates.json     # 候选标的
-```
+---
 
 ## 分析步骤
 
 ### Step 1: 获取新闻
 
-**输入**：用户提供的新闻内容或关键词
+**输入**：新闻源类型
 
-**动作**：
-- 如果用户提供新闻 → 直接分析
-- 如果用户只给关键词 → 用 browser tool 搜索相关新闻
+**动作**：运行脚本获取新闻
+```bash
+uv run --env-file .env python skills/news_driven_investment/scripts/news_fetcher/news_fetcher.py --source cls_global --limit 20
+```
 
-**输出**：新闻内容 + 提取的关键词
+**输出**：新闻列表（标题、内容、时间、来源）
+
+---
 
 ### Step 2: 识别投资线索
 
@@ -104,17 +88,21 @@ metadata:
 
 **输出**：投资线索列表
 
-### Step 3: 动态调用分析工具
+---
+
+### Step 3: 调用分析工具
 
 **输入**：投资线索
 
-**动作**：根据线索类型，选择调用：
-- `industry_trend` - 产业分析
+**动作**：根据线索类型，选择调用其他 Skill：
+- `industry_trend` - 产业热度分析
 - `stock_screener` - 标的筛选
 - `northbound_flow` - 资金流向
 - `market_sentiment` - 市场情绪
 
 **输出**：各维度分析结果
+
+---
 
 ### Step 4: 综合分析
 
@@ -129,37 +117,54 @@ metadata:
 
 **输出**：投资建议报告
 
-## 示例输出
+---
 
-```markdown
-# 新闻分析：AI算力需求爆发
+## 数据传递
 
-## 关键信息
-- 产业：AI算力、光模块、CPO
-- 方向：利好
-- 催化：需求超预期
+中间结果保存在 workspace，供后续分析使用：
 
-## 产业分析
-| 板块 | 热度 | 趋势 |
-|------|------|------|
-| 光模块 | 🔥 高 | ↗ 加热中 |
-| CPO | 🔥 高 | ↗ 加热中 |
-| 算力租赁 | ⬆ 中 | → 稳定 |
-
-## 推荐标的
-| 标的 | 概念 | 热度 | 备注 |
-|------|------|------|------|
-| xxx | 光模块 | 高 | 龙头 |
-| xxx | CPO | 高 | 技术领先 |
-
-## 风险提示
-- 短期涨幅较大，注意回调风险
-- 关注业绩兑现情况
 ```
+.openclaw_alpha/news_driven_investment/{date}/
+├── keywords.json       # 提取的关键词
+├── analysis.md         # 分析报告
+└── candidates.json     # 候选标的
+```
+
+使用 `news_helper.py` 管理中间数据：
+```bash
+# 保存关键词
+uv run --env-file .env python skills/news_driven_investment/scripts/news_helper.py --action save_keywords --keywords "AI" "算力" "光模块"
+
+# 读取关键词
+uv run --env-file .env python skills/news_driven_investment/scripts/news_helper.py --action load_keywords
+```
+
+---
+
+## 示例分析流程
+
+### 场景：AI算力需求爆发
+
+```bash
+# 1. 获取新闻
+uv run --env-file .env python skills/news_driven_investment/scripts/news_fetcher/news_fetcher.py --source cls_global --limit 20
+
+# 2. LLM 分析新闻，识别关键词：AI算力、光模块、CPO
+
+# 3. 调用产业热度分析
+uv run --env-file .env python skills/industry_trend/scripts/concept_processor/concept_processor.py --category "算力"
+
+# 4. 调用标的筛选
+uv run --env-file .env python skills/stock_screener/scripts/screener_processor/screener_processor.py --industry "光模块"
+
+# 5. LLM 综合分析，生成投资建议
+```
+
+---
 
 ## 注意事项
 
-1. **灵活性优先**：不预设死流程，让 LLM 根据新闻内容动态决定
-2. **多维度验证**：不要只看一个维度，综合产业、资金、情绪
+1. **时效性**：新闻价值随时间递减，及时分析
+2. **多维度验证**：综合产业、资金、情绪，不要只看一个维度
 3. **风险意识**：新闻驱动往往是短期机会，注意风险
-4. **时效性**：新闻价值随时间递减，及时分析
+4. **数据源限制**：AKShare 接口可能有频率限制，不要频繁调用
