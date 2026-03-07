@@ -47,6 +47,7 @@
 | Skill | 定位 | 数据源 |
 |-------|------|--------|
 | **stock_analysis** | 单只股票行情快照 | AKShare |
+| **stock_fund_flow** | 个股主力资金流向分析 | AKShare |
 | **stock_screener** | 多条件选股筛选 | AKShare |
 | **technical_indicators** | 技术指标分析（MACD/RSI/KDJ等） | AKShare |
 | **etf_analysis** | ETF 行情查询和筛选 | AKShare |
@@ -111,6 +112,7 @@
 
 | 能力 | 完成日期 | Skill |
 |------|----------|-------|
+| 个股资金流向 | 2026-03-08 | stock_fund_flow |
 | 融资融券分析 | 2026-03-08 | margin_trading |
 | 综合分析 | 2026-03-08 | market_overview |
 | 基本面分析 | 2026-03-07 | fundamental_analysis |
