@@ -186,9 +186,9 @@ class TestIndustryTrendProcessorTrend:
 
         result = processor._judge_trend(boards)
 
-        # 第一版无历史数据，标记为"新"
+        # 无历史数据时，标记为"新"，heat_change 为 None
         assert result[0]["trend"] == "新"
-        assert result[0]["heat_change"] == 0.0
+        assert result[0]["heat_change"] is None
 
     def test_judge_trend_heating(self, processor):
         """测试加热中信号"""

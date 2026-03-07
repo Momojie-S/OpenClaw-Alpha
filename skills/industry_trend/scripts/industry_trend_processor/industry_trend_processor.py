@@ -217,16 +217,30 @@ class IndustryTrendProcessor:
         Returns:
             包含趋势信号的板块数据列表
         """
+        # 加载上一交易日数据
+        prev_data = self._load_previous_data()
+        prev_heat_map = {}
+        if prev_data:
+            prev_heat_map = {
+                board['name']: board['heat_index']
+                for board in prev_data.get('boards', [])
+            }
+        
         for board in boards:
             pct_change = board['metrics']['pct_change']
+            heat_index = board['heat_index']
+            board_name = board['name']
             
-            # TODO: 第一版暂无历史数据，无法计算热度环比
-            # 后续版本需要读取上一交易日数据进行对比
-            heat_change = 0.0
+            # 计算热度环比
+            prev_heat = prev_heat_map.get(board_name)
+            if prev_heat is not None and prev_heat > 0:
+                heat_change = (heat_index - prev_heat) / prev_heat * 100
+            else:
+                heat_change = None  # 无历史数据
             
-            # 判断趋势（第一版：无热度环比，主要看涨跌幅）
-            if heat_change == 0:
-                # 第一版特殊逻辑：无热度环比时
+            # 判断趋势
+            if heat_change is None:
+                # 无历史数据
                 if pct_change < -3:
                     trend = "降温中"
                 else:
@@ -239,9 +253,45 @@ class IndustryTrendProcessor:
                 trend = "稳定"
             
             board['trend'] = trend
-            board['heat_change'] = round(heat_change, 2)
+            board['heat_change'] = round(heat_change, 2) if heat_change is not None else None
         
         return boards
+    
+    def _load_previous_data(self) -> dict | None:
+        """加载上一交易日的数据文件
+        
+        Returns:
+            上一交易日数据，不存在则返回 None
+        """
+        from datetime import timedelta
+        
+        # 解析当前日期
+        if not self.date:
+            return None
+        
+        try:
+            current_date = datetime.strptime(self.date, "%Y-%m-%d")
+        except ValueError:
+            return None
+        
+        # 最多回溯 5 天寻找有效数据文件
+        for i in range(1, 6):
+            prev_date = (current_date - timedelta(days=i)).strftime("%Y-%m-%d")
+            prev_path = get_output_path(
+                SKILL_NAME,
+                PROCESSOR_NAME,
+                prev_date,
+                ext="json",
+            )
+            
+            if prev_path.exists():
+                try:
+                    with open(prev_path, 'r', encoding='utf-8') as f:
+                        return json.load(f)
+                except (json.JSONDecodeError, IOError):
+                    continue
+        
+        return None
     
     def _save_output(self, result: dict[str, Any]) -> None:
         """保存完整数据到文件
