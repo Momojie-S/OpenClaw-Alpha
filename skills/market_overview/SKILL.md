@@ -20,6 +20,9 @@ metadata:
 # 查看今日完整报告（默认）
 uv run --env-file .env python skills/market_overview/scripts/overview_processor/overview_processor.py
 
+# 一键生成（自动获取依赖数据）
+uv run --env-file .env python skills/market_overview/scripts/overview_processor/overview_processor.py --auto-fetch
+
 # 快速版（仅宏观+情绪）
 uv run --env-file .env python skills/market_overview/scripts/overview_processor/overview_processor.py --mode quick
 
@@ -37,21 +40,44 @@ uv run --env-file .env python skills/market_overview/scripts/overview_processor/
 | `--date` | 分析日期 | 今天 |
 | `--mode` | quick(快速)/full(完整) | full |
 | `--output` | text(Markdown)/json | text |
+| `--auto-fetch` | 数据不存在时自动获取 | False |
 
 ### 运行记录
 
 输出文件保存在：`.openclaw_alpha/market_overview/{日期}/report.json`
 
-### 前置条件
+### 一键生成 vs 手动准备
 
-本 skill 需要先运行以下 skill 生成数据文件：
+**方式一：一键生成（推荐）**
+```bash
+uv run --env-file .env python skills/market_overview/scripts/overview_processor/overview_processor.py --auto-fetch
+```
+- 自动获取所有依赖数据
+- 适合快速查看市场情况
+
+**方式二：手动准备数据**
+```bash
+# 先运行依赖 skill
+uv run --env-file .env python skills/index_analysis/scripts/index_processor/index_processor.py
+uv run --env-file .env python skills/market_sentiment/scripts/sentiment_processor/sentiment_processor.py
+# ... 其他 skill
+
+# 再生成报告
+uv run --env-file .env python skills/market_overview/scripts/overview_processor/overview_processor.py
+```
+- 适合需要精确控制数据获取的场景
+- 可以单独更新某个 skill 的数据
+
+### 依赖的 Skill
+
+本 skill 需要以下 skill 的数据：
 - `index_analysis` - 指数分析（必需）
 - `market_sentiment` - 市场情绪（必需）
 - `industry_trend` - 板块热度（完整版需要）
 - `fund_flow_analysis` - 资金流向（完整版需要）
 - `northbound_flow` - 北向资金（完整版需要）
 
-如果数据文件不存在，报告中会标注"数据获取失败"。
+使用 `--auto-fetch` 参数时，会自动调用这些 skill 获取数据。
 
 ## 分析步骤
 

@@ -99,16 +99,18 @@ class OverviewReport:
 class MarketOverviewProcessor:
     """市场综合分析 Processor"""
 
-    def __init__(self, date: Optional[str] = None, mode: str = "full"):
+    def __init__(self, date: Optional[str] = None, mode: str = "full", auto_fetch: bool = False):
         """
         初始化
 
         Args:
             date: 分析日期（YYYY-MM-DD），默认今天
             mode: 分析模式（quick/full）
+            auto_fetch: 数据不存在时是否自动获取
         """
         self.date = date or datetime.now().strftime("%Y-%m-%d")
         self.mode = mode
+        self.auto_fetch = auto_fetch
         self.errors: list[str] = []
 
     async def process(self) -> OverviewReport:
@@ -145,8 +147,78 @@ class MarketOverviewProcessor:
 
         return report
 
+    async def _fetch_skill_data(self, skill_name: str, processor_name: str, skill_display_name: str) -> bool:
+        """
+        调用其他 skill 的 processor 获取数据
+
+        Args:
+            skill_name: skill 名称（如 index_analysis）
+            processor_name: processor 名称（如 index）
+            skill_display_name: 显示名称（如 指数分析）
+
+        Returns:
+            是否成功获取数据
+        """
+        import subprocess
+        import sys
+
+        # 检查数据是否已存在
+        existing_data = load_output(skill_name, processor_name, self.date, ext="json")
+        if existing_data:
+            logger.info(f"{skill_display_name}: 数据已存在")
+            return True
+
+        if not self.auto_fetch:
+            return False
+
+        # 自动获取数据
+        logger.info(f"{skill_display_name}: 正在获取数据...")
+        print(f"[{skill_display_name}] 正在获取数据...")
+
+        try:
+            # 构建模块路径
+            # 使用模块方式运行，避免相对导入问题
+            # 格式：skills.{skill_name}.scripts.{processor_name}_processor.{processor_name}_processor
+            module_path = f"skills.{skill_name}.scripts.{processor_name}_processor.{processor_name}_processor"
+
+            # 调用 processor
+            cmd = [sys.executable, "-m", module_path, "--date", self.date]
+            result = subprocess.run(
+                cmd,
+                capture_output=True,
+                text=True,
+                timeout=60  # 60 秒超时
+            )
+
+            if result.returncode != 0:
+                self.errors.append(f"{skill_name}: 获取失败 - {result.stderr}")
+                logger.error(f"{skill_display_name} 获取失败: {result.stderr}")
+                return False
+
+            # 检查数据是否生成
+            new_data = load_output(skill_name, processor_name, self.date, ext="json")
+            if new_data:
+                logger.info(f"{skill_display_name}: 数据获取成功")
+                print(f"[{skill_display_name}] 数据获取成功")
+                return True
+            else:
+                self.errors.append(f"{skill_name}: 数据生成失败")
+                return False
+
+        except subprocess.TimeoutExpired:
+            self.errors.append(f"{skill_name}: 获取超时")
+            logger.error(f"{skill_display_name} 获取超时")
+            return False
+        except Exception as e:
+            self.errors.append(f"{skill_name}: {str(e)}")
+            logger.error(f"{skill_display_name} 获取异常: {e}")
+            return False
+
     async def _load_macro_data(self) -> Optional[MacroData]:
         """加载宏观层数据（index_analysis）"""
+        # 尝试自动获取数据
+        await self._fetch_skill_data("index_analysis", "index", "指数分析")
+
         try:
             data = load_output("index_analysis", "index", self.date, ext="json")
             if not data:
@@ -180,6 +252,9 @@ class MarketOverviewProcessor:
 
     async def _load_sentiment_data(self) -> Optional[SentimentData]:
         """加载情绪数据（market_sentiment）"""
+        # 尝试自动获取数据
+        await self._fetch_skill_data("market_sentiment", "sentiment", "市场情绪")
+
         try:
             data = load_output("market_sentiment", "sentiment", self.date, ext="json")
             if not data:
@@ -205,6 +280,9 @@ class MarketOverviewProcessor:
     async def _load_sector_data(self) -> Optional[SectorData]:
         """加载板块数据（industry_trend, fund_flow_analysis）"""
         sector_data = SectorData()
+
+        # 尝试自动获取板块热度数据
+        await self._fetch_skill_data("industry_trend", "industry_trend", "板块热度")
 
         # 加载行业热度
         try:
@@ -233,6 +311,9 @@ class MarketOverviewProcessor:
             self.errors.append(f"industry_trend: {str(e)}")
             logger.error(f"加载板块热度数据失败: {e}")
 
+        # 尝试自动获取资金流向数据
+        await self._fetch_skill_data("fund_flow_analysis", "fund_flow", "资金流向")
+
         # 加载资金流向
         try:
             flow_data = load_output("fund_flow_analysis", "fund_flow", self.date, ext="json")
@@ -253,6 +334,9 @@ class MarketOverviewProcessor:
 
     async def _load_northbound_data(self) -> Optional[NorthboundData]:
         """加载外资数据（northbound_flow）"""
+        # 尝试自动获取数据
+        await self._fetch_skill_data("northbound_flow", "northbound", "北向资金")
+
         try:
             data = load_output("northbound_flow", "northbound", self.date, ext="json")
             if not data:
@@ -508,18 +592,19 @@ class MarketOverviewProcessor:
         return "\n".join(lines)
 
 
-async def process(date: Optional[str] = None, mode: str = "full") -> OverviewReport:
+async def process(date: Optional[str] = None, mode: str = "full", auto_fetch: bool = False) -> OverviewReport:
     """
     生成市场综合分析报告
 
     Args:
         date: 分析日期
         mode: 分析模式（quick/full）
+        auto_fetch: 数据不存在时是否自动获取
 
     Returns:
         综合分析报告
     """
-    processor = MarketOverviewProcessor(date=date, mode=mode)
+    processor = MarketOverviewProcessor(date=date, mode=mode, auto_fetch=auto_fetch)
     return await processor.process()
 
 
@@ -532,10 +617,12 @@ def main():
                         help="分析模式: quick(快速) / full(完整)")
     parser.add_argument("--output", choices=["text", "json"], default="text",
                         help="输出格式: text(Markdown) / json")
+    parser.add_argument("--auto-fetch", action="store_true",
+                        help="数据不存在时自动获取")
     args = parser.parse_args()
 
     # 生成报告
-    report = asyncio.run(process(date=args.date, mode=args.mode))
+    report = asyncio.run(process(date=args.date, mode=args.mode, auto_fetch=args.auto_fetch))
 
     # 保存 JSON 文件
     output_path = get_output_path(SKILL_NAME, PROCESSOR_NAME, args.date, ext="json")
