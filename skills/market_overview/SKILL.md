@@ -85,14 +85,14 @@ uv run --env-file .env python skills/market_overview/scripts/overview_processor/
 
 **输入**：分析日期
 
-**动作**：运行各个 skill 的 Processor 生成数据文件
+**动作**：运行各个 skill 的 Processor 生成数据文件（推荐使用 `--auto-fetch` 自动获取）
 
 ```bash
 # 宏观层数据
-uv run --env-file .env python skills/index_analysis/scripts/index_processor/index_processor.py --date 2026-03-07
+uv run --env-file .env python -m skills.index_analysis.scripts.index_processor.index_processor --date 2026-03-07
 
 # 情绪数据
-uv run --env-file .env python skills/market_sentiment/scripts/sentiment_processor/sentiment_processor.py --date 2026-03-07
+uv run --env-file .env python -m skills.market_sentiment.scripts.sentiment_processor.sentiment_processor --date 2026-03-07
 
 # 板块数据（完整版需要）
 uv run --env-file .env python -m skills.industry_trend.scripts.industry_trend_processor.industry_trend_processor --date 2026-03-07
@@ -101,7 +101,7 @@ uv run --env-file .env python -m skills.industry_trend.scripts.industry_trend_pr
 uv run --env-file .env python -m skills.fund_flow_analysis.scripts.fund_flow_processor.fund_flow_processor --date 2026-03-07
 
 # 外资数据（完整版需要）
-uv run --env-file .env python skills/northbound_flow/scripts/northbound_processor/northbound_processor.py --action daily --date 2026-03-07
+uv run --env-file .env python -m skills.northbound_flow.scripts.northbound_processor.northbound_processor --action daily --date 2026-03-07
 ```
 
 **输出**：各 skill 的 JSON 文件
@@ -112,7 +112,7 @@ uv run --env-file .env python skills/northbound_flow/scripts/northbound_processo
 
 **动作**：
 ```bash
-uv run --env-file .env python skills/market_overview/scripts/overview_processor/overview_processor.py --date 2026-03-07
+uv run --env-file .env python -m skills.market_overview.scripts.overview_processor.overview_processor --date 2026-03-07
 ```
 
 **输出**：
