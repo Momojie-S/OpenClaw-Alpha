@@ -8,7 +8,8 @@
 
 | 层次 | 核心问题 | 已有 Skill | 待补充 |
 |------|----------|-----------|--------|
-| **宏观** | 市场整体如何？ | index_analysis, market_sentiment | - |
+| **综合** | 市场整体如何？ | market_overview | - |
+| **宏观** | 指数和情绪如何？ | index_analysis, market_sentiment | - |
 | **中观** | 哪些板块热门？ | industry_trend, fund_flow_analysis, northbound_flow, lhb_tracker | - |
 | **微观** | 买什么股票？ | stock_analysis, stock_screener, technical_indicators, etf_analysis, risk_alert, fundamental_analysis | - |
 | **事件** | 有什么新闻/事件？ | news_driven_investment, limit_up_tracker, announcement_analysis | - |
@@ -17,6 +18,12 @@
 ---
 
 ## Skill 定位
+
+### 综合层
+
+| Skill | 定位 | 数据源 |
+|-------|------|--------|
+| **market_overview** | 一键式市场分析报告，整合各层次分析结果 | 复用其他 skill |
 
 ### 宏观层
 
@@ -65,6 +72,8 @@
 ## 层次关联
 
 ```
+综合层（一键概览）
+    ↓
 宏观层（判断大势）
     ↓
 中观层（找方向）
@@ -77,6 +86,7 @@
 ```
 
 **典型流程**：
+0. **综合** - market_overview 一键生成市场报告（可选）
 1. **宏观** - index_analysis 看指数，market_sentiment 看情绪
 2. **中观** - industry_trend 找热门板块，northbound_flow 看外资偏好
 3. **微观** - stock_screener 筛选个股，fundamental_analysis 看基本面，risk_alert 检查风险
@@ -100,6 +110,7 @@
 
 | 能力 | 完成日期 | Skill |
 |------|----------|-------|
+| 综合分析 | 2026-03-08 | market_overview |
 | 基本面分析 | 2026-03-07 | fundamental_analysis |
 | 盈亏追踪 | 2026-03-07 | portfolio_analysis（已支持成本价输入） |
 | 公告解读 | 2026-03-07 | announcement_analysis |
