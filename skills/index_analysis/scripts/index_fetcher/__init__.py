@@ -35,6 +35,24 @@ async def fetch(
 
     Returns:
         行情数据列表
+
+    Example:
+        >>> data = await fetch("sh000001", "20260301", "20260307")
+        >>> print(data[0])
+        {
+            'date': '2026-03-07',
+            'open': 3350.12,
+            'high': 3365.45,
+            'low': 3340.88,
+            'close': 3358.23,
+            'volume': 325000000,
+            'amount': 4523000000,
+        }
     """
     fetcher = _get_fetcher()
-    return await fetcher.fetch(symbol, start_date, end_date)
+    # 将 keyword arguments 转换为 dict 传给基类的 fetch()
+    return await fetcher.fetch({
+        "symbol": symbol,
+        "start_date": start_date,
+        "end_date": end_date,
+    })
