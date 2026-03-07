@@ -158,6 +158,32 @@ uv run --env-file .env python -m skills.industry_trend.scripts.crowdedness_proce
 
 ---
 
+## 待开发能力
+
+### backtest（策略回测）
+
+**定位**：验证投资策略的历史表现
+
+**功能**：
+- 单股票回测（MVP）
+- 均线交叉策略
+- 关键指标输出（收益率、夏普比率、最大回撤）
+
+**数据源**：Tushare/AKShare + Backtrader
+
+**命令**：
+```bash
+uv run --env-file .env python -m skills.backtest.scripts.backtest_processor.backtest_processor \
+    --stock 000001 \
+    --strategy ma_cross \
+    --start-date 2025-01-01 \
+    --end-date 2026-01-01
+```
+
+**详见**：[策略回测研究报告](../research/backtest-research.md)
+
+---
+
 ## 已完成能力
 
 | 能力 | 完成日期 | Skill |
@@ -183,11 +209,11 @@ uv run --env-file .env python -m skills.industry_trend.scripts.crowdedness_proce
 
 ### P2 - 高级功能
 
-| 能力 | 说明 | 难点 |
-|------|------|------|
-| 轮动评分 | 多因子综合评分模型 | 因子权重优化 |
-| 回测验证 | 策略回测 | 数据量大 |
-| 预警推送 | 实时风险预警 | 推送机制 |
+| 能力 | 说明 | 难点 | 状态 |
+|------|------|------|------|
+| 轮动评分 | 多因子综合评分模型 | 因子权重优化 | ✅ 已完成 |
+| 策略回测 | 验证投资策略历史表现 | A股特殊处理、数据量大 | 🚧 进行中 |
+| 预警推送 | 实时风险预警 | 推送机制 | 待开发 |
 
 ---
 
