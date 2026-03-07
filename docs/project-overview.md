@@ -31,11 +31,24 @@ OpenClaw-Alpha/
 │   └── data_sources/               # 数据源实现（Tushare, AKShare）
 │
 ├── docs/                           # 项目文档
+│   ├── architecture/               # 架构设计
+│   ├── references/                 # API 参考文档
+│   │   ├── akshare/
+│   │   ├── rsshub/
+│   │   └── tushare/
+│   ├── skills/                     # Skill 文档
+│   │   ├── analysis-framework.md   # 投资分析框架
+│   │   └── {skill_name}/
+│   │       ├── spec.md             # 需求文档
+│   │       └── design.md           # 设计文档
+│   └── standards/                  # 开发规范
+│
 └── .env                            # 环境变量配置
 ```
 
 **自包含原则**：
 - `skills/{skill_name}/` - 文档（SKILL.md）+ 代码（scripts/）在一起
+- `docs/skills/{skill_name}/` - 需求/设计文档
 - `src/openclaw_alpha/` - 框架核心，通过 pyproject.toml 注册为包
 
 ## 核心概念
