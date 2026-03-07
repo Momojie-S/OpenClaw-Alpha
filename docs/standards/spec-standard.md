@@ -131,8 +131,6 @@ def calculate_hot_score(change_pct, turnover_rate, ...):
 
 ## 检查清单
 
-在提交需求文档前，确认：
-
 - [ ] 非技术人员能看懂核心内容
 - [ ] 没有具体的技术选型（API、工具、语言）
 - [ ] 没有代码或表结构
@@ -149,11 +147,4 @@ def calculate_hot_score(change_pct, turnover_rate, ...):
 | spec.md | 业务 | 要什么、为什么、怎么验收 |
 | design.md | 技术 | 怎么做、用什么、怎么实现 |
 
-**协作流程**：
-1. spec → 业务方确认
-2. design → 基于 spec 的技术方案
-3. spec 变更 → design 同步更新
-
----
-
-## 与设计文档的关系
+**协作流程**：spec → 业务方确认 → design → 基于 spec 的技术方案 → spec 变更时 design 同步更新

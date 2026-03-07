@@ -1,8 +1,59 @@
 # 项目概述
 
-## 项目概述
+OpenClaw-Alpha 是一个股票金融数据获取和分析的 Python 技能模块，为 OpenClaw 智能体提供投资分析能力。
 
-OpenClaw-Alpha 是一个股票金融数据获取和分析的 Python 技能模块，为 OpenClaw 智能体提供多个分析能力 skill。
+## 交付与使用
+
+**安装方式**：
+1. Clone 到 OpenClaw agent 的 `workspace/skills/` 目录
+2. 在 OpenClaw 配置中注册 `OpenClaw-Alpha/skills/` 目录
+3. 主 SKILL.md 和子 skill 自动发现注册
+
+**使用方式**：
+- 大模型读取 SKILL.md 了解可用能力
+- 根据分析需求，灵活调用 Processor 获取数据
+- Processor 负责数据获取和加工，返回精简结果
+
+## 目录结构
+
+```
+OpenClaw-Alpha/
+├── skills/                         # SKILL 目录（文档 + 代码）
+│   └── {skill_name}/
+│       ├── SKILL.md                # 能力说明 + 分析指引
+│       └── scripts/                # Skill 脚本
+│           ├── __init__.py
+│           ├── {data_type}_fetcher/
+│           └── {scenario}_processor/
+│
+├── src/openclaw_alpha/
+│   ├── core/                       # 框架核心（Fetcher, FetchMethod 等）
+│   └── data_sources/               # 数据源实现（Tushare, AKShare）
+│
+├── docs/                           # 项目文档
+└── .env                            # 环境变量配置
+```
+
+**自包含原则**：
+- `skills/{skill_name}/` - 文档（SKILL.md）+ 代码（scripts/）在一起
+- `src/openclaw_alpha/` - 框架核心，通过 pyproject.toml 注册为包
+
+## 核心概念
+
+### Fetcher（数据获取）
+- Fetcher（入口）：调度、选择可用的数据源实现
+- FetchMethod（实现）：具体数据获取逻辑，绑定单一数据源
+- 支持多数据源（Tushare、AKShare），按优先级自动选择
+
+### Processor（数据加工）
+- 大模型的调用入口
+- 调用 Fetcher 获取全量数据，加工后返回精简结果
+- 每个 Processor 定义自己的结构化参数
+
+### SKILL.md（能力说明）
+- 描述该 skill 能做什么
+- 列出可用的 Processor 及其参数
+- 提供分析思路指引（非固定流程）
 
 ## 技术栈
 
@@ -10,39 +61,7 @@ OpenClaw-Alpha 是一个股票金融数据获取和分析的 Python 技能模块
 - **语言**: Python
 - **数据源**: AKShare, Tushare
 
-## 目录结构
-
-```text
-OpenClaw-Alpha/
-├── SKILL.md                    # 主入口（汇总说明）
-├── skills/                     # 子 skill 目录
-│   ├── industry-trend/         # 产业趋势分析
-│   │   └── SKILL.md
-│   └── stock-quote/            # 股票行情查询
-│       └── SKILL.md
-├── src/openclaw_alpha/         # Python 代码
-│   ├── core/                   # 核心框架（strategy, registry）
-│   ├── strategies/             # 策略实现
-│   └── data_sources/           # 数据源实现
-├── docs/                       # 项目文档
-└── .env                        # 环境变量配置
-```
-
-## Skill 架构
-
-项目采用"主入口 + 子 skill"的架构：
-
-- **主 SKILL.md**：作为汇总入口，描述项目整体能力
-- **skills/ 目录**：每个子目录是一个独立的 skill，包含 SKILL.md（元数据 + 分析思路）
-- **src/ 目录**：所有 Python 代码实现，被 skill 调用
-
-OpenClaw 通过 `extraDirs` 配置加载 `skills/` 目录下的子 skill，实现精确触发。
-
 ## 环境说明
-
-### 数据库环境
-- 当前项目没有区分开发和生产数据库，所有环境共用同一个数据库实例
-- 测试数据清理尤为重要，必须确保测试后正确清理，避免影响开发和使用体验
 
 ### 临时文件
 - 无论是使用工具还是测试代码，需要创建临时文件时，都在项目根目录下的 `.temp` 文件夹下创建

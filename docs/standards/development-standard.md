@@ -12,12 +12,14 @@
 - **类型提示**: 所有类成员变量和函数签名必须包含类型提示 (Type Hinting)
 - **内置泛型**: 使用内置泛型类型（`list`, `dict`）而不是从 `typing` 模块导入（`List`, `Dict`）
 - **导入规范**:
-  - 使用绝对路径导入：禁止使用相对路径导入
-  - 类型注解导入：仅用于类型注解的导入应使用 `TYPE_CHECKING`
+  - **基类导入**: 使用绝对路径导入框架基类，如 `from openclaw_alpha.core.fetcher import Fetcher`
+  - **Skill 内部导入**: 使用相对路径导入，如 `from .xxx import xxx` 或 `from ..xxx import xxx`
+  - **类型注解导入**: 仅用于类型注解的导入应使用 `TYPE_CHECKING`
 - **父类构造函数**: 在所有子类的 `__init__` 方法中，调用父类构造函数时必须显式传入所有必需参数
   - 允许使用 `super().__init__(...)`，但必须确保所有参数都显式传递
   - 示例：`super().__init__(arg1=value1, arg2=value2)` 而非依赖默认参数隐式传递
 - **显式数据结构**: 应该定义一个对象，而不是使用 dict。必须适应类定义字段，不能使用 `getattr` 和 `setattr`
+- **模块命名**: Python 模块和目录名必须使用下划线 `_`（如 `industry_trend`），不能使用连字符 `-`（如 `industry-trend`），否则会导致导入失败
 - **模块暴露**: 没有收到指示的情况下，不要在 `__init__.py` 中新增暴露任何模块
 - **编码声明**: 所有 Python 文件必须在文件开头添加 UTF-8 编码声明：`# -*- coding: utf-8 -*-`
 - **禁止特殊字符**: 禁止在代码中使用表情符号和特殊 Unicode 符号（如 emoji、数学符号等），保持代码可读性和兼容性
@@ -28,6 +30,9 @@
 
 - **无测试包**: 不得在测试目录中创建 python package
 - **测试类和 Fixtures**: 测试文件必须使用测试类（以 `Test` 为前缀）来组织相关的测试方法。必须使用 `pytest.fixture` 来管理测试依赖和状态
+- **测试文件命名**: 避免在不同目录使用相同的测试文件名（如多个 `test_processor.py`），会导致 Python 模块导入冲突。应使用具描述性的唯一名称（如 `test_sentiment_processor.py`, `test_risk_processor.py`）
+- **单例模式测试**: 测试涉及单例模式（如 DataSourceRegistry）时，必须在测试前重置状态，避免测试间干扰。可在 conftest.py 中使用 autouse fixture 进行重置
+- **fixture 复用**: 通用 fixture（如临时目录、mock 配置等）应在 `conftest.py` 中定义，避免重复代码
 - **导入约定**: 由于项目使用 `src-layout`，测试文件中的导入路径不得包含 `src` 目录
   - 正确：`from openclaw_alpha.core.agent import Agent`
   - 错误：`from src.openclaw_alpha.core.agent import Agent`

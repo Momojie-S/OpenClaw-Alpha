@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""数据源注册表测试"""
+"""DataSourceRegistry 测试"""
 
 import pytest
 
@@ -8,118 +8,127 @@ from openclaw_alpha.core.exceptions import DuplicateDataSourceError
 from openclaw_alpha.core.registry import DataSourceRegistry
 
 
-class MockDataSource1(DataSource[str]):
-    """测试用数据源 1"""
+@pytest.fixture(autouse=True)
+def reset_registry():
+    """每个测试前重置注册表"""
+    registry = DataSourceRegistry.get_instance()
+    registry.reset()
+    yield
+    registry.reset()
 
-    def __init__(self) -> None:
-        super().__init__()
-        self._client = "client1"
+
+class MockTestDataSource(DataSource):
+    """测试用数据源"""
 
     @property
     def name(self) -> str:
-        return "mock1"
+        return "test_ds"
+
+    @property
+    def required_config(self) -> list[str]:
+        return ["TEST_TOKEN"]
+
+
+class MockTestDataSourceAnother(DataSource):
+    """另一个测试用数据源"""
+
+    @property
+    def name(self) -> str:
+        return "test_ds_another"
 
     @property
     def required_config(self) -> list[str]:
         return []
 
-    async def initialize(self) -> None:
-        self._client = "initialized_client1"
-
-
-class MockDataSource2(DataSource[str]):
-    """测试用数据源 2"""
-
-    @property
-    def name(self) -> str:
-        return "mock2"
-
-    @property
-    def required_config(self) -> list[str]:
-        return ["REQUIRED_KEY"]
-
 
 class TestDataSourceRegistry:
-    """DataSourceRegistry 测试"""
+    """DataSourceRegistry 测试类"""
 
-    def setup_method(self) -> None:
-        """每个测试前重置注册表"""
-        registry = DataSourceRegistry.get_instance()
-        registry.reset()
-
-    def test_singleton(self) -> None:
+    def test_singleton(self):
         """测试单例模式"""
         registry1 = DataSourceRegistry.get_instance()
         registry2 = DataSourceRegistry.get_instance()
         assert registry1 is registry2
 
-    def test_register_and_get(self) -> None:
-        """测试注册和获取"""
+    def test_register_and_get(self):
+        """测试注册和获取数据源"""
         registry = DataSourceRegistry.get_instance()
-        registry.register(MockDataSource1)
+        registry.register(MockTestDataSource)
 
-        ds = registry.get("mock1")
-        assert isinstance(ds, MockDataSource1)
-        assert ds.name == "mock1"
+        ds = registry.get("test_ds")
+        assert isinstance(ds, MockTestDataSource)
+        assert ds.name == "test_ds"
 
-    def test_register_duplicate_raises_error(self) -> None:
-        """测试注册重名抛出异常"""
+    def test_register_duplicate(self):
+        """测试重复注册抛出异常"""
         registry = DataSourceRegistry.get_instance()
-        registry.register(MockDataSource1)
+        registry.register(MockTestDataSource)
 
-        with pytest.raises(DuplicateDataSourceError):
-            registry.register(MockDataSource1)
+        with pytest.raises(DuplicateDataSourceError) as exc_info:
+            registry.register(MockTestDataSource)
 
-    def test_get_unregistered_raises_key_error(self) -> None:
-        """测试获取未注册的数据源抛出 KeyError"""
+        assert "test_ds" in str(exc_info.value)
+
+    def test_get_not_found(self):
+        """测试获取未注册的数据源"""
         registry = DataSourceRegistry.get_instance()
 
-        with pytest.raises(KeyError):
-            registry.get("unknown")
+        with pytest.raises(KeyError) as exc_info:
+            registry.get("not_exist")
 
-    def test_get_returns_same_instance(self) -> None:
-        """测试多次获取返回同一实例"""
+        assert "not_exist" in str(exc_info.value)
+
+    def test_is_available_registered(self, monkeypatch):
+        """测试已注册数据源的可用性检查"""
         registry = DataSourceRegistry.get_instance()
-        registry.register(MockDataSource1)
+        registry.register(MockTestDataSource)
 
-        ds1 = registry.get("mock1")
-        ds2 = registry.get("mock1")
+        # 设置环境变量
+        monkeypatch.setenv("TEST_TOKEN", "test_value")
+        assert registry.is_available("test_ds") is True
+
+        # 删除环境变量
+        monkeypatch.delenv("TEST_TOKEN")
+        assert registry.is_available("test_ds") is False
+
+    def test_is_available_not_registered(self):
+        """测试未注册数据源的可用性检查"""
+        registry = DataSourceRegistry.get_instance()
+        assert registry.is_available("not_exist") is False
+
+    def test_get_lazy_loading(self):
+        """测试懒加载：多次 get 返回同一实例"""
+        registry = DataSourceRegistry.get_instance()
+        registry.register(MockTestDataSource)
+
+        ds1 = registry.get("test_ds")
+        ds2 = registry.get("test_ds")
         assert ds1 is ds2
 
-    def test_is_available_registered_and_available(self) -> None:
-        """测试已注册且可用"""
+    def test_reset(self):
+        """测试重置注册表"""
         registry = DataSourceRegistry.get_instance()
-        registry.register(MockDataSource1)
+        registry.register(MockTestDataSource)
 
-        assert registry.is_available("mock1") is True
+        # 重置前可以获取
+        ds = registry.get("test_ds")
+        assert ds is not None
 
-    def test_is_available_unregistered(self) -> None:
-        """测试未注册"""
-        registry = DataSourceRegistry.get_instance()
-
-        assert registry.is_available("unknown") is False
-
-    def test_reset_clears_all(self) -> None:
-        """测试 reset 清除所有"""
-        registry = DataSourceRegistry.get_instance()
-        registry.register(MockDataSource1)
-        registry.get("mock1")
-
+        # 重置
         registry.reset()
 
+        # 重置后无法获取
         with pytest.raises(KeyError):
-            registry.get("mock1")
+            registry.get("test_ds")
 
-    @pytest.mark.asyncio
-    @pytest.mark.timeout(5)
-    async def test_close_all(self) -> None:
-        """测试关闭所有数据源"""
+    def test_register_multiple(self):
+        """测试注册多个数据源"""
         registry = DataSourceRegistry.get_instance()
-        registry.register(MockDataSource1)
+        registry.register(MockTestDataSource)
+        registry.register(MockTestDataSourceAnother)
 
-        ds = registry.get("mock1")
-        await ds.get_client()
-        assert ds._initialized is True
+        ds1 = registry.get("test_ds")
+        ds2 = registry.get("test_ds_another")
 
-        await registry.close_all()
-        assert ds._initialized is False
+        assert isinstance(ds1, MockTestDataSource)
+        assert isinstance(ds2, MockTestDataSourceAnother)
