@@ -11,7 +11,7 @@
 | **宏观** | 市场整体如何？ | index_analysis, market_sentiment | - |
 | **中观** | 哪些板块热门？ | industry_trend, fund_flow_analysis, northbound_flow, lhb_tracker | - |
 | **微观** | 买什么股票？ | stock_analysis, stock_screener, technical_indicators, etf_analysis, risk_alert, fundamental_analysis | - |
-| **事件** | 有什么新闻/事件？ | news_driven_investment, limit_up_tracker | 公告解读 |
+| **事件** | 有什么新闻/事件？ | news_driven_investment, limit_up_tracker, announcement_analysis | - |
 | **组合** | 我的持仓怎么样？ | portfolio_analysis, watchlist_monitor | - |
 
 ---
@@ -51,6 +51,7 @@
 |-------|------|--------|
 | **news_driven_investment** | 新闻驱动投资分析 | AKShare |
 | **limit_up_tracker** | 涨停板追踪（连板/炸板） | AKShare |
+| **announcement_analysis** | 上市公司公告解读 | AKShare |
 
 ### 组合层
 
@@ -86,12 +87,6 @@
 
 ## 待补充能力
 
-### P1 - 体验提升
-
-| 能力 | 说明 | 难点 |
-|------|------|------|
-| 公告解读 | 上市公司公告分析 | NLP 处理 |
-
 ### P2 - 高级功能
 
 | 能力 | 说明 | 难点 |
@@ -107,6 +102,7 @@
 |------|----------|-------|
 | 基本面分析 | 2026-03-07 | fundamental_analysis |
 | 盈亏追踪 | 2026-03-07 | portfolio_analysis（已支持成本价输入） |
+| 公告解读 | 2026-03-07 | announcement_analysis |
 
 ---
 
