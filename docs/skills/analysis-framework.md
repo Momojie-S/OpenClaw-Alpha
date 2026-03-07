@@ -162,6 +162,7 @@ uv run --env-file .env python -m skills.industry_trend.scripts.crowdedness_proce
 
 | 能力 | 完成日期 | Skill |
 |------|----------|-------|
+| 量价关系分析 | 2026-03-08 | technical_indicators（volume_price_processor） |
 | 策略回测 | 2026-03-08 | backtest |
 | 行业景气度 | 2026-03-08 | industry_trend（prosperity_processor） |
 | 行业轮动评分 | 2026-03-08 | industry_trend（rotation_score_processor） |
