@@ -170,6 +170,7 @@ uv run --env-file .env python -m skills.industry_trend.scripts.crowdedness_proce
 
 | 能力 | 完成日期 | Skill |
 |------|----------|-------|
+| 财务健康三维度评分 | 2026-03-08 | fundamental_analysis（流动性+盈利质量） |
 | 量价关系分析 | 2026-03-08 | technical_indicators（volume_price_processor） |
 | 策略回测 | 2026-03-08 | backtest |
 | 行业景气度 | 2026-03-08 | industry_trend（prosperity_processor） |
