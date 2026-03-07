@@ -31,6 +31,7 @@
 |-------|------|--------|
 | **index_analysis** | 6 大核心指数分析，判断大盘趋势 | Tushare |
 | **market_sentiment** | 涨跌停、资金流向，评估市场温度 | AKShare |
+| **margin_trading** | 融资融券分析，监控市场杠杆水平 | AKShare |
 
 ### 中观层
 
@@ -87,7 +88,7 @@
 
 **典型流程**：
 0. **综合** - market_overview 一键生成市场报告（可选）
-1. **宏观** - index_analysis 看指数，market_sentiment 看情绪
+1. **宏观** - index_analysis 看指数，market_sentiment 看情绪，margin_trading 看杠杆
 2. **中观** - industry_trend 找热门板块，northbound_flow 看外资偏好
 3. **微观** - stock_screener 筛选个股，fundamental_analysis 看基本面，risk_alert 检查风险
 4. **事件** - news_driven_investment 找催化，limit_up_tracker 追踪热点
@@ -110,6 +111,7 @@
 
 | 能力 | 完成日期 | Skill |
 |------|----------|-------|
+| 融资融券分析 | 2026-03-08 | margin_trading |
 | 综合分析 | 2026-03-08 | market_overview |
 | 基本面分析 | 2026-03-07 | fundamental_analysis |
 | 盈亏追踪 | 2026-03-07 | portfolio_analysis（已支持成本价输入） |
