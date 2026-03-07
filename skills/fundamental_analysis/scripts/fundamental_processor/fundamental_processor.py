@@ -163,14 +163,136 @@ def _rate_debt_ratio(debt_ratio: Optional[float], name: str) -> str:
     return "风险"
 
 
+def _rate_debt_ratio_score(debt_ratio: Optional[float], name: str) -> float:
+    """资产负债率评分
+
+    Args:
+        debt_ratio: 资产负债率 (%)
+        name: 股票名称（用于判断金融行业）
+
+    Returns:
+        分数 (10-100)
+    """
+    if debt_ratio is None:
+        return 50
+
+    # 金融行业（银行、保险）特殊处理
+    is_financial = any(k in name for k in ["银行", "保险", "证券"])
+
+    if is_financial:
+        if debt_ratio > 95:
+            return 40
+        return 70
+
+    # 一般行业
+    if debt_ratio < 40:
+        return 100
+    if debt_ratio <= 60:
+        return 70
+    if debt_ratio <= 70:
+        return 40
+    return 10
+
+
+def _rate_current_ratio_score(current_ratio: Optional[float]) -> float:
+    """流动比率评分
+
+    Args:
+        current_ratio: 流动比率
+
+    Returns:
+        分数 (10-100)
+    """
+    if current_ratio is None:
+        return 50
+
+    if current_ratio >= 2.0:
+        return 100
+    if current_ratio >= 1.5:
+        return 80
+    if current_ratio >= 1.0:
+        return 50
+    return 10
+
+
+def _rate_cash_flow_score(cash_per_share: Optional[float]) -> float:
+    """每股经营现金流评分
+
+    Args:
+        cash_per_share: 每股经营现金流
+
+    Returns:
+        分数 (10-100)
+    """
+    if cash_per_share is None:
+        return 50
+
+    if cash_per_share > 0:
+        return 70
+    return 10
+
+
+def _calc_financial_health_score(
+    debt_ratio: Optional[float],
+    current_ratio: Optional[float],
+    cash_per_share: Optional[float],
+    name: str,
+) -> dict:
+    """计算财务健康综合评分
+
+    三维度加权：
+    - 偿债能力（40%）：资产负债率
+    - 流动性（30%）：流动比率
+    - 盈利质量（30%）：每股经营现金流
+
+    Args:
+        debt_ratio: 资产负债率 (%)
+        current_ratio: 流动比率
+        cash_per_share: 每股经营现金流
+        name: 股票名称
+
+    Returns:
+        评分字典，包含总分和各子项分数
+    """
+    # 子维度评分
+    debt_score = _rate_debt_ratio_score(debt_ratio, name)
+    liquidity_score = _rate_current_ratio_score(current_ratio)
+    cash_score = _rate_cash_flow_score(cash_per_share)
+
+    # 加权计算
+    weights = {"debt": 0.4, "liquidity": 0.3, "cash_flow": 0.3}
+    total = debt_score * weights["debt"] + liquidity_score * weights["liquidity"] + cash_score * weights["cash_flow"]
+    total = round(total, 1)
+
+    # 综合评级
+    if total >= 80:
+        rating = "健康"
+    elif total >= 60:
+        rating = "正常"
+    elif total >= 40:
+        rating = "关注"
+    else:
+        rating = "风险"
+
+    return {
+        "score": total,
+        "rating": rating,
+        "details": {
+            "debt_score": debt_score,
+            "liquidity_score": liquidity_score,
+            "cash_flow_score": cash_score,
+        },
+    }
+
+
 def _calc_overall_score(data: dict) -> dict:
     """计算综合评分
 
     评分维度：
-    - 估值（权重 25%）：低估=100, 合理=70, 高估=40
+    - 估值（权重 20%）：低估=100, 合理=70, 高估=40
     - 盈利能力（权重 30%）：优秀=100, 良好=80, 一般=50, 较差=20
     - 成长性（权重 25%）：高增长=100, 稳定增长=70, 下滑=40, 大幅下滑=10
-    - 财务健康（权重 20%）：健康=100, 正常=70, 关注=40, 风险=10
+    - 财务健康（权重 25%）：三维度综合评分
 
     Args:
         data: 分析结果字典
@@ -179,10 +301,10 @@ def _calc_overall_score(data: dict) -> dict:
         综合评分字典，包含 score 和 rating
     """
     weights = {
-        "valuation": 0.25,
+        "valuation": 0.20,
         "profitability": 0.30,
         "growth": 0.25,
-        "financial_health": 0.20,
+        "financial_health": 0.25,
     }
 
     # 评级到分数的映射
@@ -195,7 +317,6 @@ def _calc_overall_score(data: dict) -> dict:
         "大幅下滑": 10,
         "未知": 50,
     }
-    health_scores = {"健康": 100, "正常": 70, "关注": 40, "风险": 10, "未知": 50}
 
     # 计算各维度分数
     scores = {}
@@ -226,10 +347,11 @@ def _calc_overall_score(data: dict) -> dict:
     scores["growth"] = growth_scores.get(growth_rating, 50)
     details["growth"] = scores["growth"]
 
-    # 财务健康分数
-    debt_rating = data.get("financial_health", {}).get("debt_rating", "未知")
-    scores["financial_health"] = health_scores.get(debt_rating, 50)
-    details["financial_health"] = scores["financial_health"]
+    # 财务健康分数（使用新的三维度评分）
+    health_data = data.get("financial_health", {})
+    health_score = health_data.get("score", 50)
+    scores["financial_health"] = health_score
+    details["financial_health"] = health_score
 
     # 加权计算总分
     total_score = sum(scores[k] * weights[k] for k in weights)
@@ -325,6 +447,14 @@ async def analyze(code: str, include_history: bool = False) -> dict:
     pb_latest = pb_data[-1].value if pb_data else None
 
     # 3. 构建分析结果
+    # 先计算财务健康评分
+    health_score = _calc_financial_health_score(
+        financial.debt_ratio,
+        financial.current_ratio,
+        financial.cash_per_share,
+        financial.name,
+    )
+
     result = {
         "code": financial.code,
         "name": financial.name,
@@ -350,6 +480,9 @@ async def analyze(code: str, include_history: bool = False) -> dict:
             "current_ratio": financial.current_ratio,
             "quick_ratio": financial.quick_ratio,
             "cash_per_share": financial.cash_per_share,
+            "score": health_score["score"],
+            "rating": health_score["rating"],
+            "details": health_score["details"],
         },
     }
 

@@ -17,7 +17,7 @@ class TestCalcOverallScore:
             "valuation": {"pe_rating": "低估", "pb_rating": "低估"},
             "profitability": {"roe_rating": "优秀"},
             "growth": {"growth_rating": "高增长"},
-            "financial_health": {"debt_rating": "健康"},
+            "financial_health": {"score": 100},
         }
         result = _calc_overall_score(data)
         assert result["score"] >= 80
@@ -33,7 +33,7 @@ class TestCalcOverallScore:
             "valuation": {"pe_rating": "合理", "pb_rating": "合理"},
             "profitability": {"roe_rating": "良好"},
             "growth": {"growth_rating": "稳定增长"},
-            "financial_health": {"debt_rating": "正常"},
+            "financial_health": {"score": 70},
         }
         result = _calc_overall_score(data)
         assert 65 <= result["score"] < 80
@@ -45,7 +45,7 @@ class TestCalcOverallScore:
             "valuation": {"pe_rating": "合理", "pb_rating": "低估"},
             "profitability": {"roe_rating": "一般"},
             "growth": {"growth_rating": "下滑"},
-            "financial_health": {"debt_rating": "正常"},
+            "financial_health": {"score": 70},
         }
         result = _calc_overall_score(data)
         assert 50 <= result["score"] < 65
@@ -57,10 +57,10 @@ class TestCalcOverallScore:
             "valuation": {"pe_rating": "高估", "pb_rating": "合理"},  # 55
             "profitability": {"roe_rating": "较差"},  # 20
             "growth": {"growth_rating": "下滑"},  # 40
-            "financial_health": {"debt_rating": "关注"},  # 40
+            "financial_health": {"score": 40},  # 40
         }
         result = _calc_overall_score(data)
-        # 55*0.25 + 20*0.30 + 40*0.25 + 40*0.20 = 13.75 + 6 + 10 + 8 = 37.75
+        # 55*0.20 + 20*0.30 + 40*0.25 + 40*0.25 = 11 + 6 + 10 + 10 = 37
         assert 35 <= result["score"] < 50
         assert result["rating"] == "较差"
 
@@ -70,7 +70,7 @@ class TestCalcOverallScore:
             "valuation": {"pe_rating": "高估", "pb_rating": "高估"},
             "profitability": {"roe_rating": "较差"},
             "growth": {"growth_rating": "大幅下滑"},
-            "financial_health": {"debt_rating": "风险"},
+            "financial_health": {"score": 10},
         }
         result = _calc_overall_score(data)
         assert result["score"] < 35
@@ -82,7 +82,7 @@ class TestCalcOverallScore:
             "valuation": {"pe_rating": None, "pb_rating": None},
             "profitability": {"roe_rating": "未知"},
             "growth": {"growth_rating": "未知"},
-            "financial_health": {"debt_rating": "未知"},
+            "financial_health": {"score": 50},
         }
         result = _calc_overall_score(data)
         assert result["score"] == 50.0
@@ -94,7 +94,7 @@ class TestCalcOverallScore:
             "valuation": {"pe_rating": "低估", "pb_rating": None},
             "profitability": {"roe_rating": "良好"},
             "growth": {"growth_rating": "稳定增长"},
-            "financial_health": {"debt_rating": "正常"},
+            "financial_health": {"score": 70},
         }
         result = _calc_overall_score(data)
         # 只有 PE 低估 = 100，其他正常

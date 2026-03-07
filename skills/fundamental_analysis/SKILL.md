@@ -45,7 +45,7 @@ uv run --env-file .env python -m skills.fundamental_analysis.scripts.fundamental
       "valuation": 100.0,
       "profitability": 50,
       "growth": 40,
-      "financial_health": 70
+      "financial_health": 62.0
     }
   },
   "valuation": {
@@ -71,7 +71,14 @@ uv run --env-file .env python -m skills.fundamental_analysis.scripts.fundamental
     "debt_rating": "正常",
     "current_ratio": null,
     "quick_ratio": null,
-    "cash_per_share": 3.70
+    "cash_per_share": 3.70,
+    "score": 62.0,
+    "rating": "正常",
+    "details": {
+      "debt_score": 70,
+      "liquidity_score": 50,
+      "cash_flow_score": 70
+    }
   },
   "summary": "综合评分 64.0 分（一般），估值偏低，ROE 一般，营收下滑"
 }
@@ -158,10 +165,10 @@ uv run --env-file .env python -m skills.fundamental_analysis.scripts.fundamental
 
 | 维度 | 权重 | 说明 |
 |------|------|------|
-| 估值 | 25% | PE/PB 估值水平 |
+| 估值 | 20% | PE/PB 估值水平 |
 | 盈利能力 | 30% | ROE 盈利质量 |
 | 成长性 | 25% | 营收/利润增长 |
-| 财务健康 | 20% | 资产负债率 |
+| 财务健康 | 25% | 偿债能力 + 流动性 + 盈利质量 |
 
 **综合评级**：
 
@@ -172,6 +179,31 @@ uv run --env-file .env python -m skills.fundamental_analysis.scripts.fundamental
 | 50-64 | 一般 |
 | 35-49 | 较差 |
 | < 35 | 危险 |
+
+### 财务健康评分（三维度）
+
+| 子维度 | 权重 | 指标 | 说明 |
+|--------|------|------|------|
+| 偿债能力 | 40% | 资产负债率 | 长期偿债能力 |
+| 流动性 | 30% | 流动比率 | 短期偿债能力 |
+| 盈利质量 | 30% | 每股经营现金流 | 现金流健康度 |
+
+**流动性评级**：
+
+| 流动比率 | 评级 | 分数 |
+|---------|------|------|
+| > 2.0 | 优秀 | 100 |
+| 1.5-2.0 | 良好 | 80 |
+| 1.0-1.5 | 一般 | 50 |
+| < 1.0 | 风险 | 10 |
+
+**盈利质量评级**：
+
+| 每股现金流 | 评级 | 分数 |
+|-----------|------|------|
+| > 0 | 良好 | 70 |
+| < 0 | 风险 | 10 |
+| 无数据 | 未知 | 50 |
 
 ### 估值评级
 
