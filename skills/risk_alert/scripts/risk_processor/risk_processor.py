@@ -1,15 +1,20 @@
 # -*- coding: utf-8 -*-
-"""风险分析 Processor"""
+"""风险分析 Processor
+
+支持单个股票和批量风险检查。
+批量检查可以从命令行、文件或 watchlist_monitor 自选股读取股票列表。
+"""
 
 import argparse
 import asyncio
 import json
 from datetime import datetime, timedelta
+from pathlib import Path
 from typing import Any
 
 import akshare as ak
 
-from openclaw_alpha.core.processor_utils import get_output_path
+from openclaw_alpha.core.processor_utils import get_output_path, load_output
 
 
 class RiskProcessor:
@@ -283,29 +288,216 @@ class RiskProcessor:
 def parse_args():
     """解析命令行参数"""
     parser = argparse.ArgumentParser(description="风险检查")
-    parser.add_argument("symbol", help="股票代码（6位数字）")
+
+    # 单股检查
+    parser.add_argument("symbol", nargs="?", help="股票代码（6位数字）")
+
+    # 日期和天数
     parser.add_argument("--date", default=None, help="检查日期（YYYY-MM-DD）")
     parser.add_argument("--days", type=int, default=5, help="检查近 N 天")
+
+    # 批量检查
+    parser.add_argument("--batch", help="批量检查（逗号分隔的股票代码）")
+    parser.add_argument("--batch-file", help="从文件读取股票列表（每行一个代码）")
+    parser.add_argument("--watchlist", action="store_true", help="从自选股列表读取")
+
+    # 输出
     parser.add_argument("--output", action="store_true", help="保存到文件")
+    parser.add_argument("--top-n", type=int, default=10, help="每个风险等级显示数量")
+
     return parser.parse_args()
+
+
+def get_stock_list(args) -> list[str] | None:
+    """
+    从命令行参数获取股票列表
+
+    Args:
+        args: 命令行参数
+
+    Returns:
+        股票代码列表，如果只有一个股票则返回 None
+    """
+    symbols = []
+
+    # 从 --batch 参数读取
+    if args.batch:
+        symbols.extend([s.strip() for s in args.batch.split(",") if s.strip()])
+
+    # 从文件读取
+    if args.batch_file:
+        file_path = Path(args.batch_file)
+        if file_path.exists():
+            with open(file_path, "r", encoding="utf-8") as f:
+                for line in f:
+                    code = line.strip()
+                    if code and not code.startswith("#"):
+                        symbols.append(code)
+
+    # 从 watchlist 读取
+    if args.watchlist:
+        watchlist_data = load_output("watchlist_monitor", "watchlist")
+        if watchlist_data and "codes" in watchlist_data:
+            symbols.extend(watchlist_data["codes"])
+
+    # 去重
+    symbols = list(dict.fromkeys(symbols))
+
+    return symbols if symbols else None
+
+
+async def batch_check(symbols: list[str], date: str | None, days: int) -> dict[str, Any]:
+    """
+    批量检查股票风险
+
+    Args:
+        symbols: 股票代码列表
+        date: 检查日期
+        days: 检查近 N 天
+
+    Returns:
+        批量检查结果
+    """
+    check_date = date or datetime.now().strftime("%Y-%m-%d")
+
+    # 按风险等级分组
+    grouped = {
+        "高风险": [],
+        "中风险": [],
+        "低风险": [],
+        "正常": [],
+    }
+
+    # 并发检查所有股票
+    tasks = [RiskProcessor(symbol=s, date=check_date, days=days).check() for s in symbols]
+    results = await asyncio.gather(*tasks, return_exceptions=True)
+
+    for i, result in enumerate(results):
+        if isinstance(result, Exception):
+            # 检查失败
+            grouped["正常"].append({
+                "code": symbols[i],
+                "name": symbols[i],
+                "rating": "正常",
+                "error": str(result),
+            })
+        else:
+            rating = result.get("rating", "正常")
+            if rating in grouped:
+                grouped[rating].append(result)
+
+    # 统计
+    summary = {level: len(items) for level, items in grouped.items()}
+
+    return {
+        "date": check_date,
+        "total": len(symbols),
+        "summary": summary,
+        "risks": grouped,
+    }
+
+
+def format_batch_result(result: dict[str, Any], top_n: int = 10) -> str:
+    """
+    格式化批量检查结果
+
+    Args:
+        result: 批量检查结果
+        top_n: 每个风险等级显示数量
+
+    Returns:
+        格式化的字符串
+    """
+    lines = []
+    lines.append("=" * 60)
+    lines.append(f"风险扫描报告 - {result['date']}")
+    lines.append("=" * 60)
+    lines.append("")
+    lines.append(f"检查股票: {result['total']} 只")
+    lines.append("")
+
+    # 汇总统计
+    lines.append("【汇总统计】")
+    summary = result["summary"]
+    for level, count in summary.items():
+        if count > 0:
+            lines.append(f"  {level}: {count} 只")
+    lines.append("")
+
+    # 各风险等级详情
+    for level in ["高风险", "中风险", "低风险", "正常"]:
+        items = result["risks"][level]
+        if not items:
+            continue
+
+        lines.append(f"【{level}】({len(items)} 只)")
+
+        for i, item in enumerate(items[:top_n]):
+            code = item.get("code", "?")
+            name = item.get("name", "?")
+            risks = item.get("risks", [])
+
+            if risks:
+                risk_desc = ", ".join([r.get("detail", "") for r in risks[:2]])
+                lines.append(f"  {code} {name}: {risk_desc}")
+            elif "error" in item:
+                lines.append(f"  {code} {name}: 检查失败 ({item['error'][:30]}...)")
+            else:
+                lines.append(f"  {code} {name}: 无明显风险")
+
+        if len(items) > top_n:
+            lines.append(f"  ... 还有 {len(items) - top_n} 只")
+
+        lines.append("")
+
+    lines.append("=" * 60)
+    return "\n".join(lines)
 
 
 async def main():
     args = parse_args()
+    check_date = args.date or datetime.now().strftime("%Y-%m-%d")
 
-    processor = RiskProcessor(symbol=args.symbol, date=args.date, days=args.days)
-    result = await processor.check()
+    # 获取股票列表
+    symbols = get_stock_list(args)
 
-    # 打印结果
-    print(json.dumps(result, ensure_ascii=False, indent=2))
+    if symbols:
+        # 批量检查
+        result = await batch_check(symbols, args.date, args.days)
 
-    # 保存到文件
-    if args.output:
-        output_path = get_output_path("risk_alert", "risk_check", args.date or datetime.now().strftime("%Y-%m-%d"))
-        output_path.parent.mkdir(parents=True, exist_ok=True)
-        with open(output_path, "w", encoding="utf-8") as f:
-            json.dump(result, f, ensure_ascii=False, indent=2)
-        print(f"\n结果已保存到: {output_path}")
+        # 打印格式化结果
+        print(format_batch_result(result, args.top_n))
+
+        # 保存到文件
+        if args.output:
+            output_path = get_output_path("risk_alert", "batch_risk_scan", check_date)
+            output_path.parent.mkdir(parents=True, exist_ok=True)
+            with open(output_path, "w", encoding="utf-8") as f:
+                json.dump(result, f, ensure_ascii=False, indent=2)
+            print(f"\n结果已保存到: {output_path}")
+
+    elif args.symbol:
+        # 单股检查
+        processor = RiskProcessor(symbol=args.symbol, date=args.date, days=args.days)
+        result = await processor.check()
+
+        # 打印结果
+        print(json.dumps(result, ensure_ascii=False, indent=2))
+
+        # 保存到文件
+        if args.output:
+            output_path = get_output_path("risk_alert", "risk_check", check_date)
+            output_path.parent.mkdir(parents=True, exist_ok=True)
+            with open(output_path, "w", encoding="utf-8") as f:
+                json.dump(result, f, ensure_ascii=False, indent=2)
+            print(f"\n结果已保存到: {output_path}")
+
+    else:
+        print("请提供股票代码或使用批量检查参数：")
+        print("  单股检查: risk_processor 000001")
+        print("  批量检查: risk_processor --batch '000001,600000'")
+        print("  文件读取: risk_processor --batch-file stocks.txt")
+        print("  自选股:   risk_processor --watchlist")
 
 
 if __name__ == "__main__":

@@ -1,6 +1,6 @@
 ---
 name: openclaw_alpha_risk_alert
-description: "股票风险监控。适用于：(1) 检查个股风险信号（业绩、价格、资金），(2) 识别业绩暴雷风险，(3) 监控连续下跌和资金流出。不适用于：实时风险预警、量化风险模型、组合风险管理。"
+description: "股票风险监控。适用于：(1) 检查个股风险信号（业绩、价格、资金），(2) 批量扫描多只股票风险，(3) 识别业绩暴雷风险，(4) 监控连续下跌和资金流出。不适用于：实时风险预警、量化风险模型、组合风险管理。"
 metadata:
   openclaw:
     emoji: "⚠️"
@@ -10,7 +10,7 @@ metadata:
 
 # 风险监控 Skill
 
-帮助投资者识别股票风险信号，包括业绩风险、价格风险、资金风险。
+帮助投资者识别股票风险信号，包括业绩风险、价格风险、资金风险。支持单股检查和批量扫描。
 
 ## 使用说明
 
@@ -20,28 +20,51 @@ metadata:
 # 检查个股风险
 uv run --env-file .env python -m skills.risk_alert.scripts.risk_processor.risk_processor <股票代码> [--date YYYY-MM-DD] [--days N]
 
-# 示例
-uv run --env-file .env python -m skills.risk_alert.scripts.risk_processor.risk_processor 000001
-uv run --env-file .env python -m skills.risk_alert.scripts.risk_processor.risk_processor 002364 --date 2026-03-07 --days 5
+# 批量检查（逗号分隔）
+uv run --env-file .env python -m skills.risk_alert.scripts.risk_processor.risk_processor --batch "000001,600000,002475"
 
-# 保存结果到文件
-uv run --env-file .env python -m skills.risk_alert.scripts.risk_processor.risk_processor 000001 --output
+# 从文件读取
+uv run --env-file .env python -m skills.risk_alert.scripts.risk_processor.risk_processor --batch-file stocks.txt
+
+# 检查自选股风险
+uv run --env-file .env python -m skills.risk_alert.scripts.risk_processor.risk_processor --watchlist
+
+# 指定日期和天数
+uv run --env-file .env python -m skills.risk_alert.scripts.risk_processor.risk_processor --batch "000001,600000" --date 2026-03-07 --days 5
+
+# 保存结果
+uv run --env-file .env python -m skills.risk_alert.scripts.risk_processor.risk_processor --watchlist --output
 ```
+
+### 参数说明
+
+| 参数 | 说明 | 默认值 |
+|------|------|--------|
+| `symbol` | 股票代码（单股检查） | - |
+| `--date` | 检查日期 | 今天 |
+| `--days` | 检查近 N 天 | 5 |
+| `--batch` | 批量检查（逗号分隔） | - |
+| `--batch-file` | 从文件读取股票列表 | - |
+| `--watchlist` | 从自选股列表读取 | False |
+| `--output` | 保存结果到文件 | False |
+| `--top-n` | 每个风险等级显示数量 | 10 |
 
 ### 运行记录
 
-运行记录保存在 `.openclaw_alpha/risk_alert/YYYY-MM-DD/` 目录下。
+运行记录保存在 `.openclaw_alpha/risk_alert/YYYY-MM-DD/` 目录下：
+- 单股检查：`risk_check.json`
+- 批量扫描：`batch_risk_scan.json`
 
 ## 分析步骤
 
-### Step 1: 输入股票代码
+### Step 1a: 单股风险检查
 
 **输入**：6位股票代码
 
 **动作**：运行风险检查脚本
 
 ```bash
-uv run --env-file .env python -m skills.risk_alert.scripts.risk_processor.risk_processor <股票代码>
+uv run --env-file .env python -m skills.risk_alert.scripts.risk_processor.risk_processor 000001
 ```
 
 **输出**：风险检查结果
@@ -64,6 +87,53 @@ uv run --env-file .env python -m skills.risk_alert.scripts.risk_processor.risk_p
     "评估业绩对股价的潜在影响"
   ]
 }
+```
+
+### Step 1b: 批量风险扫描
+
+**输入**：股票列表（命令行/文件/自选股）
+
+**动作**：运行批量风险扫描
+
+```bash
+# 方式 1：直接指定股票
+uv run --env-file .env python -m skills.risk_alert.scripts.risk_processor.risk_processor --batch "000001,600000,002475"
+
+# 方式 2：从文件读取
+uv run --env-file .env python -m skills.risk_alert.scripts.risk_processor.risk_processor --batch-file stocks.txt
+
+# 方式 3：检查自选股
+uv run --env-file .env python -m skills.risk_alert.scripts.risk_processor.risk_processor --watchlist
+```
+
+**输出**：批量风险扫描报告
+
+```
+============================================================
+风险扫描报告 - 2026-03-08
+============================================================
+
+检查股票: 10 只
+
+【汇总统计】
+  高风险: 1 只
+  中风险: 2 只
+  低风险: 3 只
+  正常: 4 只
+
+【高风险】(1 只)
+  002364 中恒电气: 业绩首亏，预计变动 -336.7%
+
+【中风险】(2 只)
+  600000 浦发银行: 连续下跌 3 天，累计跌幅 12.5%
+  002475 立讯精密: 连续 3 天主力净流出，累计 2.3 亿
+
+【低风险】(3 只)
+  ...
+
+【正常】(4 只)
+  000001 平安银行: 无明显风险
+  ...
 ```
 
 ### Step 2: 查看风险详情
@@ -138,18 +208,19 @@ uv run --env-file .env python -m skills.risk_alert.scripts.risk_processor.risk_p
 1. **数据延迟**：业绩预告数据可能不是最新的，请以公告为准
 2. **网络不稳定**：部分 AKShare 接口（东方财富）网络不稳定，可能需要重试
 3. **停牌股票**：停牌股票可能无法获取最新数据
-4. **仅供参考**：风险提示仅供参考，不构成投资建议
+4. **批量检查耗时**：批量检查多只股票可能需要较长时间
+5. **仅供参考**：风险提示仅供参考，不构成投资建议
 
-## Phase 1 功能
+## 已实现功能
 
 - ✅ 业绩风险检查（业绩预告）
 - ✅ 价格风险检查（连续下跌）
 - ✅ 资金风险检查（持续流出）
 - ✅ 综合评级和建议
+- ✅ 批量风险扫描（命令行/文件/自选股）
 
-## Phase 2 计划
+## 待实现功能
 
-- 全市场风险扫描
 - 大股东减持监控
 - 股权质押风险
 - 风险趋势分析
