@@ -2,7 +2,7 @@
 """ETF Fetcher 测试"""
 
 import pytest
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch, MagicMock, AsyncMock
 import pandas as pd
 
 from skills.etf_analysis.scripts.etf_fetcher.akshare_impl import (
@@ -61,9 +61,16 @@ class TestEtfFetcherAkshareTransform:
         mock_ak = MagicMock()
         mock_ak.fund_etf_category_sina.return_value = sample_spot_df
 
-        with patch.dict(
-            "sys.modules", {"akshare": mock_ak, "ak": mock_ak}
-        ):
+        # Mock 数据源注册表
+        mock_registry = MagicMock()
+        mock_ds = MagicMock()
+        mock_ds.get_client = AsyncMock(return_value=None)  # client 未使用
+        mock_registry.get.return_value = mock_ds
+
+        with patch(
+            "skills.etf_analysis.scripts.etf_fetcher.akshare_impl.DataSourceRegistry.get_instance",
+            return_value=mock_registry,
+        ), patch.dict("sys.modules", {"akshare": mock_ak}):
             result = await fetcher._fetch_spot()
 
             assert len(result) == 2
@@ -90,9 +97,16 @@ class TestEtfFetcherAkshareTransform:
         mock_ak = MagicMock()
         mock_ak.fund_etf_hist_sina.return_value = sample_history_df
 
-        with patch.dict(
-            "sys.modules", {"akshare": mock_ak, "ak": mock_ak}
-        ):
+        # Mock 数据源注册表
+        mock_registry = MagicMock()
+        mock_ds = MagicMock()
+        mock_ds.get_client = AsyncMock(return_value=None)
+        mock_registry.get.return_value = mock_ds
+
+        with patch(
+            "skills.etf_analysis.scripts.etf_fetcher.akshare_impl.DataSourceRegistry.get_instance",
+            return_value=mock_registry,
+        ), patch.dict("sys.modules", {"akshare": mock_ak}):
             result = await fetcher._fetch_history("sz159915", days=2)
 
             assert len(result) == 2
@@ -111,9 +125,16 @@ class TestEtfFetcherAkshareTransform:
         mock_ak = MagicMock()
         mock_ak.fund_etf_category_sina.return_value = pd.DataFrame()
 
-        with patch.dict(
-            "sys.modules", {"akshare": mock_ak, "ak": mock_ak}
-        ):
+        # Mock 数据源注册表
+        mock_registry = MagicMock()
+        mock_ds = MagicMock()
+        mock_ds.get_client = AsyncMock(return_value=None)
+        mock_registry.get.return_value = mock_ds
+
+        with patch(
+            "skills.etf_analysis.scripts.etf_fetcher.akshare_impl.DataSourceRegistry.get_instance",
+            return_value=mock_registry,
+        ), patch.dict("sys.modules", {"akshare": mock_ak}):
             result = await fetcher._fetch_spot()
             assert result == []
 
@@ -127,9 +148,16 @@ class TestEtfFetcherAkshareTransform:
             columns=["date", "open", "high", "low", "close", "volume", "amount"]
         )
 
-        with patch.dict(
-            "sys.modules", {"akshare": mock_ak, "ak": mock_ak}
-        ):
+        # Mock 数据源注册表
+        mock_registry = MagicMock()
+        mock_ds = MagicMock()
+        mock_ds.get_client = AsyncMock(return_value=None)
+        mock_registry.get.return_value = mock_ds
+
+        with patch(
+            "skills.etf_analysis.scripts.etf_fetcher.akshare_impl.DataSourceRegistry.get_instance",
+            return_value=mock_registry,
+        ), patch.dict("sys.modules", {"akshare": mock_ak}):
             result = await fetcher._fetch_history("sz159915", days=30)
             assert result == []
 
