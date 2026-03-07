@@ -38,6 +38,16 @@ uv run --env-file .env python -m skills.fundamental_analysis.scripts.fundamental
   "code": "000001",
   "name": "平安银行",
   "report_date": "2025-09-30",
+  "overall": {
+    "score": 64.0,
+    "rating": "一般",
+    "details": {
+      "valuation": 100.0,
+      "profitability": 50,
+      "growth": 40,
+      "financial_health": 70
+    }
+  },
   "valuation": {
     "pe_ttm": 4.87,
     "pe_rating": "低估",
@@ -63,7 +73,7 @@ uv run --env-file .env python -m skills.fundamental_analysis.scripts.fundamental
     "quick_ratio": null,
     "cash_per_share": 3.70
   },
-  "summary": "估值偏低，ROE 一般，营收下滑"
+  "summary": "综合评分 64.0 分（一般），估值偏低，ROE 一般，营收下滑"
 }
 ```
 
@@ -141,6 +151,27 @@ uv run --env-file .env python -m skills.fundamental_analysis.scripts.fundamental
 **注**：金融行业（银行、保险）特殊处理，>90% 为正常。
 
 ## 评级体系
+
+### 综合评分
+
+基于四个维度加权计算总分（0-100）：
+
+| 维度 | 权重 | 说明 |
+|------|------|------|
+| 估值 | 25% | PE/PB 估值水平 |
+| 盈利能力 | 30% | ROE 盈利质量 |
+| 成长性 | 25% | 营收/利润增长 |
+| 财务健康 | 20% | 资产负债率 |
+
+**综合评级**：
+
+| 分数 | 评级 |
+|------|------|
+| ≥ 80 | 优秀 |
+| 65-79 | 良好 |
+| 50-64 | 一般 |
+| 35-49 | 较差 |
+| < 35 | 危险 |
 
 ### 估值评级
 

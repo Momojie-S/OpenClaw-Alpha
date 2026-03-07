@@ -163,6 +163,97 @@ def _rate_debt_ratio(debt_ratio: Optional[float], name: str) -> str:
     return "风险"
 
 
+def _calc_overall_score(data: dict) -> dict:
+    """计算综合评分
+
+    评分维度：
+    - 估值（权重 25%）：低估=100, 合理=70, 高估=40
+    - 盈利能力（权重 30%）：优秀=100, 良好=80, 一般=50, 较差=20
+    - 成长性（权重 25%）：高增长=100, 稳定增长=70, 下滑=40, 大幅下滑=10
+    - 财务健康（权重 20%）：健康=100, 正常=70, 关注=40, 风险=10
+
+    Args:
+        data: 分析结果字典
+
+    Returns:
+        综合评分字典，包含 score 和 rating
+    """
+    weights = {
+        "valuation": 0.25,
+        "profitability": 0.30,
+        "growth": 0.25,
+        "financial_health": 0.20,
+    }
+
+    # 评级到分数的映射
+    valuation_scores = {"低估": 100, "合理": 70, "高估": 40}
+    profitability_scores = {"优秀": 100, "良好": 80, "一般": 50, "较差": 20, "未知": 50}
+    growth_scores = {
+        "高增长": 100,
+        "稳定增长": 70,
+        "下滑": 40,
+        "大幅下滑": 10,
+        "未知": 50,
+    }
+    health_scores = {"健康": 100, "正常": 70, "关注": 40, "风险": 10, "未知": 50}
+
+    # 计算各维度分数
+    scores = {}
+    details = {}
+
+    # 估值分数（取 PE 和 PB 的平均）
+    pe_rating = data.get("valuation", {}).get("pe_rating")
+    pb_rating = data.get("valuation", {}).get("pb_rating")
+    val_scores = []
+    if pe_rating and pe_rating in valuation_scores:
+        val_scores.append(valuation_scores[pe_rating])
+    if pb_rating and pb_rating in valuation_scores:
+        val_scores.append(valuation_scores[pb_rating])
+    if val_scores:
+        scores["valuation"] = sum(val_scores) / len(val_scores)
+        details["valuation"] = round(scores["valuation"], 1)
+    else:
+        scores["valuation"] = 50  # 默认中等分
+        details["valuation"] = 50
+
+    # 盈利能力分数
+    roe_rating = data.get("profitability", {}).get("roe_rating", "未知")
+    scores["profitability"] = profitability_scores.get(roe_rating, 50)
+    details["profitability"] = scores["profitability"]
+
+    # 成长性分数
+    growth_rating = data.get("growth", {}).get("growth_rating", "未知")
+    scores["growth"] = growth_scores.get(growth_rating, 50)
+    details["growth"] = scores["growth"]
+
+    # 财务健康分数
+    debt_rating = data.get("financial_health", {}).get("debt_rating", "未知")
+    scores["financial_health"] = health_scores.get(debt_rating, 50)
+    details["financial_health"] = scores["financial_health"]
+
+    # 加权计算总分
+    total_score = sum(scores[k] * weights[k] for k in weights)
+    total_score = round(total_score, 1)
+
+    # 综合评级
+    if total_score >= 80:
+        rating = "优秀"
+    elif total_score >= 65:
+        rating = "良好"
+    elif total_score >= 50:
+        rating = "一般"
+    elif total_score >= 35:
+        rating = "较差"
+    else:
+        rating = "危险"
+
+    return {
+        "score": total_score,
+        "rating": rating,
+        "details": details,
+    }
+
+
 def _generate_summary(data: dict) -> str:
     """生成总结
 
@@ -173,6 +264,11 @@ def _generate_summary(data: dict) -> str:
         总结字符串
     """
     parts = []
+
+    # 综合评分
+    overall = data.get("overall", {})
+    if overall:
+        parts.append(f"综合评分 {overall.get('score', '-')} 分（{overall.get('rating', '-')}）")
 
     # 估值
     pe_rating = data.get("valuation", {}).get("pe_rating")
@@ -264,7 +360,10 @@ async def analyze(code: str, include_history: bool = False) -> dict:
             "pb": [v.to_dict() for v in pb_data[-30:]],
         }
 
-    # 5. 生成总结
+    # 5. 计算综合评分
+    result["overall"] = _calc_overall_score(result)
+
+    # 6. 生成总结
     result["summary"] = _generate_summary(result)
 
     return result
