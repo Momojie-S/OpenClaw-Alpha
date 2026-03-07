@@ -14,6 +14,7 @@
 | **微观** | 买什么股票？ | stock_analysis, stock_screener, technical_indicators, etf_analysis, risk_alert, fundamental_analysis | - |
 | **事件** | 有什么新闻/事件？ | news_driven_investment, limit_up_tracker, announcement_analysis | - |
 | **组合** | 我的持仓怎么样？ | portfolio_analysis, watchlist_monitor | - |
+| **预警** | 有什么风险/机会？ | alert_monitor | - |
 
 ---
 
@@ -69,6 +70,12 @@
 |-------|------|--------|
 | **portfolio_analysis** | 持仓结构分析（含盈亏计算） | AKShare |
 | **watchlist_monitor** | 自选股监控 | AKShare |
+
+### 预警层
+
+| Skill | 定位 | 数据源 |
+|-------|------|--------|
+| **alert_monitor** | 持仓风险和市场异动预警 | 复用其他 skill |
 
 ---
 
@@ -171,6 +178,7 @@ uv run --env-file .env python -m skills.industry_trend.scripts.crowdedness_proce
 | 个股资金流向 | 2026-03-08 | stock_fund_flow |
 | 融资融券分析 | 2026-03-08 | margin_trading |
 | 综合分析 | 2026-03-08 | market_overview |
+| 预警监控 | 2026-03-08 | alert_monitor |
 | 基本面分析 | 2026-03-07 | fundamental_analysis |
 | 盈亏追踪 | 2026-03-07 | portfolio_analysis（已支持成本价输入） |
 | 公告解读 | 2026-03-07 | announcement_analysis |
@@ -189,7 +197,7 @@ uv run --env-file .env python -m skills.industry_trend.scripts.crowdedness_proce
 |------|------|------|------|
 | 轮动评分 | 多因子综合评分模型 | 因子权重优化 | ✅ 已完成 |
 | 策略回测 | 验证投资策略历史表现 | A股特殊处理、数据量大 | ✅ 已完成 |
-| 预警推送 | 实时风险预警 | 推送机制 | 📝 设计完成，待开发 |
+| 预警推送 | 实时风险预警 | 推送机制 | ✅ 已完成 |
 
 详见：[预警推送系统设计](../research/alert-push-system-design.md)
 
