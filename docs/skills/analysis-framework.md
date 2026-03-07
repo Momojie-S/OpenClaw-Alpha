@@ -136,6 +136,7 @@ uv run --env-file .env python -m skills.industry_trend.scripts.crowdedness_proce
 
 | 能力 | 完成日期 | Skill |
 |------|----------|-------|
+| 行业轮动评分 | 2026-03-08 | industry_trend（rotation_score_processor） |
 | 板块拥挤度指标 | 2026-03-08 | industry_trend（crowdedness_processor） |
 | 限售解禁风险监控 | 2026-03-08 | restricted_release |
 | 个股资金流向 | 2026-03-08 | stock_fund_flow |
@@ -154,6 +155,7 @@ uv run --env-file .env python -m skills.industry_trend.scripts.crowdedness_proce
 | 能力 | 说明 | 难度 | 依赖 | 状态 |
 |------|------|------|------|------|
 | ~~拥挤度指标~~ | ~~换手率分位、成交额占比~~ | ~~低~~ | ~~现有数据可计算~~ | ✅ 已完成 |
+| ~~轮动评分~~ | ~~热度+拥挤度综合评分~~ | ~~低~~ | ~~现有数据~~ | ✅ 已完成 |
 | 行业景气度 | ROE趋势、利润增速追踪 | 中 | 财务数据 | 待开发 |
 
 ### P2 - 高级功能

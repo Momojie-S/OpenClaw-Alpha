@@ -116,7 +116,27 @@ uv run --env-file .env python -m skills.industry_trend.scripts.crowdedness_proce
 - **高拥挤** = 过热风险，谨慎追高
 - 关注拥挤度等级：高拥挤（>80）、中等拥挤（50-80）、低拥挤（<50）
 
-### Step 5: 趋势对比（可选）
+### Step 5: 轮动评分分析（黄金组合识别）
+
+**输入**：日期（默认今天）
+
+**动作**：
+```bash
+uv run --env-file .env python -m skills.industry_trend.scripts.rotation_score_processor.rotation_score_processor \
+    --category L1 \
+    --top-n 10
+```
+
+**输出**：
+- 控制台：Top 10 轮动评分排名
+- 文件：`.openclaw_alpha/industry_trend/{date}/rotation-score.json`
+
+**分析要点**：
+- 关注 `is_golden: true` 的板块（黄金组合）
+- 评分等级：A+（黄金机会）、A（优质机会）、B（一般机会）、C（风险机会）
+- 结合趋势信号综合判断
+
+### Step 6: 趋势对比（可选）
 
 如果需要对比历史数据：
 1. 指定日期参数：`--date 2026-03-05`
