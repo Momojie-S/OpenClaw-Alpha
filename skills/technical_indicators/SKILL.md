@@ -43,16 +43,16 @@ pip install TA_Lib‑0.4.28‑cp312‑cp312‑win_amd64.whl
 ### 脚本运行
 
 ```bash
-uv run --env-file .env python skills/technical_indicators/scripts/indicator_processor/indicator_processor.py 000001
+uv run --env-file .env python -m skills.technical_indicators.scripts.indicator_processor.indicator_processor 000001
 
 # 指定天数
-uv run --env-file .env python skills/technical_indicators/scripts/indicator_processor/indicator_processor.py 000001 --days 120
+uv run --env-file .env python -m skills.technical_indicators.scripts.indicator_processor.indicator_processor 000001 --days 120
 
 # 只分析特定指标
-uv run --env-file .env python skills/technical_indicators/scripts/indicator_processor/indicator_processor.py 000001 --indicators "macd,rsi"
+uv run --env-file .env python -m skills.technical_indicators.scripts.indicator_processor.indicator_processor 000001 --indicators "macd,rsi"
 
 # 自定义参数
-uv run --env-file .env python skills/technical_indicators/scripts/indicator_processor/indicator_processor.py 000001 --params '{"macd": {"fast": 10, "slow": 20, "signal": 7}}'
+uv run --env-file .env python -m skills.technical_indicators.scripts.indicator_processor.indicator_processor 000001 --params '{"macd": {"fast": 10, "slow": 20, "signal": 7}}'
 ```
 
 ### 运行记录
@@ -68,7 +68,7 @@ uv run --env-file .env python skills/technical_indicators/scripts/indicator_proc
 
 **动作**：运行脚本计算技术指标
 ```bash
-uv run --env-file .env python skills/technical_indicators/scripts/indicator_processor/indicator_processor.py 000001
+uv run --env-file .env python -m skills.technical_indicators.scripts.indicator_processor.indicator_processor 000001
 ```
 
 **输出**：
@@ -104,13 +104,13 @@ KDJ: 超买 (-1)
 **动作**：自定义分析
 ```bash
 # 只看 MACD 和 RSI
-uv run --env-file .env python skills/technical_indicators/scripts/indicator_processor/indicator_processor.py 000001 --indicators "macd,rsi"
+uv run --env-file .env python -m skills.technical_indicators.scripts.indicator_processor.indicator_processor 000001 --indicators "macd,rsi"
 
 # 使用更长历史数据（120 天）
-uv run --env-file .env python skills/technical_indicators/scripts/indicator_processor/indicator_processor.py 000001 --days 120
+uv run --env-file .env python -m skills.technical_indicators.scripts.indicator_processor.indicator_processor 000001 --days 120
 
 # 自定义 MACD 参数
-uv run --env-file .env python skills/technical_indicators/scripts/indicator_processor/indicator_processor.py 000001 --params '{"macd": {"fast": 10, "slow": 22, "signal": 7}}'
+uv run --env-file .env python -m skills.technical_indicators.scripts.indicator_processor.indicator_processor 000001 --params '{"macd": {"fast": 10, "slow": 22, "signal": 7}}'
 ```
 
 **输出**：自定义指标的分析结果

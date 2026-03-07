@@ -18,10 +18,10 @@ metadata:
 
 ```bash
 # 单只股票基本面分析
-uv run --env-file .env python skills/fundamental_analysis/scripts/fundamental_processor/fundamental_processor.py --code 000001
+uv run --env-file .env python -m skills.fundamental_analysis.scripts.fundamental_processor.fundamental_processor --code 000001
 
 # 包含估值历史数据
-uv run --env-file .env python skills/fundamental_analysis/scripts/fundamental_processor/fundamental_processor.py --code 000001 --include-history
+uv run --env-file .env python -m skills.fundamental_analysis.scripts.fundamental_processor.fundamental_processor --code 000001 --include-history
 ```
 
 ### 参数说明
@@ -76,7 +76,7 @@ uv run --env-file .env python skills/fundamental_analysis/scripts/fundamental_pr
 **动作**：运行基本面分析脚本
 
 ```bash
-uv run --env-file .env python skills/fundamental_analysis/scripts/fundamental_processor/fundamental_processor.py --code 000001
+uv run --env-file .env python -m skills.fundamental_analysis.scripts.fundamental_processor.fundamental_processor --code 000001
 ```
 
 **输出**：基本面分析报告（JSON）

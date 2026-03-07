@@ -19,7 +19,7 @@ metadata:
 所有脚本需在项目根目录下运行，使用 `uv run --env-file .env` 加载环境变量：
 
 ```bash
-uv run --env-file .env python skills/lhb_tracker/scripts/lhb_processor/lhb_processor.py [参数]
+uv run --env-file .env python -m skills.lhb_tracker.scripts.lhb_processor.lhb_processor [参数]
 ```
 
 **如果脚本运行失败**：
@@ -46,7 +46,7 @@ uv run --env-file .env python skills/lhb_tracker/scripts/lhb_processor/lhb_proce
 
 **动作**：
 ```bash
-uv run --env-file .env python skills/lhb_tracker/scripts/lhb_processor/lhb_processor.py \
+uv run --env-file .env python -m skills.lhb_tracker.scripts.lhb_processor.lhb_processor \
     --action daily \
     --top-n 10
 ```
@@ -67,7 +67,7 @@ uv run --env-file .env python skills/lhb_tracker/scripts/lhb_processor/lhb_proce
 
 **动作**：
 ```bash
-uv run --env-file .env python skills/lhb_tracker/scripts/lhb_processor/lhb_processor.py \
+uv run --env-file .env python -m skills.lhb_tracker.scripts.lhb_processor.lhb_processor \
     --action stock \
     --symbol 000001 \
     --days 10

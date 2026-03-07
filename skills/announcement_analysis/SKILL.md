@@ -18,22 +18,22 @@ metadata:
 
 ```bash
 # 获取今日全部公告
-uv run --env-file .env python skills/announcement_analysis/scripts/announcement_processor/announcement_processor.py
+uv run --env-file .env python -m skills.announcement_analysis.scripts.announcement_processor.announcement_processor
 
 # 获取指定日期公告
-uv run --env-file .env python skills/announcement_analysis/scripts/announcement_processor/announcement_processor.py --date 2026-03-07
+uv run --env-file .env python -m skills.announcement_analysis.scripts.announcement_processor.announcement_processor --date 2026-03-07
 
 # 按类型筛选
-uv run --env-file .env python skills/announcement_analysis/scripts/announcement_processor/announcement_processor.py --type 重大事项
+uv run --env-file .env python -m skills.announcement_analysis.scripts.announcement_processor.announcement_processor --type 重大事项
 
 # 按股票代码搜索
-uv run --env-file .env python skills/announcement_analysis/scripts/announcement_processor/announcement_processor.py --code 000001
+uv run --env-file .env python -m skills.announcement_analysis.scripts.announcement_processor.announcement_processor --code 000001
 
 # 按关键词搜索
-uv run --env-file .env python skills/announcement_analysis/scripts/announcement_processor/announcement_processor.py --keyword "重组"
+uv run --env-file .env python -m skills.announcement_analysis.scripts.announcement_processor.announcement_processor --keyword "重组"
 
 # 组合使用
-uv run --env-file .env python skills/announcement_analysis/scripts/announcement_processor/announcement_processor.py --type 风险提示 --top-n 10
+uv run --env-file .env python -m skills.announcement_analysis.scripts.announcement_processor.announcement_processor --type 风险提示 --top-n 10
 ```
 
 ### 参数说明
@@ -66,7 +66,7 @@ uv run --env-file .env python skills/announcement_analysis/scripts/announcement_
 **输入**：当日日期
 **动作**：
 ```bash
-uv run --env-file .env python skills/announcement_analysis/scripts/announcement_processor/announcement_processor.py --top-n 30
+uv run --env-file .env python -m skills.announcement_analysis.scripts.announcement_processor.announcement_processor --top-n 30
 ```
 **输出**：当日公告列表，按重要性排序
 
@@ -75,7 +75,7 @@ uv run --env-file .env python skills/announcement_analysis/scripts/announcement_
 **输入**：需要关注的公告类型
 **动作**：
 ```bash
-uv run --env-file .env python skills/announcement_analysis/scripts/announcement_processor/announcement_processor.py --type 风险提示
+uv run --env-file .env python -m skills.announcement_analysis.scripts.announcement_processor.announcement_processor --type 风险提示
 ```
 **输出**：风险提示公告列表
 
@@ -84,7 +84,7 @@ uv run --env-file .env python skills/announcement_analysis/scripts/announcement_
 **输入**：股票代码
 **动作**：
 ```bash
-uv run --env-file .env python skills/announcement_analysis/scripts/announcement_processor/announcement_processor.py --code 000001
+uv run --env-file .env python -m skills.announcement_analysis.scripts.announcement_processor.announcement_processor --code 000001
 ```
 **输出**：该股票的公告列表
 
@@ -93,7 +93,7 @@ uv run --env-file .env python skills/announcement_analysis/scripts/announcement_
 **输入**：关注的关键词（如"重组"、"并购"）
 **动作**：
 ```bash
-uv run --env-file .env python skills/announcement_analysis/scripts/announcement_processor/announcement_processor.py --keyword "重组"
+uv run --env-file .env python -m skills.announcement_analysis.scripts.announcement_processor.announcement_processor --keyword "重组"
 ```
 **输出**：包含关键词的公告列表
 
@@ -104,24 +104,24 @@ uv run --env-file .env python skills/announcement_analysis/scripts/announcement_
 检查持仓股票是否有重要公告：
 ```bash
 # 检查单只股票
-uv run --env-file .env python skills/announcement_analysis/scripts/announcement_processor/announcement_processor.py --code 000001
+uv run --env-file .env python -m skills.announcement_analysis.scripts.announcement_processor.announcement_processor --code 000001
 
 # 检查多只股票（需要分别运行或查看全部后筛选）
-uv run --env-file .env python skills/announcement_analysis/scripts/announcement_processor/announcement_processor.py --type 重大事项 --keyword "000001"
+uv run --env-file .env python -m skills.announcement_analysis.scripts.announcement_processor.announcement_processor --type 重大事项 --keyword "000001"
 ```
 
 ### 场景 2: 全市场风险扫描
 
 筛选所有风险提示公告：
 ```bash
-uv run --env-file .env python skills/announcement_analysis/scripts/announcement_processor/announcement_processor.py --type 风险提示
+uv run --env-file .env python -m skills.announcement_analysis.scripts.announcement_processor.announcement_processor --type 风险提示
 ```
 
 ### 场景 3: 寻找并购重组机会
 
 搜索重组相关公告：
 ```bash
-uv run --env-file .env python skills/announcement_analysis/scripts/announcement_processor/announcement_processor.py --type 资产重组 --top-n 30
+uv run --env-file .env python -m skills.announcement_analysis.scripts.announcement_processor.announcement_processor --type 资产重组 --top-n 30
 ```
 
 ## 注意事项

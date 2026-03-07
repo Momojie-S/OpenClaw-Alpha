@@ -18,14 +18,14 @@ metadata:
 
 ```bash
 # 检查个股风险
-uv run --env-file .env python skills/risk_alert/scripts/risk_processor/risk_processor.py <股票代码> [--date YYYY-MM-DD] [--days N]
+uv run --env-file .env python -m skills.risk_alert.scripts.risk_processor.risk_processor <股票代码> [--date YYYY-MM-DD] [--days N]
 
 # 示例
-uv run --env-file .env python skills/risk_alert/scripts/risk_processor/risk_processor.py 000001
-uv run --env-file .env python skills/risk_alert/scripts/risk_processor/risk_processor.py 002364 --date 2026-03-07 --days 5
+uv run --env-file .env python -m skills.risk_alert.scripts.risk_processor.risk_processor 000001
+uv run --env-file .env python -m skills.risk_alert.scripts.risk_processor.risk_processor 002364 --date 2026-03-07 --days 5
 
 # 保存结果到文件
-uv run --env-file .env python skills/risk_alert/scripts/risk_processor/risk_processor.py 000001 --output
+uv run --env-file .env python -m skills.risk_alert.scripts.risk_processor.risk_processor 000001 --output
 ```
 
 ### 运行记录
@@ -41,7 +41,7 @@ uv run --env-file .env python skills/risk_alert/scripts/risk_processor/risk_proc
 **动作**：运行风险检查脚本
 
 ```bash
-uv run --env-file .env python skills/risk_alert/scripts/risk_processor/risk_processor.py <股票代码>
+uv run --env-file .env python -m skills.risk_alert.scripts.risk_processor.risk_processor <股票代码>
 ```
 
 **输出**：风险检查结果

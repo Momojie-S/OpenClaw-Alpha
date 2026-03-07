@@ -18,19 +18,19 @@ metadata:
 
 ```bash
 # 查看今日完整报告（默认）
-uv run --env-file .env python skills/market_overview/scripts/overview_processor/overview_processor.py
+uv run --env-file .env python -m skills.market_overview.scripts.overview_processor.overview_processor
 
 # 一键生成（自动获取依赖数据）
-uv run --env-file .env python skills/market_overview/scripts/overview_processor/overview_processor.py --auto-fetch
+uv run --env-file .env python -m skills.market_overview.scripts.overview_processor.overview_processor --auto-fetch
 
 # 快速版（仅宏观+情绪）
-uv run --env-file .env python skills/market_overview/scripts/overview_processor/overview_processor.py --mode quick
+uv run --env-file .env python -m skills.market_overview.scripts.overview_processor.overview_processor --mode quick
 
 # 指定日期
-uv run --env-file .env python skills/market_overview/scripts/overview_processor/overview_processor.py --date 2026-03-07
+uv run --env-file .env python -m skills.market_overview.scripts.overview_processor.overview_processor --date 2026-03-07
 
 # JSON 输出
-uv run --env-file .env python skills/market_overview/scripts/overview_processor/overview_processor.py --output json
+uv run --env-file .env python -m skills.market_overview.scripts.overview_processor.overview_processor --output json
 ```
 
 ### 参数说明
@@ -50,7 +50,7 @@ uv run --env-file .env python skills/market_overview/scripts/overview_processor/
 
 **方式一：一键生成（推荐）**
 ```bash
-uv run --env-file .env python skills/market_overview/scripts/overview_processor/overview_processor.py --auto-fetch
+uv run --env-file .env python -m skills.market_overview.scripts.overview_processor.overview_processor --auto-fetch
 ```
 - 自动获取所有依赖数据
 - 适合快速查看市场情况
@@ -58,12 +58,12 @@ uv run --env-file .env python skills/market_overview/scripts/overview_processor/
 **方式二：手动准备数据**
 ```bash
 # 先运行依赖 skill
-uv run --env-file .env python skills/index_analysis/scripts/index_processor/index_processor.py
-uv run --env-file .env python skills/market_sentiment/scripts/sentiment_processor/sentiment_processor.py
+uv run --env-file .env python -m skills.index_analysis.scripts.index_processor.index_processor
+uv run --env-file .env python -m skills.market_sentiment.scripts.sentiment_processor.sentiment_processor
 # ... 其他 skill
 
 # 再生成报告
-uv run --env-file .env python skills/market_overview/scripts/overview_processor/overview_processor.py
+uv run --env-file .env python -m skills.market_overview.scripts.overview_processor.overview_processor
 ```
 - 适合需要精确控制数据获取的场景
 - 可以单独更新某个 skill 的数据

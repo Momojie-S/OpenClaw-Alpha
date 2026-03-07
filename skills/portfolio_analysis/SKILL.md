@@ -19,7 +19,7 @@ metadata:
 所有脚本需在项目根目录下运行，使用 `uv run --env-file .env` 加载环境变量：
 
 ```bash
-uv run --env-file .env python skills/portfolio_analysis/scripts/portfolio_processor/__main__.py [参数]
+uv run --env-file .env python -m skills.portfolio_analysis.scripts.portfolio_processor [参数]
 ```
 
 **如果脚本运行失败**：
@@ -47,11 +47,11 @@ uv run --env-file .env python skills/portfolio_analysis/scripts/portfolio_proces
 **动作**：
 ```bash
 # 简单模式（无成本价）
-uv run --env-file .env python skills/portfolio_analysis/scripts/portfolio_processor/__main__.py \
+uv run --env-file .env python -m skills.portfolio_analysis.scripts.portfolio_processor \
     --holdings "000001:1000,600000:500,002475:200"
 
 # 完整模式（含成本价，可计算盈亏）
-uv run --env-file .env python skills/portfolio_analysis/scripts/portfolio_processor/__main__.py \
+uv run --env-file .env python -m skills.portfolio_analysis.scripts.portfolio_processor \
     --holdings "000001:1000:12.5,600000:500:8.2,002475:200:25.0"
 ```
 
@@ -81,7 +81,7 @@ uv run --env-file .env python skills/portfolio_analysis/scripts/portfolio_proces
 
 **动作**：
 ```bash
-uv run --env-file .env python skills/portfolio_analysis/scripts/portfolio_processor/__main__.py \
+uv run --env-file .env python -m skills.portfolio_analysis.scripts.portfolio_processor \
     --file portfolio.json
 ```
 

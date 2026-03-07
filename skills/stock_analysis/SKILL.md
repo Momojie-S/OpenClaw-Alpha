@@ -18,11 +18,11 @@ metadata:
 
 ```bash
 # 查询指定股票
-uv run --env-file .env python skills/stock_analysis/scripts/stock_analysis_processor/stock_analysis_processor.py <股票代码或名称> [--date YYYY-MM-DD]
+uv run --env-file .env python -m skills.stock_analysis.scripts.stock_analysis_processor.stock_analysis_processor <股票代码或名称> [--date YYYY-MM-DD]
 
 # 示例
-uv run --env-file .env python skills/stock_analysis/scripts/stock_analysis_processor/stock_analysis_processor.py 000001
-uv run --env-file .env python skills/stock_analysis/scripts/stock_analysis_processor/stock_analysis_processor.py 平安银行 --date 2026-03-06
+uv run --env-file .env python -m skills.stock_analysis.scripts.stock_analysis_processor.stock_analysis_processor 000001
+uv run --env-file .env python -m skills.stock_analysis.scripts.stock_analysis_processor.stock_analysis_processor 平安银行 --date 2026-03-06
 ```
 
 ### 运行记录
@@ -39,7 +39,7 @@ uv run --env-file .env python skills/stock_analysis/scripts/stock_analysis_proce
 
 **动作**：
 ```bash
-uv run --env-file .env python skills/stock_analysis/scripts/stock_analysis_processor/stock_analysis_processor.py <股票标识> [--date YYYY-MM-DD]
+uv run --env-file .env python -m skills.stock_analysis.scripts.stock_analysis_processor.stock_analysis_processor <股票标识> [--date YYYY-MM-DD]
 ```
 
 **输出**：

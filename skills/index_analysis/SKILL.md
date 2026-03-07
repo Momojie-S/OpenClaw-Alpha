@@ -18,13 +18,13 @@ metadata:
 
 ```bash
 # 查看今日指数分析
-uv run --env-file .env python skills/index_analysis/scripts/index_processor/index_processor.py
+uv run --env-file .env python -m skills.index_analysis.scripts.index_processor.index_processor
 
 # 指定日期
-uv run --env-file .env python skills/index_analysis/scripts/index_processor/index_processor.py --date 2026-03-06
+uv run --env-file .env python -m skills.index_analysis.scripts.index_processor.index_processor --date 2026-03-06
 
 # 只看部分指数
-uv run --env-file .env python skills/index_analysis/scripts/index_processor/index_processor.py --top-n 3
+uv run --env-file .env python -m skills.index_analysis.scripts.index_processor.index_processor --top-n 3
 ```
 
 ### 运行记录
@@ -39,7 +39,7 @@ uv run --env-file .env python skills/index_analysis/scripts/index_processor/inde
 
 **动作**：
 ```bash
-uv run --env-file .env python skills/index_analysis/scripts/index_processor/index_processor.py --date 2026-03-06
+uv run --env-file .env python -m skills.index_analysis.scripts.index_processor.index_processor --date 2026-03-06
 ```
 
 **输出**：

@@ -19,7 +19,7 @@ metadata:
 所有脚本需在项目根目录下运行，使用 `uv run --env-file .env` 加载环境变量：
 
 ```bash
-uv run --env-file .env python skills/market_sentiment/scripts/sentiment_processor/sentiment_processor.py [--date YYYY-MM-DD]
+uv run --env-file .env python -m skills.market_sentiment.scripts.sentiment_processor.sentiment_processor [--date YYYY-MM-DD]
 ```
 
 **如果脚本运行失败**：
@@ -46,7 +46,7 @@ uv run --env-file .env python skills/market_sentiment/scripts/sentiment_processo
 
 **动作**：
 ```bash
-uv run --env-file .env python skills/market_sentiment/scripts/sentiment_processor/sentiment_processor.py
+uv run --env-file .env python -m skills.market_sentiment.scripts.sentiment_processor.sentiment_processor
 ```
 
 **输出**：
