@@ -104,13 +104,46 @@
 
 | 维度 | 说明 | 理想状态 | 数据来源 |
 |------|------|----------|----------|
-| **景气度** | 行业盈利能力 | 高（ROE上行） | 财务数据 |
-| **趋势** | 价格走势强度 | 高（上涨） | industry_trend |
-| **拥挤度** | 市场参与程度 | 低（未过热） | 换手率分位 |
+| 景气度 | 行业盈利能力 | 高（ROE上行） | 财务数据（待开发） |
+| 趋势 | 价格走势强度 | 高（上涨） | industry_trend（heat_processor） |
+| 拥挤度 | 市场参与程度 | 低（未过热） | industry_trend（crowdedness_processor） |
 
-**黄金组合**：高景气度 + 高趋势 + 低拥挤度
+**黄金组合**：高趋势 + 低拥挤度 = 最佳入场机会
 
 详见：[行业轮动分析研究](../research/sector-rotation-analysis.md)
+
+### 拥挤度使用示例
+
+```bash
+# 获取一级行业拥挤度
+uv run --env-file .env python -m skills.industry_trend.scripts.crowdedness_processor.crowdedness_processor \
+    --category L1 \
+    --top-n 10
+
+# 输出示例：
+# {
+#   "boards": [
+#     {"name": "电子", "crowdedness": 85.2, "level": "高拥挤"},
+#     {"name": "银行", "crowdedness": 35.1, "level": "低拥挤"},
+#     ...
+#   ]
+# }
+```
+
+---
+
+## 已完成能力
+
+| 能力 | 完成日期 | Skill |
+|------|----------|-------|
+| 板块拥挤度指标 | 2026-03-08 | industry_trend（crowdedness_processor） |
+| 限售解禁风险监控 | 2026-03-08 | restricted_release |
+| 个股资金流向 | 2026-03-08 | stock_fund_flow |
+| 融资融券分析 | 2026-03-08 | margin_trading |
+| 综合分析 | 2026-03-08 | market_overview |
+| 基本面分析 | 2026-03-07 | fundamental_analysis |
+| 盈亏追踪 | 2026-03-07 | portfolio_analysis（已支持成本价输入） |
+| 公告解读 | 2026-03-07 | announcement_analysis |
 
 ---
 
@@ -118,10 +151,10 @@
 
 ### P1 - 行业轮动
 
-| 能力 | 说明 | 难度 | 依赖 |
-|------|------|------|------|
-| 行业景气度 | ROE趋势、利润增速追踪 | 中 | 财务数据 |
-| 拥挤度指标 | 换手率分位、成交额占比 | 低 | 现有数据可计算 |
+| 能力 | 说明 | 难度 | 依赖 | 状态 |
+|------|------|------|------|------|
+| ~~拥挤度指标~~ | ~~换手率分位、成交额占比~~ | ~~低~~ | ~~现有数据可计算~~ | ✅ 已完成 |
+| 行业景气度 | ROE趋势、利润增速追踪 | 中 | 财务数据 | 待开发 |
 
 ### P2 - 高级功能
 
