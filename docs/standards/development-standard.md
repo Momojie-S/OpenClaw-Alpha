@@ -26,6 +26,16 @@
 - **日志模块**: 统一使用 `logging` 模块获取日志对象
 - **MySQL**: 优先使用 ORM 进行 MySQL 相关查询
 
+### 依赖管理
+
+- **添加依赖**: 优先使用 `uv add <package>` 命令
+  - 会自动更新 `pyproject.toml` 和 `uv.lock`
+  - 示例：`uv add numpy`
+- **添加开发依赖**: 使用 `uv add --dev <package>`
+  - 示例：`uv add --dev pytest`
+- **特殊情况**: 如果 `uv add` 无法正常工作，再使用 `uv pip install <package>`
+- **禁止**: 不要直接手动修改 `pyproject.toml` 的 dependencies 字段
+
 ### 测试规范
 
 - **无测试包**: 不得在测试目录中创建 python package
