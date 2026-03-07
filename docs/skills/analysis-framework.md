@@ -11,7 +11,7 @@
 | **综合** | 市场整体如何？ | market_overview | - |
 | **宏观** | 指数和情绪如何？ | index_analysis, market_sentiment | - |
 | **中观** | 哪些板块热门？ | industry_trend, fund_flow_analysis, northbound_flow, lhb_tracker | - |
-| **微观** | 买什么股票？ | stock_analysis, stock_screener, technical_indicators, etf_analysis, risk_alert, fundamental_analysis | - |
+| **微观** | 买什么股票？ | stock_analysis, stock_screener, stock_compare, technical_indicators, etf_analysis, risk_alert, fundamental_analysis | - |
 | **事件** | 有什么新闻/事件？ | news_driven_investment, limit_up_tracker, announcement_analysis | - |
 | **组合** | 我的持仓怎么样？ | portfolio_analysis, watchlist_monitor | - |
 | **预警** | 有什么风险/机会？ | alert_monitor | - |
@@ -50,6 +50,7 @@
 | **stock_analysis** | 单只股票行情快照 | AKShare |
 | **stock_fund_flow** | 个股主力资金流向分析 | AKShare |
 | **stock_screener** | 多条件选股筛选 | AKShare |
+| **stock_compare** | 多只股票横向对比 | AKShare |
 | **technical_indicators** | 技术指标分析（MACD/RSI/KDJ等） | AKShare |
 | **etf_analysis** | ETF 行情查询和筛选 | AKShare |
 | **risk_alert** | 个股风险监控（业绩/价格/资金） | AKShare |
@@ -179,6 +180,7 @@ uv run --env-file .env python -m skills.industry_trend.scripts.crowdedness_proce
 | 融资融券分析 | 2026-03-08 | margin_trading |
 | 综合分析 | 2026-03-08 | market_overview |
 | 预警监控 | 2026-03-08 | alert_monitor |
+| 个股对比 | 2026-03-08 | stock_compare |
 | 基本面分析 | 2026-03-07 | fundamental_analysis |
 | 盈亏追踪 | 2026-03-07 | portfolio_analysis（已支持成本价输入） |
 | 公告解读 | 2026-03-07 | announcement_analysis |
