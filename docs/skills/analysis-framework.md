@@ -242,6 +242,21 @@ uv run --env-file .env python -m skills.industry_trend.scripts.crowdedness_proce
 
 详见：[投资组合优化研究](../research/portfolio-optimization-research.md)
 
+### P6 - 市场择时
+
+| 能力 | 说明 | 难点 | 状态 |
+|------|------|------|------|
+| 情绪综合指数 | 整合多情绪指标，生成择时信号 | 中 | 📝 研究完成，待开发 |
+| 股债性价比 | 风险溢价指标，判断市场估值 | 低 | 📝 研究完成，待开发 |
+| 情绪择时 Processor | 综合情绪分析 + 择时报告 | 中 | 📝 研究完成，待开发 |
+
+详见：[市场择时与情绪因子研究](../research/market-timing-sentiment-research.md)
+
+**择时方法**：
+- 左侧择时：情绪极端低买入，极端高卖出
+- 右侧择时：情绪趋势反转后跟随
+- 情绪分区：低迷配价值，高涨配成长
+
 ---
 
 ## 设计原则
