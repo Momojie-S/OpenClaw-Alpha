@@ -15,6 +15,7 @@
 | **事件** | 有什么新闻/事件？ | news_driven_investment, limit_up_tracker, announcement_analysis | - |
 | **组合** | 我的持仓怎么样？ | portfolio_analysis, watchlist_monitor | - |
 | **预警** | 有什么风险/机会？ | alert_monitor | - |
+| **策略** | 如何投资？ | smart_dip | - |
 
 ---
 
@@ -79,6 +80,12 @@
 | Skill | 定位 | 数据源 |
 |-------|------|--------|
 | **alert_monitor** | 持仓风险和市场异动预警 | 复用其他 skill |
+
+### 策略层
+
+| Skill | 定位 | 数据源 |
+|-------|------|--------|
+| **smart_dip** | 智能定投策略，基于估值指标的定投金额建议 | 复用 market_sentiment |
 
 ---
 
@@ -172,6 +179,7 @@ uv run --env-file .env python -m skills.industry_trend.scripts.crowdedness_proce
 
 | 能力 | 完成日期 | Skill |
 |------|----------|-------|
+| 智能定投策略 | 2026-03-08 | smart_dip（dip_advice_processor） |
 | 股债性价比 | 2026-03-08 | market_sentiment（equity_bond_ratio_processor） |
 | 市场择时 | 2026-03-08 | market_sentiment（timing_processor） |
 | 市场宽度指标 | 2026-03-08 | market_sentiment（breadth_processor） |
