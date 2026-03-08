@@ -134,6 +134,41 @@ uv run --env-file .env python -m skills.backtest.scripts.backtest_processor.back
 - 趋势明显的市场
 - 中长期投资
 
+### rsi（RSI 超买超卖）
+
+**逻辑**：
+- 买入：RSI 从上往下穿越超卖线（默认 30）
+- 卖出：RSI 从下往上穿越超买线（默认 70）
+
+**参数**：
+
+| 参数 | 默认值 | 说明 |
+|------|--------|------|
+| rsi-period | 14 | RSI 计算周期 |
+| rsi-upper | 70 | 超买阈值 |
+| rsi-lower | 30 | 超卖阈值 |
+
+**适用场景**：
+- 震荡市场
+- 短期波段操作
+
+**示例**：
+
+```bash
+# 使用 RSI 策略回测
+uv run --env-file .env python -m skills.backtest.scripts.backtest_processor.backtest_processor \
+    --stock 000001 \
+    --strategy rsi
+
+# 自定义 RSI 参数
+uv run --env-file .env python -m skills.backtest.scripts.backtest_processor.backtest_processor \
+    --stock 000001 \
+    --strategy rsi \
+    --rsi-period 9 \
+    --rsi-upper 80 \
+    --rsi-lower 20
+```
+
 ---
 
 ## 参数说明
@@ -148,12 +183,15 @@ uv run --env-file .env python -m skills.backtest.scripts.backtest_processor.back
 
 | 参数 | 默认值 | 说明 |
 |------|--------|------|
-| --strategy | ma_cross | 策略名称 |
+| --strategy | ma_cross | 策略名称（ma_cross, rsi） |
 | --start-date | 一年前 | 开始日期 |
 | --end-date | 今天 | 结束日期 |
 | --cash | 100000 | 初始资金 |
 | --fast-period | 5 | 快速均线周期（ma_cross） |
 | --slow-period | 20 | 慢速均线周期（ma_cross） |
+| --rsi-period | 14 | RSI 计算周期（rsi） |
+| --rsi-upper | 70 | RSI 超买阈值（rsi） |
+| --rsi-lower | 30 | RSI 超卖阈值（rsi） |
 | --quiet | false | 安静模式 |
 | --output | 自动 | 输出文件路径 |
 

@@ -11,13 +11,14 @@ import backtrader as bt
 
 from openclaw_alpha.core.processor_utils import get_output_path
 from .data_adapter import DataAdapter
-from ..strategies import MACrossStrategy
+from ..strategies import MACrossStrategy, RSIStrategy
 from ..strategies.base_strategy import BaseStrategy
 
 
 # 策略注册表
 STRATEGY_REGISTRY = {
     "ma_cross": MACrossStrategy,
+    "rsi": RSIStrategy,
 }
 
 
@@ -241,6 +242,24 @@ def parse_args():
         help="慢速均线周期（仅 ma_cross 策略）"
     )
     parser.add_argument(
+        "--rsi-period",
+        type=int,
+        default=14,
+        help="RSI 计算周期（仅 rsi 策略）"
+    )
+    parser.add_argument(
+        "--rsi-upper",
+        type=int,
+        default=70,
+        help="RSI 超买阈值（仅 rsi 策略）"
+    )
+    parser.add_argument(
+        "--rsi-lower",
+        type=int,
+        default=30,
+        help="RSI 超卖阈值（仅 rsi 策略）"
+    )
+    parser.add_argument(
         "--quiet",
         action="store_true",
         help="安静模式（不打印详细日志）"
@@ -260,6 +279,9 @@ def backtest(
     cash: float = 100000.0,
     fast_period: int = 5,
     slow_period: int = 20,
+    rsi_period: int = 14,
+    rsi_upper: int = 70,
+    rsi_lower: int = 30,
     quiet: bool = False,
     output: str = None,
 ) -> dict:
@@ -274,6 +296,9 @@ def backtest(
         cash: 初始资金
         fast_period: 快速均线周期
         slow_period: 慢速均线周期
+        rsi_period: RSI 计算周期
+        rsi_upper: RSI 超买阈值
+        rsi_lower: RSI 超卖阈值
         quiet: 是否安静模式
         output: 输出文件路径
     
@@ -297,6 +322,12 @@ def backtest(
         strategy_params = {
             "fast_period": fast_period,
             "slow_period": slow_period,
+        }
+    elif strategy == "rsi":
+        strategy_params = {
+            "rsi_period": rsi_period,
+            "rsi_upper": rsi_upper,
+            "rsi_lower": rsi_lower,
         }
     
     # 创建引擎并运行
@@ -344,6 +375,9 @@ def main():
         cash=args.cash,
         fast_period=args.fast_period,
         slow_period=args.slow_period,
+        rsi_period=args.rsi_period,
+        rsi_upper=args.rsi_upper,
+        rsi_lower=args.rsi_lower,
         quiet=args.quiet,
         output=args.output,
     )
