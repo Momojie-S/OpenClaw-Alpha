@@ -20,7 +20,11 @@ OpenClaw-Alpha 是一个股票金融数据获取和分析的 Python 技能模块
 OpenClaw-Alpha/
 ├── skills/                         # SKILL 目录（文档 + 代码）
 │   └── {skill_name}/
-│       ├── SKILL.md                # 能力说明 + 分析指引
+│       ├── SKILL.md                # 能力说明 + 分析指引（对外）
+│       ├── docs/                   # 开发文档（对内）
+│       │   ├── spec.md             # 需求文档
+│       │   ├── design.md           # 设计文档
+│       │   └── decisions.md        # 调研/决策记录
 │       └── scripts/                # Skill 脚本
 │           ├── __init__.py
 │           ├── {data_type}_fetcher/
@@ -36,20 +40,23 @@ OpenClaw-Alpha/
 │   │   ├── akshare/
 │   │   ├── rsshub/
 │   │   └── tushare/
-│   ├── skills/                     # Skill 文档
-│   │   ├── analysis-framework.md   # 投资分析框架
-│   │   └── {skill_name}/
-│   │       ├── spec.md             # 需求文档
-│   │       └── design.md           # 设计文档
 │   └── standards/                  # 开发规范
 │
+├── tests/                          # 测试
+│   └── skills/{skill_name}/
+│
+├── progress/                       # 任务追踪
+│   └── YYYY-MM-DD-{任务名}.md
+│
+├── pyproject.toml                  # 包配置
 └── .env                            # 环境变量配置
 ```
 
 **自包含原则**：
-- `skills/{skill_name}/` - 文档（SKILL.md）+ 代码（scripts/）在一起
-- `docs/skills/{skill_name}/` - 需求/设计文档
+- `skills/{skill_name}/` - 文档 + 代码在一起，自包含
+- `skills/{skill_name}/docs/` - 开发文档（spec/design/decisions）
 - `src/openclaw_alpha/` - 框架核心，通过 pyproject.toml 注册为包
+- `docs/` - 项目级文档（架构、API 参考、规范）
 
 ## 核心概念
 
