@@ -10,52 +10,156 @@
 
 ---
 
-## 内容规范
+## 目录组织
 
-| 应该写 | 不应该写 |
-|--------|----------|
-| 设计目标和核心思路 | 具体实现代码 |
-| 架构概览和模块关系 | 代码示例 |
-| 关键决策的背景原因 | 配置文件内容 |
-| 接口定义和数据流 | IDE 使用教程 |
-| 开发流程和规范要点 | 第三方库基础教程 |
+```
+docs/
+├── architecture/           # 架构设计
+│   ├── strategy-framework.md
+│   └── signal-backtest-framework.md
+├── references/             # API 参考
+│   ├── tushare/
+│   ├── akshare/
+│   └── rsshub/
+├── standards/              # 开发规范
+│   ├── development-standard.md
+│   ├── skill-implementation-standard.md
+│   ├── fetcher-implementation-standard.md
+│   ├── processor-implementation-standard.md
+│   ├── spec-standard.md
+│   ├── design-standard.md
+│   ├── api-doc-standard.md
+│   └── documentation-standard.md
+└── project-overview.md     # 项目概述
+```
+
+**注意**：skill 的开发文档放在 `skills/{skill_name}/docs/` 下，不在 `docs/skills/`。
 
 ---
 
-## 文档组织
+## Skill 文档结构
 
-### 目录职责
+**自包含原则**：skill 的所有文档都在 skill 目录下
 
-| 目录 | 内容 | 规范 |
-|------|------|------|
-| `specs/` | 需求文档 | [spec-standard.md](spec-standard.md) |
-| `design/` | 设计文档 | [design-standard.md](design-standard.md) |
-| `references/` | API 文档 | [api-doc-standard.md](api-doc-standard.md) |
-| `architecture/` | 架构设计 | - |
-| `standards/` | 开发规范 | - |
-
-### Skill 文档结构
-
-**Skill 文档自包含在 skills 目录**：
 ```
 skills/{skill_name}/
-  SKILL.md             # 能力说明 + 分析指引（必需）
-  scripts/             # 脚本代码
+├── SKILL.md                # 使用说明（对外，给用户看）
+└── docs/                   # 开发文档（对内，开发者看）
+    ├── spec.md             # 需求文档
+    ├── design.md           # 设计文档
+    └── decisions.md        # 关键决策/调研记录
 ```
 
-**开发过程文档（可选）**：
-```
-docs/skills/{skill_name}/
-  spec.md              # 需求文档
-  design.md            # 设计文档
+### 各文档职责
+
+| 文档 | 读者 | 内容 | 规范 |
+|------|------|------|------|
+| SKILL.md | 用户 | 如何使用、分析步骤 | - |
+| spec.md | 开发者 | 需求、业务规则、验收标准 | [spec-standard.md](spec-standard.md) |
+| design.md | 开发者 | 技术方案、接口契约 | [design-standard.md](design-standard.md) |
+| decisions.md | 开发者 | 调研记录、关键决策、踩坑经验 | - |
+
+### decisions.md 格式
+
+记录开发过程中的调研、决策、经验教训：
+
+```markdown
+# 开发决策记录
+
+## 调研
+
+### 数据源选择
+- Tushare: 支持接口 A、B，需要 120 积分
+- AKShare: 支持接口 A，免费但不稳定
+- 决策：Tushare 优先，AKShare 备用
+
+### API 对比
+| 接口 | Tushare | AKShare |
+|------|---------|---------|
+| 每日行情 | ✅ `daily()` | ✅ `stock_zh_a_hist()` |
+| 分钟线 | ✅ `pro_bar()` | ❌ |
+
+## 决策
+
+### 为什么用 name 关联而非 code
+- 不同数据源 code 格式不同（000001.SZ vs 000001）
+- name 跨数据源更稳定
+- 代价：重名股票需特殊处理
+
+### 为什么分离 Fetcher 和 Processor
+- Fetcher 只负责获取，不加工
+- Processor 负责加工和输出
+- 好处：Fetcher 可复用，Processor 可测试
+
+## 踩坑
+
+### Tushare 积分不足
+- 现象：接口返回空数据
+- 原因：积分不够，接口不可用
+- 解决：检查 `required_credit`，提前校验
+
+### AKShare 日期格式
+- 现象：`stock_zh_a_hist()` 返回日期是字符串
+- 原因：AKShare 不自动转日期
+- 解决：使用 `pd.to_datetime()` 转换
 ```
 
-**迭代流程**：
-1. 开发前：在 `docs/skills/{skill_name}/` 编写 spec/design
-2. 开发后：合并核心内容到 `skills/{skill_name}/SKILL.md`
-3. 合并后：可删除 `docs/skills/{skill_name}/` 目录
+---
 
-### 命名规范
+## 开发流程
+
+### 新建 Skill
+
+1. **创建目录结构**
+   ```
+   skills/{skill_name}/
+   ├── SKILL.md
+   ├── docs/
+   │   ├── spec.md
+   │   └── design.md
+   └── scripts/
+   ```
+
+2. **编写 spec.md**（业务视角）
+   - 解决什么问题
+   - 业务规则
+   - 验收标准
+
+3. **编写 design.md**（技术视角）
+   - 数据源选择
+   - 接口设计
+   - 模块划分
+
+4. **开发代码**
+
+5. **编写 SKILL.md**（用户视角）
+   - 如何使用
+   - 分析步骤
+
+6. **记录 decisions.md**
+   - 调研结果
+   - 关键决策
+   - 踩坑经验
+
+### 文档维护
+
+- **spec/design**：开发完成后保留，作为历史记录
+- **SKILL.md**：持续更新，反映当前功能
+- **decisions.md**：随时记录，积累经验
+
+---
+
+## 文档规范引用
+
+| 文档类型 | 规范文件 |
+|---------|---------|
+| 需求文档 | [spec-standard.md](spec-standard.md) |
+| 设计文档 | [design-standard.md](design-standard.md) |
+| API 文档 | [api-doc-standard.md](api-doc-standard.md) |
+
+---
+
+## 命名规范
 
 - 使用 kebab-case（如 `industry-trend.md`）
 - 文件名应清晰反映内容

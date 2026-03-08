@@ -6,7 +6,11 @@
 OpenClaw-Alpha/
 ├── skills/                         # SKILL 目录（文档 + 代码）
 │   └── {skill_name}/
-│       ├── SKILL.md                # 能力说明 + 分析指引
+│       ├── SKILL.md                # 能力说明 + 分析指引（对外）
+│       ├── docs/                   # 开发文档（对内）
+│       │   ├── spec.md             # 需求文档（业务视角）
+│       │   ├── design.md           # 设计文档（技术视角）
+│       │   └── decisions.md        # 关键决策/调研记录
 │       └── scripts/                # Skill 脚本
 │           ├── __init__.py
 │           ├── {data_type}_fetcher/
@@ -32,6 +36,12 @@ OpenClaw-Alpha/
 **分离关注点**：
 - `skills/` - 每个 Skill 自包含：文档 + 代码
 - `src/openclaw_alpha/` - 框架核心，通过包导入
+
+**文档分层**：
+- `SKILL.md` - 给用户看的，如何使用这个 skill
+- `docs/spec.md` - 需求，解决什么问题，业务规则
+- `docs/design.md` - 设计，技术方案，接口契约
+- `docs/decisions.md` - 开发过程中的调研、决策记录
 
 **导入方式**：
 - 基类：`from openclaw_alpha.core.fetcher import Fetcher`
