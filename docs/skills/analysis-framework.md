@@ -34,6 +34,7 @@
 | **market_sentiment** | 涨跌停、资金流向，评估市场温度 | AKShare |
 | **margin_trading** | 融资融券分析，监控市场杠杆水平 | AKShare |
 | **option_analysis** | 期权 PCR + IV，判断市场多空情绪 | AKShare |
+| **市场宽度** | 新高新低股票数量，判断趋势健康度 | AKShare |
 
 ### 中观层
 
@@ -171,6 +172,7 @@ uv run --env-file .env python -m skills.industry_trend.scripts.crowdedness_proce
 
 | 能力 | 完成日期 | Skill |
 |------|----------|-------|
+| 市场宽度指标 | 2026-03-08 | market_sentiment（breadth_processor） |
 | 持仓相关性分析 | 2026-03-08 | portfolio_analysis（correlation_processor） |
 | 风险贡献分解 | 2026-03-08 | portfolio_analysis（risk_contribution_processor） |
 | 期权情绪分析 | 2026-03-08 | option_analysis（PCR + IV） |
