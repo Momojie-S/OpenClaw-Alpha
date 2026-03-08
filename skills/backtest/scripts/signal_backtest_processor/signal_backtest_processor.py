@@ -183,7 +183,7 @@ class SignalBacktestProcessor:
             }
         }
 
-    def run(self) -> dict:
+    async def run(self) -> dict:
         """运行回测
 
         Returns:
@@ -232,7 +232,7 @@ class SignalBacktestProcessor:
         )
 
         # 运行回测
-        result = engine.run()
+        result = await engine.run()
 
         # 添加信号信息
         result["signal_info"] = {
@@ -319,7 +319,7 @@ def main():
     )
 
     # 运行回测
-    result = processor.run()
+    result = asyncio.run(processor.run())
 
     # 打印结果
     if not args.quiet:

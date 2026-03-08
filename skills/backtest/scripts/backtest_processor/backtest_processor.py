@@ -2,6 +2,7 @@
 """回测主流程"""
 
 import argparse
+import asyncio
 import json
 from datetime import datetime
 from pathlib import Path
@@ -72,7 +73,7 @@ class BacktestEngine:
         self.trade_records = []
         self.performance = {}
     
-    def run(self) -> dict:
+    async def run(self) -> dict:
         """
         运行回测
         
@@ -89,9 +90,9 @@ class BacktestEngine:
         # backtrader 默认按百分比计算佣金
         cerebro.broker.setcommission(commission=self.commission)
         
-        # 获取数据（同步调用）
+        # 获取数据（异步调用）
         adapter = DataAdapter()
-        df = adapter.fetch_stock_data(
+        df = await adapter.fetch_stock_data(
             self.stock_code,
             self.start_date,
             self.end_date
@@ -284,7 +285,7 @@ def parse_args():
     return parser.parse_args()
 
 
-def backtest(
+async def backtest(
     stock: str,
     strategy: str = "ma_cross",
     start_date: str = None,
@@ -363,7 +364,7 @@ def backtest(
         strategy_params=strategy_params,
     )
     
-    result = engine.run()
+    result = await engine.run()
     
     # 打印摘要
     if not quiet:
@@ -389,7 +390,7 @@ def main():
     """命令行入口"""
     args = parse_args()
     
-    result = backtest(
+    result = asyncio.run(backtest(
         stock=args.stock,
         strategy=args.strategy,
         start_date=args.start_date,
@@ -404,7 +405,7 @@ def main():
         bollinger_devfactor=args.bollinger_devfactor,
         quiet=args.quiet,
         output=args.output,
-    )
+    ))
     
     # 输出精简结果
     print(json.dumps(result, ensure_ascii=False, indent=2))

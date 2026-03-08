@@ -4,20 +4,25 @@
 from datetime import datetime
 from typing import Optional
 
-import akshare as ak
 import backtrader as bt
 import pandas as pd
+
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent))
+
+from skills.technical_indicators.scripts.history_fetcher import fetch as fetch_history
 
 
 class DataAdapter:
     """数据转换器：Fetcher → Backtrader PandasData"""
     
-    def fetch_stock_data(
+    async def fetch_stock_data(
         self,
         stock_code: str,
         start_date: str,
         end_date: str,
-        adj: str = "qfq"
+        days: int = 365,
     ) -> pd.DataFrame:
         """
         获取股票历史数据
@@ -26,7 +31,7 @@ class DataAdapter:
             stock_code: 股票代码（如 000001）
             start_date: 开始日期（YYYY-MM-DD）
             end_date: 结束日期（YYYY-MM-DD）
-            adj: 复权类型（qfq-前复权, hfq-后复权, None-不复权）
+            days: 天数（当 start_date/end_date 未提供时使用）
         
         Returns:
             股票历史数据 DataFrame
@@ -34,18 +39,17 @@ class DataAdapter:
         Raises:
             RuntimeError: 数据获取失败
         """
-        # 注意：AKShare 的日期格式为 YYYYMMDD
-        start_dt = start_date.replace("-", "")
-        end_dt = end_date.replace("-", "")
+        # 转换日期格式
+        start_dt = start_date.replace("-", "") if start_date else None
+        end_dt = end_date.replace("-", "") if end_date else None
         
-        # 调用 AKShare 接口
+        # 调用 history_fetcher（自动选择 Tushare/AKShare）
         try:
-            df = ak.stock_zh_a_hist(
+            df = await fetch_history(
                 symbol=stock_code,
-                period="daily",
                 start_date=start_dt,
                 end_date=end_dt,
-                adjust=adj
+                days=days,
             )
         except Exception as e:
             raise RuntimeError(
@@ -78,23 +82,8 @@ class DataAdapter:
         if df is None or df.empty:
             raise ValueError(f"股票 {stock_code} 数据为空")
         
-        # 重命名列（AKShare 列名 → Backtrader 标准列名）
-        column_mapping = {
-            "日期": "datetime",
-            "开盘": "open",
-            "收盘": "close",
-            "最高": "high",
-            "最低": "low",
-            "成交量": "volume",
-            "成交额": "amount",
-            "振幅": "amplitude",
-            "涨跌幅": "pct_change",
-            "涨跌额": "change",
-            "换手率": "turnover"
-        }
-        
-        # 选择需要的列
-        required_cols = ["日期", "开盘", "收盘", "最高", "最低", "成交量"]
+        # 选择需要的列（history_fetcher 已转为英文列名）
+        required_cols = ["date", "open", "close", "high", "low", "volume"]
         
         # 检查必需列
         for col in required_cols:
@@ -103,11 +92,10 @@ class DataAdapter:
         
         # 创建副本并选择列
         data = df[required_cols].copy()
-        data.columns = ["datetime", "open", "close", "high", "low", "volume"]
         
         # 转换日期格式
-        data["datetime"] = pd.to_datetime(data["datetime"])
-        data.set_index("datetime", inplace=True)
+        data["date"] = pd.to_datetime(data["date"])
+        data.set_index("date", inplace=True)
         
         # 创建 Backtrader 数据源
         data_feed = bt.feeds.PandasData(
@@ -121,11 +109,11 @@ class DataAdapter:
         return data_feed
 
 
-def get_backtrader_data(
+async def get_backtrader_data(
     stock_code: str,
     start_date: str,
     end_date: str,
-    adj: str = "qfq"
+    days: int = 365,
 ) -> bt.feeds.PandasData:
     """
     便捷函数：获取 Backtrader 格式的股票数据
@@ -134,11 +122,11 @@ def get_backtrader_data(
         stock_code: 股票代码
         start_date: 开始日期
         end_date: 结束日期
-        adj: 复权类型
+        days: 天数
     
     Returns:
         Backtrader 数据源
     """
     adapter = DataAdapter()
-    df = adapter.fetch_stock_data(stock_code, start_date, end_date, adj)
+    df = await adapter.fetch_stock_data(stock_code, start_date, end_date, days)
     return adapter.transform_to_backtrader(df, stock_code)
