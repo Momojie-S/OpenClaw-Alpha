@@ -172,6 +172,7 @@ uv run --env-file .env python -m skills.industry_trend.scripts.crowdedness_proce
 
 | 能力 | 完成日期 | Skill |
 |------|----------|-------|
+| 股债性价比 | 2026-03-08 | market_sentiment（equity_bond_ratio_processor） |
 | 市场择时 | 2026-03-08 | market_sentiment（timing_processor） |
 | 市场宽度指标 | 2026-03-08 | market_sentiment（breadth_processor） |
 | 持仓相关性分析 | 2026-03-08 | portfolio_analysis（correlation_processor） |
@@ -248,7 +249,7 @@ uv run --env-file .env python -m skills.industry_trend.scripts.crowdedness_proce
 | 能力 | 说明 | 难点 | 状态 |
 |------|------|------|------|
 | 情绪综合指数 | 整合多情绪指标，生成择时信号 | 中 | ✅ 已完成 |
-| 股债性价比 | 风险溢价指标，判断市场估值 | 低 | 📝 研究完成，待开发 |
+| 股债性价比 | 风险溢价指标，判断市场估值 | 低 | ✅ 已完成 |
 | 情绪择时 Processor | 综合情绪分析 + 择时报告 | 中 | ✅ 已完成 |
 
 详见：[市场择时与情绪因子研究](../research/market-timing-sentiment-research.md)

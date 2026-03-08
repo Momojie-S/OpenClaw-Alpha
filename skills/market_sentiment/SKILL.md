@@ -27,6 +27,9 @@ uv run --env-file .env python -m skills.market_sentiment.scripts.breadth_process
 
 # 市场择时分析
 uv run --env-file .env python -m skills.market_sentiment.scripts.timing_processor.timing_processor [--date YYYY-MM-DD]
+
+# 股债性价比分析
+uv run --env-file .env python -m skills.market_sentiment.scripts.equity_bond_ratio_processor.equity_bond_ratio_processor [--date YYYY-MM-DD] [--lookback-days 252]
 ```
 
 **如果脚本运行失败**：
@@ -116,7 +119,33 @@ uv run --env-file .env python -m skills.market_sentiment.scripts.timing_processo
 - **左侧信号**：逆向择时，在极端情绪时反向操作
 - **右侧信号**：趋势跟踪，在情绪趋势确认后跟随
 
-### Step 4: 分析市场宽度（可选）
+### Step 4: 股债性价比分析
+
+**输入**：日期（可选）、回溯天数（可选，默认252天）
+
+**动作**：
+```bash
+uv run --env-file .env python -m skills.market_sentiment.scripts.equity_bond_ratio_processor.equity_bond_ratio_processor
+```
+
+**输出**：
+```
+{
+  "date": "2026-03-06",
+  "hs300_pe": 14.86,
+  "risk_premium": 4.95,
+  "percentile": 28.7,
+  "signal": "卖出",
+  "recommendation": "风险溢价较低（28.7%分位），股票相对昂贵；建议降低股票仓位，增加债券或现金"
+}
+```
+
+**分析要点**：
+- **风险溢价** = 1/沪深300 PE - 10年期国债收益率
+- **历史分位数**：风险溢价相对于过去一年的位置
+- **信号**：分位数 > 80% 买入，< 20% 卖出
+
+### Step 5: 分析市场宽度（可选）
 
 **输入**：指数类型、分析天数
 
