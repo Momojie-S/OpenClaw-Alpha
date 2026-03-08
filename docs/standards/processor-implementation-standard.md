@@ -3,6 +3,7 @@
 ## 设计目标
 
 - **双输出**：控制台输出精简结果给大模型，文件保存完整数据给后续处理
+- **信号输出**：支持输出历史信号序列，供回测使用
 - **独立可执行**：每个 Processor 是独立的脚本，可单独运行
 - **数据传递**：多步分析时，通过文件传递中间结果
 
@@ -14,12 +15,14 @@
 |------|------|------|
 | 控制台 | 精简结果（如 Top N） | 给大模型分析（节省 token） |
 | 文件 | 完整数据 | 给后续 Processor 使用 |
+| 信号文件 | 历史信号序列 | 给回测框架使用 |
 
 **示例**：
 ```
 Processor A: 计算板块热度
 ├── 控制台: Top 10 热门板块
-└── 文件: 所有板块热度数据
+├── 文件: 所有板块热度数据
+└── 信号文件: 历史买卖信号（可选）
 
 Processor B: 综合分析
 ├── 读取: Processor A 的文件输出
@@ -28,6 +31,158 @@ Processor B: 综合分析
 ```
 
 **文件格式**：根据数据特点选择（JSON/CSV/Parquet），无强制约束。
+
+---
+
+## 信号输出（可选）
+
+Processor 可选支持输出历史信号序列，供回测框架使用。
+
+### 信号输出参数
+
+| 参数 | 默认值 | 说明 |
+|------|--------|------|
+| `--save-signals` | false | 同时输出信号文件 |
+| `--signal-only` | false | 只输出信号文件（不输出分析结果） |
+
+### 使用示例
+
+```bash
+# 默认：当前时点分析
+uv run ... indicator_processor.py 000001
+→ 输出分析结果
+
+# 同时输出信号文件
+uv run ... indicator_processor.py 000001 --save-signals
+→ 输出分析结果 + 信号文件
+
+# 只输出信号（用于回测）
+uv run ... indicator_processor.py 000001 --signal-only
+→ 只输出信号文件
+```
+
+### 信号文件格式
+
+**存储路径**：
+```
+.openclaw_alpha/signals/{signal_type}/{stock_code}/{signal_id}.json
+```
+
+**示例**：
+```
+.openclaw_alpha/signals/technical/000001/ma_cross_5_20.json
+```
+
+**文件内容**：
+```json
+{
+  "signal_id": "ma_cross_5_20",
+  "signal_type": "technical",
+  "stock_code": "000001",
+  "generated_at": "2026-03-08T12:00:00",
+  "params": {
+    "fast_period": 5,
+    "slow_period": 20
+  },
+  "signals": [
+    {
+      "date": "2025-03-10",
+      "action": "buy",
+      "score": 1,
+      "reason": "金叉",
+      "metadata": {
+        "fast_ma": 12.50,
+        "slow_ma": 12.30
+      }
+    },
+    {
+      "date": "2025-04-15",
+      "action": "sell",
+      "score": -1,
+      "reason": "死叉",
+      "metadata": {
+        "fast_ma": 11.80,
+        "slow_ma": 12.00
+      }
+    }
+  ],
+  "summary": {
+    "total_signals": 12,
+    "buy_signals": 6,
+    "sell_signals": 6,
+    "date_range": {
+      "start": "2025-01-01",
+      "end": "2026-03-08"
+    }
+  }
+}
+```
+
+### 信号输出实现
+
+在 Processor 中增加信号提取方法：
+
+```python
+from openclaw_alpha.core.signal_utils import (
+    build_signal_id,
+    build_signal_data,
+    save_signal,
+)
+
+
+class MyProcessor:
+    def __init__(self, ..., save_signals: bool = False, signal_only: bool = False):
+        self.save_signals = save_signals
+        self.signal_only = signal_only
+
+    async def analyze(self, ...):
+        # 获取数据
+        self.df = await fetch_data(...)
+
+        # 分析逻辑（现有）
+        if not self.signal_only:
+            result = self._analyze(...)
+            self._save_result(result)
+
+        # 信号输出（新增）
+        if self.save_signals or self.signal_only:
+            signals = self._extract_signals(...)
+            self._save_signal_file("signal_type", params, signals)
+
+    def _extract_signals(self, params: dict) -> list[dict]:
+        """提取历史信号序列"""
+        signals = []
+        for i in range(1, len(self.df)):
+            # 检测信号条件
+            if self._check_buy_condition(i):
+                signals.append({
+                    "date": self.df.iloc[i]["date"],
+                    "action": "buy",
+                    "score": 1,
+                    "reason": "买入原因",
+                })
+            elif self._check_sell_condition(i):
+                signals.append({
+                    "date": self.df.iloc[i]["date"],
+                    "action": "sell",
+                    "score": -1,
+                    "reason": "卖出原因",
+                })
+        return signals
+
+    def _save_signal_file(self, signal_type: str, params: dict, signals: list):
+        """保存信号文件"""
+        signal_id = build_signal_id(signal_type, params)
+        signal_data = build_signal_data(
+            signal_type=signal_type,
+            stock_code=self.symbol,
+            signal_id=signal_id,
+            signals=signals,
+            params=params,
+        )
+        path = save_signal(signal_data)
+        print(f"信号文件: {path}")
+```
 
 ---
 

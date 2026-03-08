@@ -5,12 +5,18 @@ import argparse
 import asyncio
 import json
 from datetime import datetime
-from typing import Any
+from pathlib import Path
+from typing import Any, Optional
 
 import numpy as np
 import pandas as pd
 
 from openclaw_alpha.core.processor_utils import get_output_path
+from openclaw_alpha.core.signal_utils import (
+    build_signal_id,
+    build_signal_data,
+    save_signal,
+)
 
 # 使用绝对导入
 import sys
@@ -32,15 +38,25 @@ DEFAULT_PARAMS = {
 class IndicatorProcessor:
     """技术指标分析处理器"""
 
-    def __init__(self, symbol: str, days: int = 60):
+    def __init__(
+        self,
+        symbol: str,
+        days: int = 60,
+        save_signals: bool = False,
+        signal_only: bool = False,
+    ):
         """初始化
 
         Args:
             symbol: 股票代码
             days: 历史天数
+            save_signals: 同时输出信号文件
+            signal_only: 只输出信号文件
         """
         self.symbol = symbol
         self.days = days
+        self.save_signals = save_signals
+        self.signal_only = signal_only
         self.df = None
 
     async def analyze(
@@ -436,6 +452,265 @@ class IndicatorProcessor:
 
         return {"total_score": total_score, "recommendation": recommendation, "confidence": confidence}
 
+    # ========== 信号提取方法（用于回测） ==========
+
+    def _extract_ma_cross_signals(self, params: dict) -> list[dict]:
+        """提取均线交叉历史信号
+
+        Args:
+            params: {"periods": [5, 10, 20, 60]}
+
+        Returns:
+            信号列表
+        """
+        periods = params.get("periods", [5, 10, 20, 60])
+
+        # 至少需要两个均线
+        if len(periods) < 2:
+            return []
+
+        # 使用最短和次短的均线
+        fast, slow = sorted(periods)[:2]
+
+        # 计算均线
+        self.df["fast_ma"] = self.df["close"].rolling(fast).mean()
+        self.df["slow_ma"] = self.df["close"].rolling(slow).mean()
+
+        signals = []
+        for i in range(1, len(self.df)):
+            prev = self.df.iloc[i - 1]
+            curr = self.df.iloc[i]
+
+            # 跳过无效值
+            if pd.isna(prev["fast_ma"]) or pd.isna(curr["fast_ma"]):
+                continue
+
+            # 金叉
+            if prev["fast_ma"] <= prev["slow_ma"] and curr["fast_ma"] > curr["slow_ma"]:
+                signals.append({
+                    "date": curr["date"],
+                    "action": "buy",
+                    "score": 1,
+                    "reason": "金叉",
+                    "metadata": {
+                        "fast_ma": round(curr["fast_ma"], 2),
+                        "slow_ma": round(curr["slow_ma"], 2),
+                    }
+                })
+            # 死叉
+            elif prev["fast_ma"] >= prev["slow_ma"] and curr["fast_ma"] < curr["slow_ma"]:
+                signals.append({
+                    "date": curr["date"],
+                    "action": "sell",
+                    "score": -1,
+                    "reason": "死叉",
+                    "metadata": {
+                        "fast_ma": round(curr["fast_ma"], 2),
+                        "slow_ma": round(curr["slow_ma"], 2),
+                    }
+                })
+
+        return signals
+
+    def _extract_rsi_signals(self, params: dict) -> list[dict]:
+        """提取 RSI 超买超卖历史信号
+
+        Args:
+            params: {"period": 14, "lower": 30, "upper": 70}
+
+        Returns:
+            信号列表
+        """
+        import talib
+
+        period = params.get("period", 14)
+        lower = params.get("lower", 30)
+        upper = params.get("upper", 70)
+
+        close = self.df["close"].values
+        rsi = talib.RSI(close, timeperiod=period)
+
+        signals = []
+        for i in range(1, len(self.df)):
+            prev_rsi = rsi[i - 1]
+            curr_rsi = rsi[i]
+
+            if np.isnan(prev_rsi) or np.isnan(curr_rsi):
+                continue
+
+            curr_date = self.df.iloc[i]["date"]
+
+            # 从超卖区穿越上来 -> 买入
+            if prev_rsi <= lower and curr_rsi > lower:
+                signals.append({
+                    "date": curr_date,
+                    "action": "buy",
+                    "score": 1,
+                    "reason": "RSI 超卖反弹",
+                    "metadata": {"rsi": round(curr_rsi, 2)}
+                })
+            # 从超买区穿越下来 -> 卖出
+            elif prev_rsi >= upper and curr_rsi < upper:
+                signals.append({
+                    "date": curr_date,
+                    "action": "sell",
+                    "score": -1,
+                    "reason": "RSI 超买回调",
+                    "metadata": {"rsi": round(curr_rsi, 2)}
+                })
+
+        return signals
+
+    def _extract_bollinger_signals(self, params: dict) -> list[dict]:
+        """提取布林带突破历史信号
+
+        Args:
+            params: {"period": 20, "std": 2}
+
+        Returns:
+            信号列表
+        """
+        import talib
+
+        period = params.get("period", 20)
+        std = params.get("std", 2)
+
+        close = self.df["close"].values
+        upper, middle, lower = talib.BBANDS(
+            close, timeperiod=period, nbdevup=std, nbdevdn=std
+        )
+
+        signals = []
+        for i in range(1, len(self.df)):
+            prev_close = close[i - 1]
+            curr_close = close[i]
+            prev_lower = lower[i - 1]
+            curr_lower = lower[i]
+            prev_upper = upper[i - 1]
+            curr_upper = upper[i]
+
+            if np.isnan(prev_lower) or np.isnan(curr_lower):
+                continue
+
+            curr_date = self.df.iloc[i]["date"]
+
+            # 从下轨反弹 -> 买入
+            if prev_close <= prev_lower and curr_close > curr_lower:
+                signals.append({
+                    "date": curr_date,
+                    "action": "buy",
+                    "score": 1,
+                    "reason": "布林带下轨反弹",
+                    "metadata": {
+                        "price": round(curr_close, 2),
+                        "lower": round(curr_lower, 2),
+                    }
+                })
+            # 从上轨回调 -> 卖出
+            elif prev_close >= prev_upper and curr_close < curr_upper:
+                signals.append({
+                    "date": curr_date,
+                    "action": "sell",
+                    "score": -1,
+                    "reason": "布林带上轨回调",
+                    "metadata": {
+                        "price": round(curr_close, 2),
+                        "upper": round(curr_upper, 2),
+                    }
+                })
+
+        return signals
+
+    def _save_signal_file(self, signal_type: str, params: dict, signals: list[dict]) -> Path:
+        """保存信号文件
+
+        Args:
+            signal_type: 信号类型（ma_cross/rsi/bollinger）
+            params: 参数
+            signals: 信号列表
+
+        Returns:
+            信号文件路径
+        """
+        signal_id = build_signal_id(signal_type, params)
+
+        date_range = {}
+        if len(self.df) > 0:
+            date_range = {
+                "start": self.df.iloc[0]["date"],
+                "end": self.df.iloc[-1]["date"],
+            }
+
+        signal_data = build_signal_data(
+            signal_type=signal_type,
+            stock_code=self.symbol,
+            signal_id=signal_id,
+            signals=signals,
+            params=params,
+            date_range=date_range,
+        )
+
+        return save_signal(signal_data)
+
+    async def extract_signals(
+        self,
+        indicators: Optional[list[str]] = None,
+        params: Optional[dict] = None,
+    ) -> dict[str, Path]:
+        """提取历史信号并保存
+
+        Args:
+            indicators: 指标列表（默认全部）
+            params: 指标参数
+
+        Returns:
+            {signal_type: signal_path}
+        """
+        # 获取历史数据
+        self.df = await fetch_history(self.symbol, days=self.days)
+
+        if self.df.empty:
+            print("无法获取历史数据")
+            return {}
+
+        # 默认提取所有信号
+        if not indicators:
+            indicators = ["ma", "rsi", "boll"]
+
+        # 合并参数
+        if not params:
+            params = DEFAULT_PARAMS
+        else:
+            merged = DEFAULT_PARAMS.copy()
+            merged.update(params)
+            params = merged
+
+        signal_paths = {}
+
+        # 提取各指标信号
+        if "ma" in indicators:
+            ma_signals = self._extract_ma_cross_signals(params["ma"])
+            if ma_signals:
+                path = self._save_signal_file("ma_cross", params["ma"], ma_signals)
+                signal_paths["ma_cross"] = path
+                print(f"均线交叉信号: {len(ma_signals)} 个 -> {path}")
+
+        if "rsi" in indicators:
+            rsi_signals = self._extract_rsi_signals(params["rsi"])
+            if rsi_signals:
+                path = self._save_signal_file("rsi", params["rsi"], rsi_signals)
+                signal_paths["rsi"] = path
+                print(f"RSI 信号: {len(rsi_signals)} 个 -> {path}")
+
+        if "boll" in indicators:
+            boll_signals = self._extract_bollinger_signals(params["boll"])
+            if boll_signals:
+                path = self._save_signal_file("bollinger", params["boll"], boll_signals)
+                signal_paths["bollinger"] = path
+                print(f"布林带信号: {len(boll_signals)} 个 -> {path}")
+
+        return signal_paths
+
     def print_result(self, result: dict, top_n: int = 5):
         """打印精简结果
 
@@ -491,6 +766,9 @@ async def main():
     parser.add_argument("--indicators", help="指标列表（逗号分隔，默认全部）")
     parser.add_argument("--params", help="指标参数（JSON 格式）")
     parser.add_argument("--top-n", type=int, default=5, help="显示最近 N 天信号（默认 5）")
+    # 信号输出参数
+    parser.add_argument("--save-signals", action="store_true", help="同时输出信号文件")
+    parser.add_argument("--signal-only", action="store_true", help="只输出信号文件（不输出分析结果）")
 
     args = parser.parse_args()
 
@@ -504,8 +782,20 @@ async def main():
     if args.params:
         params = json.loads(args.params)
 
-    # 分析
-    processor = IndicatorProcessor(args.symbol, args.days)
+    # 创建处理器
+    processor = IndicatorProcessor(
+        symbol=args.symbol,
+        days=args.days,
+        save_signals=args.save_signals,
+        signal_only=args.signal_only,
+    )
+
+    # 只输出信号
+    if args.signal_only:
+        await processor.extract_signals(indicators=indicators, params=params)
+        return
+
+    # 分析（现有功能）
     result = await processor.analyze(indicators=indicators, params=params)
 
     # 打印精简结果
@@ -518,6 +808,10 @@ async def main():
     output_path.parent.mkdir(parents=True, exist_ok=True)
     output_path.write_text(json.dumps(result, ensure_ascii=False, indent=2), encoding="utf-8")
     print(f"完整结果已保存到: {output_path}")
+
+    # 同时输出信号文件
+    if args.save_signals:
+        await processor.extract_signals(indicators=indicators, params=params)
 
 
 if __name__ == "__main__":

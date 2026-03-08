@@ -2,6 +2,7 @@
 """历史行情数据 Fetcher 入口"""
 
 from openclaw_alpha.core.fetcher import Fetcher
+from .tushare_impl import HistoryFetcherTushare
 from .akshare_impl import HistoryFetcherAkshare
 
 
@@ -9,6 +10,7 @@ class HistoryFetcher(Fetcher):
     """历史行情数据获取器
 
     支持：
+    - Tushare：pro.daily 接口（优先）
     - AKShare：stock_zh_a_hist 接口
     """
 
@@ -17,6 +19,8 @@ class HistoryFetcher(Fetcher):
     def __init__(self):
         """初始化并注册实现"""
         super().__init__()
+        # 注册 Tushare 实现，优先级 20
+        self.register(HistoryFetcherTushare(), priority=20)
         # 注册 AKShare 实现，优先级 10
         self.register(HistoryFetcherAkshare(), priority=10)
 
