@@ -167,5 +167,5 @@
 ## 参考资料
 
 - [东方财富 - 行业轮动策略研究](https://pdf.dfcfw.com/pdf/H3_AP202106161498316886_1.pdf)
-- [上交所 - ETF投资策略](http://etf.sse.com.cn/fund/learning/strategy/c/5704305.shtml)
+- [上交所 - ETF投资策略](http://etf/sse/com/cn.py/fund/learning/strategy/c/5704305.shtml)
 - [MyQuant - 行业轮动策略](https://www.myquant.cn/docs/python_strategyies/111)

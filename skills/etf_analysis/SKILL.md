@@ -17,7 +17,7 @@ metadata:
 ### 脚本运行
 
 ```bash
-uv run --env-file .env python -m skills.etf_analysis.scripts.etf_processor.etf_processor [参数]
+uv run --env-file .env python skills/etf_analysis/scripts/etf_processor/etf_processor.py [参数]
 ```
 
 ### 运行记录
@@ -35,10 +35,10 @@ uv run --env-file .env python -m skills.etf_analysis.scripts.etf_processor.etf_p
 **动作**：运行脚本获取实时行情
 ```bash
 # 默认返回涨幅 Top 20
-uv run --env-file .env python -m skills.etf_analysis.scripts.etf_processor.etf_processor
+uv run --env-file .env python skills/etf_analysis/scripts/etf_processor/etf_processor.py
 
 # 指定返回数量
-uv run --env-file .env python -m skills.etf_analysis.scripts.etf_processor.etf_processor --top-n 10
+uv run --env-file .env python skills/etf_analysis/scripts/etf_processor/etf_processor.py --top-n 10
 ```
 
 **输出**：ETF 行情列表（含代码、名称、价格、涨跌幅、成交额）
@@ -52,15 +52,15 @@ uv run --env-file .env python -m skills.etf_analysis.scripts.etf_processor.etf_p
 **动作**：按条件筛选 ETF
 ```bash
 # 筛选涨幅 > 2% 且成交额 > 5 亿
-uv run --env-file .env python -m skills.etf_analysis.scripts.etf_processor.etf_processor \
+uv run --env-file .env python skills/etf_analysis/scripts/etf_processor/etf_processor.py \
     --change-min 2 --amount-min 5
 
 # 筛选跌幅 ETF（跌 3% 以上）
-uv run --env-file .env python -m skills.etf_analysis.scripts.etf_processor.etf_processor \
+uv run --env-file .env python skills/etf_analysis/scripts/etf_processor/etf_processor.py \
     --change-max -3
 
 # 按关键词搜索（如创业板相关）
-uv run --env-file .env python -m skills.etf_analysis.scripts.etf_processor.etf_processor \
+uv run --env-file .env python skills/etf_analysis/scripts/etf_processor/etf_processor.py \
     --keyword "创业板"
 ```
 
@@ -75,11 +75,11 @@ uv run --env-file .env python -m skills.etf_analysis.scripts.etf_processor.etf_p
 **动作**：按指定字段排序
 ```bash
 # 按成交额排序
-uv run --env-file .env python -m skills.etf_analysis.scripts.etf_processor.etf_processor \
+uv run --env-file .env python skills/etf_analysis/scripts/etf_processor/etf_processor.py \
     --sort-by amount --top-n 10
 
 # 按价格排序
-uv run --env-file .env python -m skills.etf_analysis.scripts.etf_processor.etf_processor \
+uv run --env-file .env python skills/etf_analysis/scripts/etf_processor/etf_processor.py \
     --sort-by price --top-n 10
 ```
 
@@ -94,11 +94,11 @@ uv run --env-file .env python -m skills.etf_analysis.scripts.etf_processor.etf_p
 **动作**：获取历史走势
 ```bash
 # 获取创业板 ETF 近 30 天历史数据
-uv run --env-file .env python -m skills.etf_analysis.scripts.etf_processor.etf_processor \
+uv run --env-file .env python skills/etf_analysis/scripts/etf_processor/etf_processor.py \
     --action history --symbol sz159915
 
 # 指定天数
-uv run --env-file .env python -m skills.etf_analysis.scripts.etf_processor.etf_processor \
+uv run --env-file .env python skills/etf_analysis/scripts/etf_processor/etf_processor.py \
     --action history --symbol sz159915 --days 60
 ```
 

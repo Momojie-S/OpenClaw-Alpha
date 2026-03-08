@@ -18,20 +18,20 @@ metadata:
 
 ```bash
 # 查看指定股票的资金流向
-uv run --env-file .env python -m skills.stock_fund_flow.scripts.stock_fund_flow_processor.stock_fund_flow_processor <股票代码>
+uv run --env-file .env python skills/stock_fund_flow/scripts/stock_fund_flow_processor/stock_fund_flow_processor.py <股票代码>
 
 # 示例
-uv run --env-file .env python -m skills.stock_fund_flow.scripts.stock_fund_flow_processor.stock_fund_flow_processor 000001
-uv run --env-file .env python -m skills.stock_fund_flow.scripts.stock_fund_flow_processor.stock_fund_flow_processor 600519
+uv run --env-file .env python skills/stock_fund_flow/scripts/stock_fund_flow_processor/stock_fund_flow_processor.py 000001
+uv run --env-file .env python skills/stock_fund_flow/scripts/stock_fund_flow_processor/stock_fund_flow_processor.py 600519
 
 # 指定汇总周期
-uv run --env-file .env python -m skills.stock_fund_flow.scripts.stock_fund_flow_processor.stock_fund_flow_processor 000001 --periods 1 5 10
+uv run --env-file .env python skills/stock_fund_flow/scripts/stock_fund_flow_processor/stock_fund_flow_processor.py 000001 --periods 1 5 10
 
 # 指定趋势分析回看天数
-uv run --env-file .env python -m skills.stock_fund_flow.scripts.stock_fund_flow_processor.stock_fund_flow_processor 000001 --lookback 20
+uv run --env-file .env python skills/stock_fund_flow/scripts/stock_fund_flow_processor/stock_fund_flow_processor.py 000001 --lookback 20
 
 # JSON 输出
-uv run --env-file .env python -m skills.stock_fund_flow.scripts.stock_fund_flow_processor.stock_fund_flow_processor 000001 --output json
+uv run --env-file .env python skills/stock_fund_flow/scripts/stock_fund_flow_processor/stock_fund_flow_processor.py 000001 --output json
 ```
 
 ### 参数说明
@@ -56,7 +56,7 @@ uv run --env-file .env python -m skills.stock_fund_flow.scripts.stock_fund_flow_
 **输出**：各周期主力资金净流入情况
 
 ```bash
-uv run --env-file .env python -m skills.stock_fund_flow.scripts.stock_fund_flow_processor.stock_fund_flow_processor 000001
+uv run --env-file .env python skills/stock_fund_flow/scripts/stock_fund_flow_processor/stock_fund_flow_processor.py 000001
 ```
 
 **输出示例**：
@@ -86,7 +86,7 @@ uv run --env-file .env python -m skills.stock_fund_flow.scripts.stock_fund_flow_
 **输出**：更全面的趋势判断
 
 ```bash
-uv run --env-file .env python -m skills.stock_fund_flow.scripts.stock_fund_flow_processor.stock_fund_flow_processor 000001 --lookback 20
+uv run --env-file .env python skills/stock_fund_flow/scripts/stock_fund_flow_processor/stock_fund_flow_processor.py 000001 --lookback 20
 ```
 
 ### Step 3: 结合其他分析

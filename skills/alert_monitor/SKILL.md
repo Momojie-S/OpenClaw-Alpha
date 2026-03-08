@@ -18,22 +18,22 @@ metadata:
 
 ```bash
 # 综合扫描（持仓风险 + 市场异动）
-uv run --env-file .env python -m skills.alert_monitor.scripts.alert_processor.alert_processor
+uv run --env-file .env python skills/alert_monitor/scripts/alert_processor/alert_processor.py
 
 # 仅扫描持仓风险
-uv run --env-file .env python -m skills.alert_monitor.scripts.alert_processor.alert_processor --type risk
+uv run --env-file .env python skills/alert_monitor/scripts/alert_processor/alert_processor.py --type risk
 
 # 仅扫描市场异动
-uv run --env-file .env python -m skills.alert_monitor.scripts.alert_processor.alert_processor --type market
+uv run --env-file .env python skills/alert_monitor/scripts/alert_processor/alert_processor.py --type market
 
 # 简报模式（只显示高风险）
-uv run --env-file .env python -m skills.alert_monitor.scripts.alert_processor.alert_processor --brief
+uv run --env-file .env python skills/alert_monitor/scripts/alert_processor/alert_processor.py --brief
 
 # 保存报告
-uv run --env-file .env python -m skills.alert_monitor.scripts.alert_processor.alert_processor --output
+uv run --env-file .env python skills/alert_monitor/scripts/alert_processor/alert_processor.py --output
 
 # 输出 JSON 格式
-uv run --env-file .env python -m skills.alert_monitor.scripts.alert_processor.alert_processor --json
+uv run --env-file .env python skills/alert_monitor/scripts/alert_processor/alert_processor.py --json
 ```
 
 ### 参数说明
@@ -112,7 +112,7 @@ vim ~/.openclaw/workspace-alpha/alert_config.yaml
 **动作**：运行预警扫描
 
 ```bash
-uv run --env-file .env python -m skills.alert_monitor.scripts.alert_processor.alert_processor --brief
+uv run --env-file .env python skills/alert_monitor/scripts/alert_processor/alert_processor.py --brief
 ```
 
 **输出**：预警报告
@@ -143,7 +143,7 @@ uv run --env-file .env python -m skills.alert_monitor.scripts.alert_processor.al
 **动作**：如需详细信息，运行完整报告
 
 ```bash
-uv run --env-file .env python -m skills.alert_monitor.scripts.alert_processor.alert_processor
+uv run --env-file .env python skills/alert_monitor/scripts/alert_processor/alert_processor.py
 ```
 
 **输出**：包含所有风险等级的完整报告

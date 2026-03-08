@@ -17,7 +17,7 @@ metadata:
 ### 脚本运行
 
 ```bash
-uv run --env-file .env python -m skills.watchlist_monitor.scripts.watchlist_processor.watchlist_processor [参数]
+uv run --env-file .env python skills/watchlist_monitor/scripts/watchlist_processor/watchlist_processor.py [参数]
 ```
 
 ### 运行记录
@@ -32,25 +32,25 @@ uv run --env-file .env python -m skills.watchlist_monitor.scripts.watchlist_proc
 **添加股票**：
 ```bash
 # 添加单只或多只股票
-uv run --env-file .env python -m skills.watchlist_monitor.scripts.watchlist_processor.watchlist_processor --add "000001,600000,002475"
+uv run --env-file .env python skills/watchlist_monitor/scripts/watchlist_processor/watchlist_processor.py --add "000001,600000,002475"
 
 # 从文件添加（每行一个代码）
-uv run --env-file .env python -m skills.watchlist_monitor.scripts.watchlist_processor.watchlist_processor --add-file watchlist.txt
+uv run --env-file .env python skills/watchlist_monitor/scripts/watchlist_processor/watchlist_processor.py --add-file watchlist.txt
 ```
 
 **查看列表**：
 ```bash
-uv run --env-file .env python -m skills.watchlist_monitor.scripts.watchlist_processor.watchlist_processor --list
+uv run --env-file .env python skills/watchlist_monitor/scripts/watchlist_processor/watchlist_processor.py --list
 ```
 
 **移除股票**：
 ```bash
-uv run --env-file .env python -m skills.watchlist_monitor.scripts.watchlist_processor.watchlist_processor --remove "000001"
+uv run --env-file .env python skills/watchlist_monitor/scripts/watchlist_processor/watchlist_processor.py --remove "000001"
 ```
 
 **清空列表**：
 ```bash
-uv run --env-file .env python -m skills.watchlist_monitor.scripts.watchlist_processor.watchlist_processor --clear --yes
+uv run --env-file .env python skills/watchlist_monitor/scripts/watchlist_processor/watchlist_processor.py --clear --yes
 ```
 
 ### Step 2: 查看行情
@@ -58,10 +58,10 @@ uv run --env-file .env python -m skills.watchlist_monitor.scripts.watchlist_proc
 **批量获取行情**：
 ```bash
 # 查看所有自选股行情
-uv run --env-file .env python -m skills.watchlist_monitor.scripts.watchlist_processor.watchlist_processor --watch
+uv run --env-file .env python skills/watchlist_monitor/scripts/watchlist_processor/watchlist_processor.py --watch
 
 # 只显示前5只
-uv run --env-file .env python -m skills.watchlist_monitor.scripts.watchlist_processor.watchlist_processor --watch --top-n 5
+uv run --env-file .env python skills/watchlist_monitor/scripts/watchlist_processor/watchlist_processor.py --watch --top-n 5
 ```
 
 输出示例：
@@ -72,7 +72,7 @@ uv run --env-file .env python -m skills.watchlist_monitor.scripts.watchlist_proc
 ------------------------------------------------------------
 000001  平安银行    12.50   +2.35%      15.6    3.20%
 600000  浦发银行     8.20   -0.50%       8.2    1.50%
-...
+///.py
 统计: 3涨 2跌 平均 +1.20%
 ```
 
@@ -80,7 +80,7 @@ uv run --env-file .env python -m skills.watchlist_monitor.scripts.watchlist_proc
 
 **分析自选股表现**：
 ```bash
-uv run --env-file .env python -m skills.watchlist_monitor.scripts.watchlist_processor.watchlist_processor --analyze
+uv run --env-file .env python skills/watchlist_monitor/scripts/watchlist_processor/watchlist_processor.py --analyze
 ```
 
 输出示例：

@@ -70,7 +70,7 @@ Processor 是可执行的脚本，大模型通过命令行调用，负责协调 
 uv run --env-file .env python skills/{skill_name}/scripts/{scenario}_processor/{scenario}_processor.py [参数]
 
 # 模块方式
-uv run --env-file .env python -m skills.{skill_name}.scripts.{scenario}_processor.{scenario}_processor [参数]
+uv run --env-file .env python skills/{skill_name}/scripts/{processor}/{processor}.py [参数]
 ```
 
 **职责**：
@@ -164,11 +164,7 @@ OpenClaw-Alpha/
 
 **运行方式**：
 ```bash
-# 直接执行脚本
 uv run --env-file .env python skills/{skill_name}/scripts/{scenario}_processor/{scenario}_processor.py
-
-# 模块方式
-uv run --env-file .env python -m skills.{skill_name}.scripts.{scenario}_processor.{scenario}_processor
 ```
 
 **命名规范**：

@@ -18,22 +18,22 @@ metadata:
 
 ```bash
 # 检查个股风险
-uv run --env-file .env python -m skills.risk_alert.scripts.risk_processor.risk_processor <股票代码> [--date YYYY-MM-DD] [--days N]
+uv run --env-file .env python skills/risk_alert/scripts/risk_processor/risk_processor.py <股票代码> [--date YYYY-MM-DD] [--days N]
 
 # 批量检查（逗号分隔）
-uv run --env-file .env python -m skills.risk_alert.scripts.risk_processor.risk_processor --batch "000001,600000,002475"
+uv run --env-file .env python skills/risk_alert/scripts/risk_processor/risk_processor.py --batch "000001,600000,002475"
 
 # 从文件读取
-uv run --env-file .env python -m skills.risk_alert.scripts.risk_processor.risk_processor --batch-file stocks.txt
+uv run --env-file .env python skills/risk_alert/scripts/risk_processor/risk_processor.py --batch-file stocks.txt
 
 # 检查自选股风险
-uv run --env-file .env python -m skills.risk_alert.scripts.risk_processor.risk_processor --watchlist
+uv run --env-file .env python skills/risk_alert/scripts/risk_processor/risk_processor.py --watchlist
 
 # 指定日期和天数
-uv run --env-file .env python -m skills.risk_alert.scripts.risk_processor.risk_processor --batch "000001,600000" --date 2026-03-07 --days 5
+uv run --env-file .env python skills/risk_alert/scripts/risk_processor/risk_processor.py --batch "000001,600000" --date 2026-03-07 --days 5
 
 # 保存结果
-uv run --env-file .env python -m skills.risk_alert.scripts.risk_processor.risk_processor --watchlist --output
+uv run --env-file .env python skills/risk_alert/scripts/risk_processor/risk_processor.py --watchlist --output
 ```
 
 ### 参数说明
@@ -64,7 +64,7 @@ uv run --env-file .env python -m skills.risk_alert.scripts.risk_processor.risk_p
 **动作**：运行风险检查脚本
 
 ```bash
-uv run --env-file .env python -m skills.risk_alert.scripts.risk_processor.risk_processor 000001
+uv run --env-file .env python skills/risk_alert/scripts/risk_processor/risk_processor.py 000001
 ```
 
 **输出**：风险检查结果
@@ -97,13 +97,13 @@ uv run --env-file .env python -m skills.risk_alert.scripts.risk_processor.risk_p
 
 ```bash
 # 方式 1：直接指定股票
-uv run --env-file .env python -m skills.risk_alert.scripts.risk_processor.risk_processor --batch "000001,600000,002475"
+uv run --env-file .env python skills/risk_alert/scripts/risk_processor/risk_processor.py --batch "000001,600000,002475"
 
 # 方式 2：从文件读取
-uv run --env-file .env python -m skills.risk_alert.scripts.risk_processor.risk_processor --batch-file stocks.txt
+uv run --env-file .env python skills/risk_alert/scripts/risk_processor/risk_processor.py --batch-file stocks.txt
 
 # 方式 3：检查自选股
-uv run --env-file .env python -m skills.risk_alert.scripts.risk_processor.risk_processor --watchlist
+uv run --env-file .env python skills/risk_alert/scripts/risk_processor/risk_processor.py --watchlist
 ```
 
 **输出**：批量风险扫描报告
@@ -129,11 +129,11 @@ uv run --env-file .env python -m skills.risk_alert.scripts.risk_processor.risk_p
   002475 立讯精密: 连续 3 天主力净流出，累计 2.3 亿
 
 【低风险】(3 只)
-  ...
+  ///.py
 
 【正常】(4 只)
   000001 平安银行: 无明显风险
-  ...
+  ///.py
 ```
 
 ### Step 2: 查看风险详情

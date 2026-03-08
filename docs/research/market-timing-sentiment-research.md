@@ -138,7 +138,7 @@ OpenClaw-Alpha 已具备的情绪相关指标：
 
 **命令示例**：
 ```bash
-uv run --env-file .env python -m skills.market_sentiment.scripts.timing_processor.timing_processor
+uv run --env-file .env python skills/market_sentiment/scripts/timing_processor/timing_processor.py
 ```
 
 **输出示例**：

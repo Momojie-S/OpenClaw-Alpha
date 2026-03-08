@@ -20,16 +20,16 @@ metadata:
 
 ```bash
 # 市场情绪分析
-uv run --env-file .env python -m skills.market_sentiment.scripts.sentiment_processor.sentiment_processor [--date YYYY-MM-DD]
+uv run --env-file .env python skills/market_sentiment/scripts/sentiment_processor/sentiment_processor.py [--date YYYY-MM-DD]
 
 # 市场宽度分析
-uv run --env-file .env python -m skills.market_sentiment.scripts.breadth_processor.breadth_processor [--symbol all|sz50|hs300|zz500] [--days 30]
+uv run --env-file .env python skills/market_sentiment/scripts/breadth_processor/breadth_processor.py [--symbol all|sz50|hs300|zz500] [--days 30]
 
 # 市场择时分析
-uv run --env-file .env python -m skills.market_sentiment.scripts.timing_processor.timing_processor [--date YYYY-MM-DD]
+uv run --env-file .env python skills/market_sentiment/scripts/timing_processor/timing_processor.py [--date YYYY-MM-DD]
 
 # 股债性价比分析
-uv run --env-file .env python -m skills.market_sentiment.scripts.equity_bond_ratio_processor.equity_bond_ratio_processor [--date YYYY-MM-DD] [--lookback-days 252]
+uv run --env-file .env python skills/market_sentiment/scripts/equity_bond_ratio_processor/equity_bond_ratio_processor.py [--date YYYY-MM-DD] [--lookback-days 252]
 ```
 
 **如果脚本运行失败**：
@@ -56,7 +56,7 @@ uv run --env-file .env python -m skills.market_sentiment.scripts.equity_bond_rat
 
 **动作**：
 ```bash
-uv run --env-file .env python -m skills.market_sentiment.scripts.sentiment_processor.sentiment_processor
+uv run --env-file .env python skills/market_sentiment/scripts/sentiment_processor/sentiment_processor.py
 ```
 
 **输出**：
@@ -90,7 +90,7 @@ uv run --env-file .env python -m skills.market_sentiment.scripts.sentiment_proce
 
 **动作**：
 ```bash
-uv run --env-file .env python -m skills.market_sentiment.scripts.timing_processor.timing_processor
+uv run --env-file .env python skills/market_sentiment/scripts/timing_processor/timing_processor.py
 ```
 
 **输出**：
@@ -125,7 +125,7 @@ uv run --env-file .env python -m skills.market_sentiment.scripts.timing_processo
 
 **动作**：
 ```bash
-uv run --env-file .env python -m skills.market_sentiment.scripts.equity_bond_ratio_processor.equity_bond_ratio_processor
+uv run --env-file .env python skills/market_sentiment/scripts/equity_bond_ratio_processor/equity_bond_ratio_processor.py
 ```
 
 **输出**：
@@ -151,7 +151,7 @@ uv run --env-file .env python -m skills.market_sentiment.scripts.equity_bond_rat
 
 **动作**：
 ```bash
-uv run --env-file .env python -m skills.market_sentiment.scripts.breadth_processor.breadth_processor --symbol all --days 30
+uv run --env-file .env python skills/market_sentiment/scripts/breadth_processor/breadth_processor.py --symbol all --days 30
 ```
 
 **输出**：

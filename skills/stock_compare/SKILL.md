@@ -18,13 +18,13 @@ metadata:
 
 ```bash
 # 对比 2-10 只股票
-uv run --env-file .env python -m skills.stock_compare.scripts.compare_processor.compare_processor "000001,600000,002475"
+uv run --env-file .env python skills/stock_compare/scripts/compare_processor/compare_processor.py "000001,600000,002475"
 
 # 保存对比结果
-uv run --env-file .env python -m skills.stock_compare.scripts.compare_processor.compare_processor "000001,600000" --output
+uv run --env-file .env python skills/stock_compare/scripts/compare_processor/compare_processor.py "000001,600000" --output
 
 # 输出 JSON 格式
-uv run --env-file .env python -m skills.stock_compare.scripts.compare_processor.compare_processor "000001,600000" --json
+uv run --env-file .env python skills/stock_compare/scripts/compare_processor/compare_processor.py "000001,600000" --json
 ```
 
 ### 参数说明
@@ -49,7 +49,7 @@ uv run --env-file .env python -m skills.stock_compare.scripts.compare_processor.
 **动作**：运行对比脚本
 
 ```bash
-uv run --env-file .env python -m skills.stock_compare.scripts.compare_processor.compare_processor "000001,600000,601398"
+uv run --env-file .env python skills/stock_compare/scripts/compare_processor/compare_processor.py "000001,600000,601398"
 ```
 
 **输出**：对比分析报告

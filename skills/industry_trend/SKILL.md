@@ -19,7 +19,7 @@ metadata:
 所有脚本需在项目根目录下运行，使用 `uv run --env-file .env` 加载环境变量：
 
 ```bash
-uv run --env-file .env python -m skills.industry_trend.scripts.industry_trend_processor.industry_trend_processor [参数]
+uv run --env-file .env python skills/industry_trend/scripts/industry_trend_processor/industry_trend_processor.py [参数]
 ```
 
 **如果脚本运行失败**：
@@ -46,7 +46,7 @@ uv run --env-file .env python -m skills.industry_trend.scripts.industry_trend_pr
 
 **动作**：
 ```bash
-uv run --env-file .env python -m skills.industry_trend.scripts.industry_trend_processor.industry_trend_processor \
+uv run --env-file .env python skills/industry_trend/scripts/industry_trend_processor/industry_trend_processor.py \
     --category L1 \
     --top-n 10
 ```
@@ -66,7 +66,7 @@ uv run --env-file .env python -m skills.industry_trend.scripts.industry_trend_pr
 
 **动作**：
 ```bash
-uv run --env-file .env python -m skills.industry_trend.scripts.industry_trend_processor.industry_trend_processor \
+uv run --env-file .env python skills/industry_trend/scripts/industry_trend_processor/industry_trend_processor.py \
     --category concept \
     --top-n 10
 ```
@@ -84,14 +84,14 @@ uv run --env-file .env python -m skills.industry_trend.scripts.industry_trend_pr
 
 **二级行业**：
 ```bash
-uv run --env-file .env python -m skills.industry_trend.scripts.industry_trend_processor.industry_trend_processor \
+uv run --env-file .env python skills/industry_trend/scripts/industry_trend_processor/industry_trend_processor.py \
     --category L2 \
     --top-n 20
 ```
 
 **三级行业**：
 ```bash
-uv run --env-file .env python -m skills.industry_trend.scripts.industry_trend_processor.industry_trend_processor \
+uv run --env-file .env python skills/industry_trend/scripts/industry_trend_processor/industry_trend_processor.py \
     --category L3 \
     --top-n 30
 ```
@@ -102,7 +102,7 @@ uv run --env-file .env python -m skills.industry_trend.scripts.industry_trend_pr
 
 **动作**：
 ```bash
-uv run --env-file .env python -m skills.industry_trend.scripts.crowdedness_processor.crowdedness_processor \
+uv run --env-file .env python skills/industry_trend/scripts/crowdedness_processor/crowdedness_processor.py \
     --category L1 \
     --top-n 10
 ```
@@ -122,7 +122,7 @@ uv run --env-file .env python -m skills.industry_trend.scripts.crowdedness_proce
 
 **动作**：
 ```bash
-uv run --env-file .env python -m skills.industry_trend.scripts.prosperity_processor.prosperity_processor \
+uv run --env-file .env python skills/industry_trend/scripts/prosperity_processor/prosperity_processor.py \
     --category L1 \
     --top-n 10
 ```
@@ -157,7 +157,7 @@ uv run --env-file .env python -m skills.industry_trend.scripts.prosperity_proces
 
 **动作**：
 ```bash
-uv run --env-file .env python -m skills.industry_trend.scripts.rotation_score_processor.rotation_score_processor \
+uv run --env-file .env python skills/industry_trend/scripts/rotation_score_processor/rotation_score_processor.py \
     --category L1 \
     --top-n 10
 ```
@@ -195,7 +195,7 @@ uv run --env-file .env python -m skills.industry_trend.scripts.rotation_score_pr
       "change_pct": 3.5,
       "heat_change": 25.3
     },
-    ...
+    ///.py
   ]
 }
 ```

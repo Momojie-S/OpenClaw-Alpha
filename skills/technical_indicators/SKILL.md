@@ -44,21 +44,21 @@ pip install TA_Lib‑0.4.28‑cp312‑cp312‑win_amd64.whl
 
 **技术指标分析**：
 ```bash
-uv run --env-file .env python -m skills.technical_indicators.scripts.indicator_processor.indicator_processor 000001
+uv run --env-file .env python skills/technical_indicators/scripts/indicator_processor/indicator_processor.py 000001
 
 # 指定天数
-uv run --env-file .env python -m skills.technical_indicators.scripts.indicator_processor.indicator_processor 000001 --days 120
+uv run --env-file .env python skills/technical_indicators/scripts/indicator_processor/indicator_processor.py 000001 --days 120
 
 # 只分析特定指标
-uv run --env-file .env python -m skills.technical_indicators.scripts.indicator_processor.indicator_processor 000001 --indicators "macd,rsi"
+uv run --env-file .env python skills/technical_indicators/scripts/indicator_processor/indicator_processor.py 000001 --indicators "macd,rsi"
 ```
 
 **量价关系分析**：
 ```bash
-uv run --env-file .env python -m skills.technical_indicators.scripts.volume_price_processor.volume_price_processor 000001
+uv run --env-file .env python skills/technical_indicators/scripts/volume_price_processor/volume_price_processor.py 000001
 
 # 指定天数
-uv run --env-file .env python -m skills.technical_indicators.scripts.volume_price_processor.volume_price_processor 000001 --days 60
+uv run --env-file .env python skills/technical_indicators/scripts/volume_price_processor/volume_price_processor.py 000001 --days 60
 ```
 
 ### 运行记录
@@ -75,7 +75,7 @@ uv run --env-file .env python -m skills.technical_indicators.scripts.volume_pric
 
 **动作**：运行脚本计算技术指标
 ```bash
-uv run --env-file .env python -m skills.technical_indicators.scripts.indicator_processor.indicator_processor 000001
+uv run --env-file .env python skills/technical_indicators/scripts/indicator_processor/indicator_processor.py 000001
 ```
 
 **输出**：
@@ -110,7 +110,7 @@ KDJ: 超买 (-1)
 
 **动作**：运行脚本分析量价关系
 ```bash
-uv run --env-file .env python -m skills.technical_indicators.scripts.volume_price_processor.volume_price_processor 000001
+uv run --env-file .env python skills/technical_indicators/scripts/volume_price_processor/volume_price_processor.py 000001
 ```
 
 **输出**：

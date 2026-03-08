@@ -19,7 +19,7 @@ metadata:
 所有脚本需在项目根目录下运行，使用 `uv run --env-file .env` 加载环境变量：
 
 ```bash
-uv run --env-file .env python -m skills.northbound_flow.scripts.northbound_processor.northbound_processor [参数]
+uv run --env-file .env python skills/northbound_flow/scripts/northbound_processor/northbound_processor.py [参数]
 ```
 
 **如果脚本运行失败**：
@@ -46,7 +46,7 @@ uv run --env-file .env python -m skills.northbound_flow.scripts.northbound_proce
 
 **动作**：
 ```bash
-uv run --env-file .env python -m skills.northbound_flow.scripts.northbound_processor.northbound_processor \
+uv run --env-file .env python skills/northbound_flow/scripts/northbound_processor/northbound_processor.py \
     --action daily
 ```
 
@@ -65,7 +65,7 @@ uv run --env-file .env python -m skills.northbound_flow.scripts.northbound_proce
 
 **动作**：
 ```bash
-uv run --env-file .env python -m skills.northbound_flow.scripts.northbound_processor.northbound_processor \
+uv run --env-file .env python skills/northbound_flow/scripts/northbound_processor/northbound_processor.py \
     --action stock \
     --top-n 20
 ```
@@ -85,7 +85,7 @@ uv run --env-file .env python -m skills.northbound_flow.scripts.northbound_proce
 
 **动作**：
 ```bash
-uv run --env-file .env python -m skills.northbound_flow.scripts.northbound_processor.northbound_processor \
+uv run --env-file .env python skills/northbound_flow/scripts/northbound_processor/northbound_processor.py \
     --action trend \
     --days 10
 ```
@@ -135,9 +135,9 @@ uv run --env-file .env python -m skills.northbound_flow.scripts.northbound_proce
       "hold_ratio": 0.05,
       "direction": "流入"
     },
-    ...
+    ///.py
   ],
-  "top_outflow": [...]
+  "top_outflow": [///.py]
 }
 ```
 

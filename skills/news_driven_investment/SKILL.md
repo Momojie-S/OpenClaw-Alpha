@@ -18,19 +18,19 @@ metadata:
 
 ```bash
 # 获取财联社全球资讯（推荐）
-uv run --env-file .env python -m skills.news_driven_investment.scripts.news_fetcher.news_fetcher --source cls_global --limit 10
+uv run --env-file .env python skills/news_driven_investment/scripts/news_fetcher/news_fetcher.py --source cls_global --limit 10
 
 # 获取财联社重点资讯
-uv run --env-file .env python -m skills.news_driven_investment.scripts.news_fetcher.news_fetcher --source cls_important --limit 5
+uv run --env-file .env python skills/news_driven_investment/scripts/news_fetcher/news_fetcher.py --source cls_important --limit 5
 
 # 获取个股新闻
-uv run --env-file .env python -m skills.news_driven_investment.scripts.news_fetcher.news_fetcher --source stock --symbol 000001 --limit 5
+uv run --env-file .env python skills/news_driven_investment/scripts/news_fetcher/news_fetcher.py --source stock --symbol 000001 --limit 5
 
 # 按关键词筛选新闻
-uv run --env-file .env python -m skills.news_driven_investment.scripts.news_fetcher.news_fetcher --source cls_global --keyword "AI" --limit 10
+uv run --env-file .env python skills/news_driven_investment/scripts/news_fetcher/news_fetcher.py --source cls_global --keyword "AI" --limit 10
 
 # 按日期筛选新闻
-uv run --env-file .env python -m skills.news_driven_investment.scripts.news_fetcher.news_fetcher --source cls_global --date "2026-03-07" --limit 10
+uv run --env-file .env python skills/news_driven_investment/scripts/news_fetcher/news_fetcher.py --source cls_global --date "2026-03-07" --limit 10
 ```
 
 ### 数据源说明
@@ -70,7 +70,7 @@ curl -s "https://rsshub.ktachibana.party/cls/telegraph"
 
 **动作**：运行脚本获取新闻
 ```bash
-uv run --env-file .env python -m skills.news_driven_investment.scripts.news_fetcher.news_fetcher --source cls_global --limit 20
+uv run --env-file .env python skills/news_driven_investment/scripts/news_fetcher/news_fetcher.py --source cls_global --limit 20
 ```
 
 **输出**：新闻列表（标题、内容、时间、来源）
@@ -133,10 +133,10 @@ uv run --env-file .env python -m skills.news_driven_investment.scripts.news_fetc
 使用 `news_helper.py` 管理中间数据：
 ```bash
 # 保存关键词
-uv run --env-file .env python -m skills.news_driven_investment.scripts.news_helper --action save_keywords --keywords "AI" "算力" "光模块"
+uv run --env-file .env python skills/news_driven_investment.scripts.news_helper --action save_keywords --keywords "AI" "算力" "光模块"
 
 # 读取关键词
-uv run --env-file .env python -m skills.news_driven_investment.scripts.news_helper --action load_keywords
+uv run --env-file .env python skills/news_driven_investment.scripts.news_helper --action load_keywords
 ```
 
 ---
@@ -147,15 +147,15 @@ uv run --env-file .env python -m skills.news_driven_investment.scripts.news_help
 
 ```bash
 # 1. 获取新闻
-uv run --env-file .env python -m skills.news_driven_investment.scripts.news_fetcher.news_fetcher --source cls_global --limit 20
+uv run --env-file .env python skills/news_driven_investment/scripts/news_fetcher/news_fetcher.py --source cls_global --limit 20
 
 # 2. LLM 分析新闻，识别关键词：AI算力、光模块、CPO
 
 # 3. 调用产业热度分析
-uv run --env-file .env python -m skills.industry_trend.scripts.industry_trend_processor.industry_trend_processor --category concept --top-n 10
+uv run --env-file .env python skills/industry_trend/scripts/industry_trend_processor/industry_trend_processor.py --category concept --top-n 10
 
 # 4. 调用标的筛选
-uv run --env-file .env python -m skills.stock_screener.scripts.screener_processor.screener_processor --strategy volume_breakout --top-n 10
+uv run --env-file .env python skills/stock_screener/scripts/screener_processor/screener_processor.py --strategy volume_breakout --top-n 10
 
 # 5. LLM 综合分析，生成投资建议
 ```

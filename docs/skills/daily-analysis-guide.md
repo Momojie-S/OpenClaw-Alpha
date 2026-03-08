@@ -12,10 +12,10 @@
 cd /path/to/OpenClaw-Alpha
 
 # 快速版（仅宏观+情绪）
-uv run --env-file .env python -m skills.market_overview.scripts.overview_processor.overview_processor --mode quick --auto-fetch
+uv run --env-file .env python skills/market_overview/scripts/overview_processor/overview_processor.py --mode quick --auto-fetch
 
 # 完整版（全层次分析）
-uv run --env-file .env python -m skills.market_overview.scripts.overview_processor.overview_processor --mode full --auto-fetch
+uv run --env-file .env python skills/market_overview/scripts/overview_processor/overview_processor.py --mode full --auto-fetch
 ```
 
 `--auto-fetch` 会自动调用其他 skill 获取数据，无需手动运行每个分析。
@@ -30,7 +30,7 @@ uv run --env-file .env python -m skills.market_overview.scripts.overview_process
 
 ```bash
 # 一键生成完整报告
-uv run --env-file .env python -m skills.market_overview.scripts.overview_processor.overview_processor --auto-fetch
+uv run --env-file .env python skills/market_overview/scripts/overview_processor/overview_processor.py --auto-fetch
 ```
 
 **输出**：Markdown 格式的综合报告，包含所有层次的分析结果。
@@ -41,10 +41,10 @@ uv run --env-file .env python -m skills.market_overview.scripts.overview_process
 
 ```bash
 # 1. 指数分析
-uv run --env-file .env python -m skills.index_analysis.scripts.index_processor.index_processor
+uv run --env-file .env python skills/index_analysis/scripts/index_processor/index_processor.py
 
 # 2. 市场情绪
-uv run --env-file .env python -m skills.market_sentiment.scripts.sentiment_processor.sentiment_processor
+uv run --env-file .env python skills/market_sentiment/scripts/sentiment_processor/sentiment_processor.py
 ```
 
 **关注点**：
@@ -59,16 +59,16 @@ uv run --env-file .env python -m skills.market_sentiment.scripts.sentiment_proce
 
 ```bash
 # 1. 板块热度
-uv run --env-file .env python -m skills.industry_trend.scripts.industry_trend_processor.industry_trend_processor
+uv run --env-file .env python skills/industry_trend/scripts/industry_trend_processor/industry_trend_processor.py
 
 # 2. 资金流向
-uv run --env-file .env python -m skills.fund_flow_analysis.scripts.fund_flow_processor.fund_flow_processor
+uv run --env-file .env python skills/fund_flow_analysis/scripts/fund_flow_processor/fund_flow_processor.py
 
 # 3. 北向资金
-uv run --env-file .env python -m skills.northbound_flow.scripts.northbound_processor.northbound_processor
+uv run --env-file .env python skills/northbound_flow/scripts/northbound_processor/northbound_processor.py
 
 # 4. 龙虎榜
-uv run --env-file .env python -m skills.lhb_tracker.scripts.lhb_processor.lhb_processor
+uv run --env-file .env python skills/lhb_tracker/scripts/lhb_processor/lhb_processor.py
 ```
 
 **关注点**：
@@ -83,19 +83,19 @@ uv run --env-file .env python -m skills.lhb_tracker.scripts.lhb_processor.lhb_pr
 
 ```bash
 # 1. 选股筛选
-uv run --env-file .env python -m skills.stock_screener.scripts.screener_processor.screener_processor --min-change 3 --top-n 20
+uv run --env-file .env python skills/stock_screener/scripts/screener_processor/screener_processor.py --min-change 3 --top-n 20
 
 # 2. 个股分析（替换代码）
-uv run --env-file .env python -m skills.stock_analysis.scripts.stock_processor.stock_processor --code 000001
+uv run --env-file .env python skills/stock_analysis/scripts/stock_processor/stock_processor.py --code 000001
 
 # 3. 基本面分析
-uv run --env-file .env python -m skills.fundamental_analysis.scripts.fundamental_processor.fundamental_processor --code 000001
+uv run --env-file .env python skills/fundamental_analysis/scripts/fundamental_processor/fundamental_processor.py --code 000001
 
 # 4. 技术指标
-uv run --env-file .env python -m skills.technical_indicators.scripts.technical_processor.technical_processor --code 000001
+uv run --env-file .env python skills/technical_indicators/scripts/technical_processor/technical_processor.py --code 000001
 
 # 5. 风险检查
-uv run --env-file .env python -m skills.risk_alert.scripts.risk_processor.risk_processor --code 000001
+uv run --env-file .env python skills/risk_alert/scripts/risk_processor/risk_processor.py --code 000001
 ```
 
 **关注点**：
@@ -110,13 +110,13 @@ uv run --env-file .env python -m skills.risk_alert.scripts.risk_processor.risk_p
 
 ```bash
 # 1. 新闻驱动
-uv run --env-file .env python -m skills.news_driven_investment.scripts.news_processor.news_processor
+uv run --env-file .env python skills/news_driven_investment/scripts/news_processor/news_processor.py
 
 # 2. 涨停追踪
-uv run --env-file .env python -m skills.limit_up_tracker.scripts.limit_up_processor.limit_up_processor
+uv run --env-file .env python skills/limit_up_tracker/scripts/limit_up_processor/limit_up_processor.py
 
 # 3. 公告解读
-uv run --env-file .env python -m skills.announcement_analysis.scripts.announcement_processor.announcement_processor --type 业绩预告
+uv run --env-file .env python skills/announcement_analysis/scripts/announcement_processor/announcement_processor.py --type 业绩预告
 ```
 
 **关注点**：
@@ -130,13 +130,13 @@ uv run --env-file .env python -m skills.announcement_analysis.scripts.announceme
 
 ```bash
 # 1. 添加自选
-uv run --env-file .env python -m skills.watchlist_monitor.scripts.watchlist_processor.watchlist_processor --add 000001
+uv run --env-file .env python skills/watchlist_monitor/scripts/watchlist_processor/watchlist_processor.py --add 000001
 
 # 2. 查看自选
-uv run --env-file .env python -m skills.watchlist_monitor.scripts.watchlist_processor.watchlist_processor --watch
+uv run --env-file .env python skills/watchlist_monitor/scripts/watchlist_processor/watchlist_processor.py --watch
 
 # 3. 持仓分析
-uv run --env-file .env python -m skills.portfolio_analysis.scripts.portfolio_processor.portfolio_processor --positions 000001:1000:10.5,600000:500:15.2
+uv run --env-file .env python skills/portfolio_analysis/scripts/portfolio_processor/portfolio_processor.py --positions 000001:1000:10.5,600000:500:15.2
 ```
 
 **关注点**：
@@ -152,39 +152,39 @@ uv run --env-file .env python -m skills.portfolio_analysis.scripts.portfolio_pro
 
 ```bash
 # 快速查看市场状态
-uv run --env-file .env python -m skills.market_overview.scripts.overview_processor.overview_processor --mode quick --auto-fetch
+uv run --env-file .env python skills/market_overview/scripts/overview_processor/overview_processor.py --mode quick --auto-fetch
 
 # 查看自选股
-uv run --env-file .env python -m skills.watchlist_monitor.scripts.watchlist_processor.watchlist_processor --watch
+uv run --env-file .env python skills/watchlist_monitor/scripts/watchlist_processor/watchlist_processor.py --watch
 
 # 查看昨晚公告
-uv run --env-file .env python -m skills.announcement_analysis.scripts.announcement_processor.announcement_processor --type 风险提示
+uv run --env-file .env python skills/announcement_analysis/scripts/announcement_processor/announcement_processor.py --type 风险提示
 ```
 
 ### 场景 2: 盘中监控（9:30-15:00）
 
 ```bash
 # 查看板块资金流向
-uv run --env-file .env python -m skills.fund_flow_analysis.scripts.fund_flow_processor.fund_flow_processor
+uv run --env-file .env python skills/fund_flow_analysis/scripts/fund_flow_processor/fund_flow_processor.py
 
 # 查看涨停股
-uv run --env-file .env python -m skills.limit_up_tracker.scripts.limit_up_processor.limit_up_processor
+uv run --env-file .env python skills/limit_up_tracker/scripts/limit_up_processor/limit_up_processor.py
 
 # 查看北向资金
-uv run --env-file .env python -m skills.northbound_flow.scripts.northbound_processor.northbound_processor
+uv run --env-file .env python skills/northbound_flow/scripts/northbound_processor/northbound_processor.py
 ```
 
 ### 场景 3: 盘后复盘（15:00-17:00）
 
 ```bash
 # 完整市场报告
-uv run --env-file .env python -m skills.market_overview.scripts.overview_processor.overview_processor --mode full --auto-fetch
+uv run --env-file .env python skills/market_overview/scripts/overview_processor/overview_processor.py --mode full --auto-fetch
 
 # 查看龙虎榜
-uv run --env-file .env python -m skills.lhb_tracker.scripts.lhb_processor.lhb_processor
+uv run --env-file .env python skills/lhb_tracker/scripts/lhb_processor/lhb_processor.py
 
 # 分析今日热点
-uv run --env-file .env python -m skills.news_driven_investment.scripts.news_processor.news_processor
+uv run --env-file .env python skills/news_driven_investment/scripts/news_processor/news_processor.py
 ```
 
 ---
@@ -204,7 +204,7 @@ uv run --env-file .env python -m skills.news_driven_investment.scripts.news_proc
 ├── industry_trend/
 │   └── 2026-03-08/
 │       └── heat.json
-└── ...
+└── ///.py
 ```
 
 **好处**：

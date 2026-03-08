@@ -39,11 +39,7 @@ OpenClaw-Alpha/
 
 **运行方式**：
 ```bash
-# 直接执行
 uv run --env-file .env python skills/{skill_name}/scripts/{processor}/{processor}.py
-
-# 模块方式
-uv run --env-file .env python -m skills.{skill_name}.scripts.{processor}.{processor}
 ```
 
 ---

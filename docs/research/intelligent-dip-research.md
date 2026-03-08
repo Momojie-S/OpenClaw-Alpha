@@ -177,7 +177,7 @@ score ≥ 70 → 0x
   "multipliers": [
     {"date": "2025-03", "multiplier": 1.0, "amount": 1000},
     {"date": "2025-04", "multiplier": 1.5, "amount": 1500},
-    ...
+    ///.py
   ]
 }
 ```
@@ -190,7 +190,7 @@ score ≥ 70 → 0x
 
 ```bash
 # 查看本月定投建议
-uv run --env-file .env python -m skills.smart_dip.scripts.dip_advice_processor.dip_advice_processor --base-amount 2000
+uv run --env-file .env python skills/smart_dip/scripts/dip_advice_processor/dip_advice_processor.py --base-amount 2000
 
 # 输出：
 # 本月定投建议：投入 3000 元（1.5 倍）
@@ -201,7 +201,7 @@ uv run --env-file .env python -m skills.smart_dip.scripts.dip_advice_processor.d
 
 ```bash
 # 查看过去 12 个月的定投历史
-uv run --env-file .env python -m skills.smart_dip.scripts.dip_history_processor.dip_history_processor --months 12
+uv run --env-file .env python skills/smart_dip/scripts/dip_history_processor/dip_history_processor.py --months 12
 
 # 输出：
 # 过去 12 个月智能定投：

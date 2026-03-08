@@ -88,9 +88,6 @@ OpenClaw-Alpha/
 # 运行脚本
 uv run --env-file .env python skills/{skill_name}/scripts/{processor}/{processor}.py
 
-# 运行模块
-uv run --env-file .env python -m skills.{skill_name}.scripts.{processor}.{processor}
-
 # 运行测试
 uv run --env-file .env pytest tests/{path}/test_xxx.py
 ```

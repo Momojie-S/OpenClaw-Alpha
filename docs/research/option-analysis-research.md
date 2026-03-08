@@ -123,7 +123,7 @@ IV < 15%  → 市场平静，可能变盘
 
 ```bash
 # 获取期权情绪分析
-uv run --env-file .env python -m skills.option_analysis.scripts.sentiment_processor.sentiment_processor \
+uv run --env-file .env python skills/option_analysis/scripts/sentiment_processor/sentiment_processor.py \
     --underlying 510050 \
     --date 2026-03-08
 

@@ -19,7 +19,7 @@ metadata:
 查看沪深两市融资融券整体情况：
 
 ```bash
-uv run --env-file .env python -m skills.margin_trading.scripts.market_margin_processor.market_margin_processor
+uv run --env-file .env python skills/margin_trading/scripts/market_margin_processor/market_margin_processor.py
 ```
 
 **参数**：
@@ -33,7 +33,7 @@ uv run --env-file .env python -m skills.margin_trading.scripts.market_margin_pro
 查看融资余额最高的个股：
 
 ```bash
-uv run --env-file .env python -m skills.margin_trading.scripts.stock_margin_processor.stock_margin_processor --top-n 20
+uv run --env-file .env python skills/margin_trading/scripts/stock_margin_processor/stock_margin_processor.py --top-n 20
 ```
 
 **参数**：
@@ -49,7 +49,7 @@ uv run --env-file .env python -m skills.margin_trading.scripts.stock_margin_proc
 查看融券余额最高的个股：
 
 ```bash
-uv run --env-file .env python -m skills.margin_trading.scripts.stock_margin_processor.stock_margin_processor --type securities
+uv run --env-file .env python skills/margin_trading/scripts/stock_margin_processor/stock_margin_processor.py --type securities
 ```
 
 ## 分析步骤
@@ -60,7 +60,7 @@ uv run --env-file .env python -m skills.margin_trading.scripts.stock_margin_proc
 
 **动作**：
 ```bash
-uv run --env-file .env python -m skills.margin_trading.scripts.market_margin_processor.market_margin_processor
+uv run --env-file .env python skills/margin_trading/scripts/market_margin_processor/market_margin_processor.py
 ```
 
 **输出**：
@@ -74,7 +74,7 @@ uv run --env-file .env python -m skills.margin_trading.scripts.market_margin_pro
 
 **动作**：
 ```bash
-uv run --env-file .env python -m skills.margin_trading.scripts.stock_margin_processor.stock_margin_processor
+uv run --env-file .env python skills/margin_trading/scripts/stock_margin_processor/stock_margin_processor.py
 ```
 
 **输出**：融资余额 Top 20 个股
@@ -85,7 +85,7 @@ uv run --env-file .env python -m skills.margin_trading.scripts.stock_margin_proc
 
 **动作**：
 ```bash
-uv run --env-file .env python -m skills.margin_trading.scripts.stock_margin_processor.stock_margin_processor --type securities
+uv run --env-file .env python skills/margin_trading/scripts/stock_margin_processor/stock_margin_processor.py --type securities
 ```
 
 **输出**：融券余额 Top 20 个股

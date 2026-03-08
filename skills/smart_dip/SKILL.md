@@ -18,16 +18,16 @@ metadata:
 
 ```bash
 # 查看本月定投建议（股债性价比驱动）
-uv run --env-file .env python -m skills.smart_dip.scripts.dip_advice_processor.dip_advice_processor
+uv run --env-file .env python skills/smart_dip/scripts/dip_advice_processor/dip_advice_processor.py
 
 # 指定基准金额
-uv run --env-file .env python -m skills.smart_dip.scripts.dip_advice_processor.dip_advice_processor --base-amount 2000
+uv run --env-file .env python skills/smart_dip/scripts/dip_advice_processor/dip_advice_processor.py --base-amount 2000
 
 # 指定策略类型
-uv run --env-file .env python -m skills.smart_dip.scripts.dip_advice_processor.dip_advice_processor --strategy fed_model
+uv run --env-file .env python skills/smart_dip/scripts/dip_advice_processor/dip_advice_processor.py --strategy fed_model
 
 # 查看定投历史
-uv run --env-file .env python -m skills.smart_dip.scripts.dip_history_processor.dip_history_processor --months 12
+uv run --env-file .env python skills/smart_dip/scripts/dip_history_processor/dip_history_processor.py --months 12
 ```
 
 ### 参数说明
@@ -60,7 +60,7 @@ uv run --env-file .env python -m skills.smart_dip.scripts.dip_history_processor.
 **输出**：本期定投金额和倍数
 
 ```bash
-uv run --env-file .env python -m skills.smart_dip.scripts.dip_advice_processor.dip_advice_processor --base-amount 2000
+uv run --env-file .env python skills/smart_dip/scripts/dip_advice_processor/dip_advice_processor.py --base-amount 2000
 ```
 
 **输出示例**：
@@ -90,7 +90,7 @@ uv run --env-file .env python -m skills.smart_dip.scripts.dip_advice_processor.d
 **输出**：历史定投倍数和累计金额
 
 ```bash
-uv run --env-file .env python -m skills.smart_dip.scripts.dip_history_processor.dip_history_processor --months 12
+uv run --env-file .env python skills/smart_dip/scripts/dip_history_processor/dip_history_processor.py --months 12
 ```
 
 ### Step 3: 制定定投计划

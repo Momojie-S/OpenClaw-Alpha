@@ -133,7 +133,7 @@
 
 ```bash
 # 获取一级行业景气度
-uv run --env-file .env python -m skills.industry_trend.scripts.prosperity_processor.prosperity_processor \
+uv run --env-file .env python skills/industry_trend/scripts/prosperity_processor/prosperity_processor.py \
     --category L1 \
     --top-n 10
 
@@ -150,7 +150,7 @@ uv run --env-file .env python -m skills.industry_trend.scripts.prosperity_proces
 #       "prosperity_score": 75.5,
 #       "level": "高景气"
 #     },
-#     ...
+#     ///.py
 #   ]
 # }
 ```
@@ -159,7 +159,7 @@ uv run --env-file .env python -m skills.industry_trend.scripts.prosperity_proces
 
 ```bash
 # 获取一级行业拥挤度
-uv run --env-file .env python -m skills.industry_trend.scripts.crowdedness_processor.crowdedness_processor \
+uv run --env-file .env python skills/industry_trend/scripts/crowdedness_processor/crowdedness_processor.py \
     --category L1 \
     --top-n 10
 
@@ -168,7 +168,7 @@ uv run --env-file .env python -m skills.industry_trend.scripts.crowdedness_proce
 #   "boards": [
 #     {"name": "电子", "crowdedness": 85.2, "level": "高拥挤"},
 #     {"name": "银行", "crowdedness": 35.1, "level": "低拥挤"},
-#     ...
+#     ///.py
 #   ]
 # }
 ```
