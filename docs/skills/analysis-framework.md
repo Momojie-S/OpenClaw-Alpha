@@ -70,7 +70,7 @@
 
 | Skill | 定位 | 数据源 |
 |-------|------|--------|
-| **portfolio_analysis** | 持仓结构分析（含盈亏计算） | AKShare |
+| **portfolio_analysis** | 持仓结构分析（含盈亏计算、相关性分析、风险贡献） | AKShare |
 | **watchlist_monitor** | 自选股监控 | AKShare |
 
 ### 预警层
@@ -171,6 +171,8 @@ uv run --env-file .env python -m skills.industry_trend.scripts.crowdedness_proce
 
 | 能力 | 完成日期 | Skill |
 |------|----------|-------|
+| 持仓相关性分析 | 2026-03-08 | portfolio_analysis（correlation_processor） |
+| 风险贡献分解 | 2026-03-08 | portfolio_analysis（risk_contribution_processor） |
 | 期权情绪分析 | 2026-03-08 | option_analysis（PCR + IV） |
 | 财务健康三维度评分 | 2026-03-08 | fundamental_analysis（流动性+盈利质量） |
 | 量价关系分析 | 2026-03-08 | technical_indicators（volume_price_processor） |
@@ -231,10 +233,10 @@ uv run --env-file .env python -m skills.industry_trend.scripts.crowdedness_proce
 
 | 能力 | 说明 | 难点 | 状态 |
 |------|------|------|------|
-| 持仓相关性分析 | 计算持仓股票相关系数，评估分散程度 | 低 | 📝 研究完成，待开发 |
-| 风险贡献分解 | 各股票对组合风险的贡献占比 | 中 | 📝 研究完成，待开发 |
+| 持仓相关性分析 | 计算持仓股票相关系数，评估分散程度 | 低 | ✅ 已完成 |
+| 风险贡献分解 | 各股票对组合风险的贡献占比 | 中 | ✅ 已完成 |
 | 有效前沿 | 可视化最优投资组合 | 中 | 📝 研究完成，可选 |
-| 风险平价 | 基于风险贡献的权重建议 | 中 | 📝 研究完成，可选 |
+| 风险平价 | 基于风险贡献的权重建议 | 中 | ✅ 已完成（集成在风险贡献分解） |
 
 详见：[投资组合优化研究](../research/portfolio-optimization-research.md)
 
