@@ -169,6 +169,39 @@ uv run --env-file .env python -m skills.backtest.scripts.backtest_processor.back
     --rsi-lower 20
 ```
 
+### bollinger（布林带突破）
+
+**逻辑**：
+- 买入：价格从下往上穿越下轨（反弹信号）
+- 卖出：价格从上往下穿越上轨（回调信号）
+
+**参数**：
+
+| 参数 | 默认值 | 说明 |
+|------|--------|------|
+| bollinger-period | 20 | 布林带周期 |
+| bollinger-devfactor | 2.0 | 标准差倍数 |
+
+**适用场景**：
+- 波动率较高的市场
+- 突破交易
+
+**示例**：
+
+```bash
+# 使用布林带策略回测
+uv run --env-file .env python -m skills.backtest.scripts.backtest_processor.backtest_processor \
+    --stock 000001 \
+    --strategy bollinger
+
+# 自定义布林带参数
+uv run --env-file .env python -m skills.backtest.scripts.backtest_processor.backtest_processor \
+    --stock 000001 \
+    --strategy bollinger \
+    --bollinger-period 15 \
+    --bollinger-devfactor 1.5
+```
+
 ---
 
 ## 参数说明
@@ -183,7 +216,7 @@ uv run --env-file .env python -m skills.backtest.scripts.backtest_processor.back
 
 | 参数 | 默认值 | 说明 |
 |------|--------|------|
-| --strategy | ma_cross | 策略名称（ma_cross, rsi） |
+| --strategy | ma_cross | 策略名称（ma_cross, rsi, bollinger） |
 | --start-date | 一年前 | 开始日期 |
 | --end-date | 今天 | 结束日期 |
 | --cash | 100000 | 初始资金 |
@@ -192,6 +225,8 @@ uv run --env-file .env python -m skills.backtest.scripts.backtest_processor.back
 | --rsi-period | 14 | RSI 计算周期（rsi） |
 | --rsi-upper | 70 | RSI 超买阈值（rsi） |
 | --rsi-lower | 30 | RSI 超卖阈值（rsi） |
+| --bollinger-period | 20 | 布林带周期（bollinger） |
+| --bollinger-devfactor | 2.0 | 布林带标准差倍数（bollinger） |
 | --quiet | false | 安静模式 |
 | --output | 自动 | 输出文件路径 |
 

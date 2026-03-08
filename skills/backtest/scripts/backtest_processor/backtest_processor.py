@@ -11,7 +11,7 @@ import backtrader as bt
 
 from openclaw_alpha.core.processor_utils import get_output_path
 from .data_adapter import DataAdapter
-from ..strategies import MACrossStrategy, RSIStrategy
+from ..strategies import MACrossStrategy, RSIStrategy, BollingerBandsStrategy
 from ..strategies.base_strategy import BaseStrategy
 
 
@@ -19,6 +19,7 @@ from ..strategies.base_strategy import BaseStrategy
 STRATEGY_REGISTRY = {
     "ma_cross": MACrossStrategy,
     "rsi": RSIStrategy,
+    "bollinger": BollingerBandsStrategy,
 }
 
 
@@ -260,6 +261,18 @@ def parse_args():
         help="RSI 超卖阈值（仅 rsi 策略）"
     )
     parser.add_argument(
+        "--bollinger-period",
+        type=int,
+        default=20,
+        help="布林带周期（仅 bollinger 策略）"
+    )
+    parser.add_argument(
+        "--bollinger-devfactor",
+        type=float,
+        default=2.0,
+        help="布林带标准差倍数（仅 bollinger 策略）"
+    )
+    parser.add_argument(
         "--quiet",
         action="store_true",
         help="安静模式（不打印详细日志）"
@@ -282,6 +295,8 @@ def backtest(
     rsi_period: int = 14,
     rsi_upper: int = 70,
     rsi_lower: int = 30,
+    bollinger_period: int = 20,
+    bollinger_devfactor: float = 2.0,
     quiet: bool = False,
     output: str = None,
 ) -> dict:
@@ -299,6 +314,8 @@ def backtest(
         rsi_period: RSI 计算周期
         rsi_upper: RSI 超买阈值
         rsi_lower: RSI 超卖阈值
+        bollinger_period: 布林带周期
+        bollinger_devfactor: 布林带标准差倍数
         quiet: 是否安静模式
         output: 输出文件路径
     
@@ -328,6 +345,11 @@ def backtest(
             "rsi_period": rsi_period,
             "rsi_upper": rsi_upper,
             "rsi_lower": rsi_lower,
+        }
+    elif strategy == "bollinger":
+        strategy_params = {
+            "period": bollinger_period,
+            "devfactor": bollinger_devfactor,
         }
     
     # 创建引擎并运行
@@ -378,6 +400,8 @@ def main():
         rsi_period=args.rsi_period,
         rsi_upper=args.rsi_upper,
         rsi_lower=args.rsi_lower,
+        bollinger_period=args.bollinger_period,
+        bollinger_devfactor=args.bollinger_devfactor,
         quiet=args.quiet,
         output=args.output,
     )
