@@ -36,20 +36,24 @@
 
 ### Skill 文档结构
 
+**Skill 文档自包含在 skills 目录**：
 ```
-docs/{skill_name}/
-  spec.md              # 当前完整需求
-  design.md            # 当前完整设计
-  
-  2026-03-03/          # 迭代目录（开发中可保留，完成后可删除）
-    spec.md
-    design.md
+skills/{skill_name}/
+  SKILL.md             # 能力说明 + 分析指引（必需）
+  scripts/             # 脚本代码
+```
+
+**开发过程文档（可选）**：
+```
+docs/skills/{skill_name}/
+  spec.md              # 需求文档
+  design.md            # 设计文档
 ```
 
 **迭代流程**：
-1. 新建日期目录 → 编写需求/设计
-2. 迭代完成 → 合并到主文档
-3. 合并后 → 可删除日期目录
+1. 开发前：在 `docs/skills/{skill_name}/` 编写 spec/design
+2. 开发后：合并核心内容到 `skills/{skill_name}/SKILL.md`
+3. 合并后：可删除 `docs/skills/{skill_name}/` 目录
 
 ### 命名规范
 
