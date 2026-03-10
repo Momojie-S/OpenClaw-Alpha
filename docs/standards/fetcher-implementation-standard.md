@@ -149,6 +149,27 @@ Tushare 数据源有积分要求，通过 `required_credit` 声明。
 - 在 `fetch()` 中统一处理异常
 - 数据转换方法假设输入总是有效
 
+### 参数处理
+
+**必需参数校验**：
+- 某些 API 要求特定参数组合（如 Tushare forecast 接口要求 `ann_date` 或 `ts_code`）
+- 在 `_call_api()` 中正确处理参数映射（如 `date` → `ann_date`）
+- 提供清晰的错误提示，告知用户缺少哪些必需参数
+
+**调用链参数传递**：
+- Processor → `fetch()` → Fetcher → `FetchMethod.fetch()`
+- 每一层都需要正确传递参数
+- 确保参数命名一致（统一使用 `date`、`symbol`，在 FetchMethod 内部转换为 API 所需格式）
+
+**股票代码格式转换**：
+- 内部统一使用 6 位代码（如 `000001`）
+- FetchMethod 内部转换为数据源所需格式
+- 转换规则（Tushare/AKShare）：
+  - `60*`, `68*` → 上交所 `.SH`
+  - `00*`, `30*` → 深交所 `.SZ`
+  - `688*`, `689*` → 科创板 `.SH`
+- 参考策略框架的"数据格式约定"
+
 ---
 
 ## 参考资料

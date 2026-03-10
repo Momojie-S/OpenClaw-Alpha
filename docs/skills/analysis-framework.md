@@ -235,7 +235,7 @@ uv run --env-file .env python skills/industry_trend/scripts/crowdedness_processo
 
 | 能力 | 说明 | 难点 | 状态 |
 |------|------|------|------|
-| 产业链图谱 | 行业上下游关系 | 无免费 API | 📝 研究完成，延后开发 |
+| 产业链图谱 | 行业上下游关系 | 无免费 API | 📝 待开发 |
 
 详见：[产业链分析研究](../research/industry-chain-analysis.md)
 

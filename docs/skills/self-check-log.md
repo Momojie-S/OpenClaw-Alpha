@@ -8,7 +8,7 @@
 
 | Skill ID | 上次自检时间 | 后续待办 |
 |----------|--------------|----------|
-| openclaw_alpha_alert_monitor | - | - |
+| openclaw_alpha_alert_monitor | 2026-03-10 | ⚠️ market_scanner 导入错误待修复 |
 | openclaw_alpha_announcement_analysis | - | - |
 | openclaw_alpha_backtest | - | - |
 | openclaw_alpha_etf_analysis | - | - |
@@ -32,7 +32,7 @@
 | openclaw_alpha_stock_compare | - | - |
 | openclaw_alpha_stock_fund_flow | - | - |
 | openclaw_alpha_stock_screener | - | - |
-| openclaw_alpha_technical_indicators | - | - |
+| openclaw_alpha_technical_indicators | 2026-03-10 | ✅ 功能正常 |
 | openclaw_alpha_theme_speculation | - | - |
 | openclaw_alpha_watchlist_monitor | - | - |
 
@@ -53,6 +53,57 @@
 **验证结果**：
 - ✅ `trading_calendar_processor` 正常运行
 - ✅ `overview_processor --mode quick --auto-fetch` 正常运行
+
+### 2026-03-10: alert_monitor
+
+**发现问题**：
+1. **北向资金导入失败**：`market_scanner.py` 尝试导入 `fetch_northbound_data`，但该函数在 `northbound_processor.py` 中不存在
+2. **板块热度模块不存在**：`market_scanner.py` 尝试导入 `heat_processor` 模块，但该模块不存在（应该使用 `industry_trend_processor`）
+
+**测试命令**：
+```bash
+uv run --env-file .env python skills/alert_monitor/scripts/alert_processor/alert_processor.py --brief
+uv run --env-file .env python skills/alert_monitor/scripts/alert_processor/alert_processor.py --json --type market
+```
+
+**测试结果**：
+- ✅ 持仓风险扫描正常（扫描 2 只股票）
+- ❌ 市场异动扫描失败（导入错误）
+
+**后续待办**：
+- 修复 `market_scanner.py` 的导入问题
+- 调整为使用正确的函数/模块名
+
+---
+
+---
+
+### 2026-03-10: technical_indicators
+
+**测试内容**：
+1. ✅ indicator_processor（技术指标分析）
+2. ✅ volume_price_processor（量价关系分析）
+3. ✅ 单元测试（33 个测试用例全部通过）
+
+**测试命令**：
+```bash
+# 技术指标分析
+uv run --env-file .env python skills/technical_indicators/scripts/indicator_processor/indicator_processor.py 000001 --days 60
+
+# 量价关系分析
+uv run --env-file .env python skills/technical_indicators/scripts/volume_price_processor/volume_price_processor.py 000001 --days 60
+
+# 单元测试
+uv run --env-file .env pytest tests/skills/technical_indicators/ -v
+```
+
+**测试结果**：
+- ✅ indicator_processor 运行正常，输出格式正确
+- ✅ volume_price_processor 运行正常，输出格式正确
+- ✅ 所有单元测试通过（33 passed）
+- ✅ 输出文件格式符合规范
+
+**结论**：功能正常，无需改进。
 
 ---
 
