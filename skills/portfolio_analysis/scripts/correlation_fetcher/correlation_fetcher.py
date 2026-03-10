@@ -6,7 +6,6 @@
 
 import asyncio
 import logging
-from typing import Any
 
 import akshare as ak
 import pandas as pd
@@ -47,7 +46,10 @@ class CorrelationFetcherAkshare(FetchMethod):
             RuntimeError: 数据获取失败
         """
         if not codes:
-            raise ValueError("股票代码列表不能为空")
+            raise ValueError(
+                "参数 codes 不能为空。"
+                "请提供至少一个股票代码，例如：['000001', '600000']"
+            )
 
         if len(codes) > 20:
             logger.warning(f"股票数量过多（{len(codes)}），可能耗时较长")
@@ -76,7 +78,10 @@ class CorrelationFetcherAkshare(FetchMethod):
             logger.warning(f"获取失败的股票: {failed}")
 
         if not data:
-            raise RuntimeError("所有股票数据获取失败")
+            raise RuntimeError(
+                f"所有股票数据获取失败（共 {len(codes)} 只）。"
+                f"请检查股票代码是否正确，或检查网络连接后重试"
+            )
 
         logger.info(f"成功获取 {len(data)} 只股票的历史价格")
         return data

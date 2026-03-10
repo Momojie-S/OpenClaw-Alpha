@@ -55,7 +55,11 @@ class LimitUpFetcherAkshare(FetchMethod):
         elif limit_type == LimitUpType.PREVIOUS:
             return ak.stock_zt_pool_previous_em(date=date)
         else:
-            raise ValueError(f"Unknown limit_type: {limit_type}")
+            raise ValueError(
+                f"参数 limit_type 值无效（收到 '{limit_type}'）。"
+                f"可用类型：LimitUpType.LIMIT_UP（涨停）、LimitUpType.LIMIT_DOWN（跌停）、"
+                f"LimitUpType.BROKEN（炸板）、LimitUpType.PREVIOUS（昨日涨停）"
+            )
 
     def _transform(self, df: pd.DataFrame, limit_type: LimitUpType) -> list[LimitUpItem]:
         """转换数据"""

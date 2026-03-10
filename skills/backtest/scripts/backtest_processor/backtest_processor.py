@@ -116,7 +116,7 @@ class BacktestEngine:
         # 打印初始资金
         if self.printlog:
             print(f"\n{'='*60}")
-            print(f"回测配置")
+            print("回测配置")
             print(f"{'='*60}")
             print(f"股票代码: {self.stock_code}")
             print(f"回测区间: {self.start_date} ~ {self.end_date}")
@@ -189,7 +189,7 @@ class BacktestEngine:
     def print_summary(self):
         """打印回测摘要"""
         print(f"\n{'='*60}")
-        print(f"回测结果")
+        print("回测结果")
         print(f"{'='*60}")
         print(f"最终资金: {self.final_value:,.2f}")
         print(f"总收益率: {self.performance['total_return']:.2f}%")
@@ -332,7 +332,10 @@ async def backtest(
     # 获取策略类
     strategy_class = STRATEGY_REGISTRY.get(strategy)
     if not strategy_class:
-        raise ValueError(f"未知策略: {strategy}")
+        raise ValueError(
+            f"参数 strategy '{strategy}' 不存在（收到 '{strategy}'）。"
+            f"可用策略：ma_cross（均线交叉）、rsi（相对强弱指标）、bollinger（布林带）"
+        )
     
     # 策略参数
     strategy_params = {}

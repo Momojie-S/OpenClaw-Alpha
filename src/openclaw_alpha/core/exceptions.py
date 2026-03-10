@@ -113,6 +113,23 @@ class DuplicateDataSourceError(Exception):
         super().__init__(f"数据源 '{name}' 已注册，不能重复注册")
 
 
+class UnregisteredDataSourceError(Exception):
+    """数据源未注册异常
+
+    当尝试获取未注册的数据源时抛出。
+
+    Args:
+        name: 未注册的数据源名称
+    """
+
+    def __init__(self, name: str) -> None:
+        self.name = name
+        super().__init__(
+            f"内部错误：数据源 '{name}' 未注册。"
+            f"这是代码 bug，请联系开发者并提供：数据源名称={name}、触发时间"
+        )
+
+
 # =============================================================================
 # API 重试相关异常
 # =============================================================================

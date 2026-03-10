@@ -72,7 +72,10 @@ class SignalBacktestProcessor:
             合并后的信号数据
         """
         if len(signals_list) == 0:
-            raise ValueError("没有有效的信号文件")
+            raise ValueError(
+                "没有有效的信号文件。"
+                "请检查信号文件路径是否正确，或先运行对应的 processor 生成信号文件"
+            )
 
         if len(signals_list) == 1:
             return signals_list[0]
@@ -91,7 +94,10 @@ class SignalBacktestProcessor:
             return self._combine_or(signals_list)
 
         else:
-            raise ValueError(f"不支持的组合模式: {self.combine_mode}")
+            raise ValueError(
+                f"参数 combine_mode '{self.combine_mode}' 不存在（收到 '{self.combine_mode}'）。"
+                f"可用模式：single（单信号）、and（全部一致）、or（任一触发）"
+            )
 
     def _combine_and(self, signals_list: list[dict]) -> dict:
         """AND 模式：所有信号一致才执行"""
@@ -121,7 +127,6 @@ class SignalBacktestProcessor:
                 })
 
         # 构建合并后的信号数据
-        first = signals_list[0]
         return {
             "signal_id": f"combined_and_{len(signals_list)}",
             "signal_type": "combined",
@@ -168,7 +173,6 @@ class SignalBacktestProcessor:
                 })
 
         # 构建合并后的信号数据
-        first = signals_list[0]
         return {
             "signal_id": f"combined_or_{len(signals_list)}",
             "signal_type": "combined",
@@ -192,7 +196,10 @@ class SignalBacktestProcessor:
         # 加载信号
         signals_list = self._load_signals()
         if not signals_list:
-            raise ValueError("没有有效的信号文件")
+            raise ValueError(
+                "没有有效的信号文件。"
+                "请检查信号文件路径是否正确，或先运行对应的 processor 生成信号文件"
+            )
 
         if self.printlog:
             print(f"加载了 {len(signals_list)} 个信号文件")

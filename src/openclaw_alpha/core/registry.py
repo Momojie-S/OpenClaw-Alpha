@@ -2,7 +2,10 @@
 """数据源注册表"""
 
 from openclaw_alpha.core.data_source import DataSource
-from openclaw_alpha.core.exceptions import DuplicateDataSourceError
+from openclaw_alpha.core.exceptions import (
+    DuplicateDataSourceError,
+    UnregisteredDataSourceError,
+)
 
 
 class DataSourceRegistry:
@@ -75,7 +78,7 @@ class DataSourceRegistry:
             return self._data_source_instances[name]
 
         if name not in self._data_source_classes:
-            raise KeyError(f"数据源未注册: {name}")
+            raise UnregisteredDataSourceError(name)
 
         data_source_class = self._data_source_classes[name]
         instance = data_source_class()

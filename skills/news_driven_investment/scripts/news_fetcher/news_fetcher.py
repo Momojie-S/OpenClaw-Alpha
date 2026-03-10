@@ -7,13 +7,10 @@
 import asyncio
 from typing import Optional
 from dataclasses import dataclass, field
-from datetime import datetime
 
 import akshare as ak
-import pandas as pd
 
 from openclaw_alpha.core.fetcher import Fetcher, FetchMethod
-from openclaw_alpha.data_sources.akshare import AkshareDataSource
 
 
 @dataclass
@@ -103,10 +100,16 @@ class NewsFetcherAkshare(FetchMethod):
             result = await self._fetch_cls_news(symbol="重点", limit=fetch_limit)
         elif source == "stock":
             if not symbol:
-                raise ValueError("个股新闻需要指定 symbol 参数")
+                raise ValueError(
+                    "参数 symbol 缺失（必填）。"
+                    "个股新闻必须指定股票代码，例如：--symbol 000001"
+                )
             result = await self._fetch_stock_news(symbol=symbol, limit=fetch_limit)
         else:
-            raise ValueError(f"不支持的新闻源: {source}")
+            raise ValueError(
+                f"参数 source '{source}' 不存在（收到 '{source}'）。"
+                f"可用来源：cls_global（财联社全球）、cls_important（财联社重点）、stock（个股新闻）"
+            )
         
         # 应用筛选
         filtered_news = self._filter_news(result.news, keyword=keyword, date=date)

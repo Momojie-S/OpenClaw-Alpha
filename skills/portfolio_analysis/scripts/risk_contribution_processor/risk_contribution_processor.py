@@ -5,7 +5,6 @@
 """
 
 import asyncio
-import json
 import logging
 from dataclasses import dataclass, asdict, field
 from datetime import datetime
@@ -80,7 +79,10 @@ class RiskContributionProcessor:
         price_data = await self._fetch_prices(codes, days)
 
         if not price_data:
-            raise ValueError("无法获取任何股票的价格数据")
+            raise ValueError(
+                "无法获取任何股票的价格数据。"
+                f"请检查股票代码列表是否正确（共 {len(codes)} 只），或检查网络连接"
+            )
 
         # 3. 计算收益率
         returns = self._calculate_returns(price_data)
@@ -100,11 +102,15 @@ class RiskContributionProcessor:
         weights = np.array(list(holdings.values()))
 
         if np.any(weights < 0):
-            raise ValueError("权重不能为负数")
+            raise ValueError(
+                "参数权重不能为负数。请检查 holdings 参数中的权重值是否正确"
+            )
 
         total = weights.sum()
         if total == 0:
-            raise ValueError("权重之和不能为 0")
+            raise ValueError(
+                "参数权重之和不能为 0。请检查 holdings 参数中的权重值是否正确"
+            )
 
         # 归一化
         weights = weights / total
@@ -141,7 +147,11 @@ class RiskContributionProcessor:
             returns_dict[code] = df["return"]
 
         if not returns_dict:
-            raise ValueError("无法计算任何股票的收益率")
+            raise ValueError(
+                "无法计算任何股票的收益率。"
+                f"请检查股票是否有足够的历史数据（至少需要 2 天），"
+                f"或检查股票代码是否正确"
+            )
 
         returns = pd.DataFrame(returns_dict)
         returns = returns.dropna()
@@ -389,7 +399,6 @@ def _format_text(result: RiskContributionResult) -> str:
 # 命令行入口
 if __name__ == "__main__":
     import argparse
-    import sys
 
     parser = argparse.ArgumentParser(description="风险贡献分解")
     parser.add_argument(

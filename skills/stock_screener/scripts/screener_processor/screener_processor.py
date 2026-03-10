@@ -7,7 +7,6 @@ import json
 import logging
 from dataclasses import dataclass, asdict
 from datetime import datetime
-from pathlib import Path
 from typing import Any
 
 from openclaw_alpha.core.processor_utils import get_output_path
@@ -276,7 +275,12 @@ async def process(
     if strategy:
         conditions = FilterConditions.from_strategy(strategy)
         if conditions is None:
-            raise ValueError(f"未知策略: {strategy}")
+            raise ValueError(
+                f"参数 strategy '{strategy}' 不存在。"
+                f"可用策略：high_volume（高换手）、strong_gain（强势上涨）、near_high（接近新高）、"
+                f"breakout（突破）、turnover_surge（换手激增）。"
+                f"或直接使用 conditions 参数自定义筛选条件"
+            )
     elif conditions is None:
         # 默认条件：涨幅 > 0
         conditions = FilterConditions(change_min=0.0)

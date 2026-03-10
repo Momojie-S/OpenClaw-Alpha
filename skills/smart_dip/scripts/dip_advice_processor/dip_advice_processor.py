@@ -81,10 +81,16 @@ async def get_dip_advice(date: str, base_amount: float, strategy: str) -> dict[s
 
     # 检查是否有错误
     if "error" in ebr_data:
-        raise ValueError(f"获取股债性价比数据失败: {ebr_data['error']}")
+        raise ValueError(
+            f"获取股债性价比数据失败: {ebr_data['error']}。"
+            f"请检查网络连接或稍后重试"
+        )
 
     if not ebr_data or "risk_premium" not in ebr_data:
-        raise ValueError("无法获取股债性价比数据")
+        raise ValueError(
+            "无法获取股债性价比数据。"
+            f"请检查数据源是否可用，或稍后重试"
+        )
 
     current_ratio = ebr_data["risk_premium"]
     multiplier, status, action = get_multiplier(current_ratio)

@@ -96,7 +96,11 @@ class StockFetcherTushare(FetchMethod):
         if len(matched) > 0:
             return matched.iloc[0]["ts_code"], identifier
 
-        raise ValueError(f"未找到股票：{identifier}")
+        raise ValueError(
+            f"股票 {identifier} 不存在。"
+            f"请检查股票代码或名称是否正确（收到 '{identifier}'）。"
+            f"示例：代码 '000001' 或名称 '平安银行'"
+        )
 
     @retry(
         stop=stop_after_attempt(3),

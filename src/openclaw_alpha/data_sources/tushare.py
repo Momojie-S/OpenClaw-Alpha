@@ -6,6 +6,7 @@ import os
 import tushare as ts
 
 from openclaw_alpha.core.data_source import DataSource
+from openclaw_alpha.core.exceptions import MissingConfigError
 
 
 class TushareDataSource(DataSource):
@@ -44,7 +45,10 @@ class TushareDataSource(DataSource):
         """初始化 Tushare Pro 客户端"""
         token = os.getenv("TUSHARE_TOKEN")
         if not token:
-            raise ValueError("TUSHARE_TOKEN 环境变量未设置")
+            raise MissingConfigError(
+                "tushare",
+                ["TUSHARE_TOKEN"],
+            )
         self._client = ts.pro_api(token)
 
     async def close(self) -> None:

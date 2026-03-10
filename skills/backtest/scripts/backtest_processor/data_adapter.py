@@ -2,7 +2,6 @@
 """数据转换模块 - 将 Fetcher 数据转换为 Backtrader 格式"""
 
 from datetime import datetime
-from typing import Optional
 
 import backtrader as bt
 import pandas as pd
@@ -53,12 +52,14 @@ class DataAdapter:
             )
         except Exception as e:
             raise RuntimeError(
-                f"获取股票 {stock_code} 历史数据失败: {e}"
+                f"连接数据源 API 超时或失败。请检查网络连接后重试。"
+                f"详细信息：获取股票 {stock_code} 历史数据时发生错误"
             ) from e
-        
+
         if df is None or df.empty:
             raise RuntimeError(
-                f"股票 {stock_code} 在 {start_date} ~ {end_date} 期间无数据"
+                f"股票 {stock_code} 在 {start_date} ~ {end_date} 期间无数据。"
+                f"请检查股票代码是否正确，或该时间段是否为非交易期"
             )
         
         return df
@@ -80,15 +81,21 @@ class DataAdapter:
         """
         # 确保数据不为空
         if df is None or df.empty:
-            raise ValueError(f"股票 {stock_code} 数据为空")
-        
+            raise ValueError(
+                f"股票 {stock_code} 数据为空。"
+                f"请检查股票代码是否正确，或先获取该股票的历史数据"
+            )
+
         # 选择需要的列（history_fetcher 已转为英文列名）
         required_cols = ["date", "open", "close", "high", "low", "volume"]
-        
+
         # 检查必需列
         for col in required_cols:
             if col not in df.columns:
-                raise ValueError(f"缺少必需列: {col}")
+                raise ValueError(
+                    f"数据格式错误：缺少必需列 '{col}'。"
+                    f"这是数据源返回的数据格式异常，请联系开发者并提供：股票代码={stock_code}、缺失列={col}"
+                )
         
         # 创建副本并选择列
         data = df[required_cols].copy()

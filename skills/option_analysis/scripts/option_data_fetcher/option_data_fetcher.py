@@ -1,11 +1,9 @@
 # -*- coding: utf-8 -*-
 """期权数据 Fetcher 入口"""
 
-import asyncio
 from typing import Optional
 
 from openclaw_alpha.core.fetcher import Fetcher, FetchMethod
-from openclaw_alpha.data_sources.akshare import AkshareDataSource
 
 
 class OptionDataFetcher(Fetcher):
@@ -70,7 +68,10 @@ class OptionDataFetcherAkshare(FetchMethod):
         elif data_type == "risk_indicator":
             # 期权风险指标（需要标的代码）
             if not underlying:
-                raise ValueError("risk_indicator 需要 underlying 参数")
+                raise ValueError(
+                    "参数 underlying 缺失（必填）。"
+                    "查询风险指标时必须提供标的代码，例如：--underlying 510050"
+                )
             df = client.option_risk_indicator_sse(symbol=underlying)
             return self._transform_risk_indicator(df)
 
@@ -80,7 +81,11 @@ class OptionDataFetcherAkshare(FetchMethod):
             return df.to_dict("records") if df is not None and not df.empty else []
 
         else:
-            raise ValueError(f"不支持的数据类型: {data_type}")
+            raise ValueError(
+                f"参数 data_type '{data_type}' 不存在（收到 '{data_type}'）。"
+                f"可用类型：overview（市场概览）、daily_stats_sse（上交所统计）、"
+                f"daily_stats_szse（深交所统计）、risk_indicator（风险指标）、finance_board（金融期权）"
+            )
 
     def _transform_risk_indicator(self, df) -> dict:
         """转换风险指标数据"""

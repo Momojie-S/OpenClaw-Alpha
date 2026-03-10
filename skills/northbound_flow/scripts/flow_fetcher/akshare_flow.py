@@ -3,19 +3,49 @@
 
 import akshare as ak
 import asyncio
-from datetime import datetime, timedelta
+from datetime import datetime
 from functools import partial
 from typing import Any
 
+from openclaw_alpha.core.fetcher import FetchMethod
 
-class FlowFetcherAkshare:
+
+class FlowFetcherAkshare(FetchMethod):
     """AKShare 北向资金数据获取实现
 
-    注意：北向资金只有 AKShare 一个免费数据源，不需要多数据源调度，
-    因此不继承 FetchMethod，简化设计。
+    通过 AKShare 获取北向资金数据。
+
+    注意：Tushare 不支持个股资金流向，个股数据仍需 AKShare。
     """
 
     name = "flow_akshare"
+    required_data_source = "akshare"
+    required_credit = 0  # AKShare 无积分要求
+    priority = 10  # 优先级低于 Tushare
+
+    async def fetch(self, params: dict[str, Any]) -> Any:
+        """通用 fetch 方法（基类要求）
+
+        Args:
+            params: 参数字典，包含：
+                - method: 要调用的方法名（fetch_daily/fetch_trend/fetch_stocks）
+                - 其他方法参数
+
+        Returns:
+            方法执行结果
+        """
+        method = params.get("method", "fetch_daily")
+        if method == "fetch_daily":
+            return await self.fetch_daily(params.get("date"))
+        elif method == "fetch_trend":
+            return await self.fetch_trend(params.get("days", 5), params.get("end_date"))
+        elif method == "fetch_stocks":
+            return await self.fetch_stocks(params.get("date"), params.get("direction", "inflow"))
+        else:
+            raise ValueError(
+                f"参数 method '{method}' 不存在（收到 '{method}'）。"
+                f"可用方法：fetch_daily（每日净流入）、fetch_trend（趋势分析）、fetch_stocks（个股流向）"
+            )
 
     async def fetch_daily(self, date: str | None = None) -> dict:
         """

@@ -78,7 +78,10 @@ class DataSource(ABC, Generic[TClient]):
             self._initialized = True
 
         if self._client is None:
-            raise RuntimeError(f"数据源 {self.name} 初始化失败：客户端未创建")
+            raise RuntimeError(
+                f"内部错误：数据源 {self.name} 初始化失败（客户端未创建）。"
+                f"这是代码 bug，请联系开发者并提供：数据源名称={self.name}、触发时间"
+            )
 
         return self._client
 

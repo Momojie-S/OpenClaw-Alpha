@@ -4,7 +4,6 @@
 import json
 from pathlib import Path
 
-import backtrader as bt
 
 from .base_strategy import BaseStrategy
 
@@ -30,11 +29,17 @@ class SignalStrategy(BaseStrategy):
 
         # 加载信号文件
         if not self.p.signal_file:
-            raise ValueError("必须提供 signal_file 参数")
+            raise ValueError(
+                "参数 signal_file 缺失（必填）。"
+                "请提供信号文件路径，例如：--signal-file .openclaw_alpha/signals/xxx.json"
+            )
 
         signal_path = Path(self.p.signal_file)
         if not signal_path.exists():
-            raise FileNotFoundError(f"信号文件不存在: {signal_path}")
+            raise FileNotFoundError(
+                f"信号文件不存在: {signal_path}。"
+                f"请检查文件路径是否正确，或先运行对应的 processor 生成信号文件"
+            )
 
         with open(signal_path, "r", encoding="utf-8") as f:
             self.signal_data = json.load(f)
