@@ -16,7 +16,7 @@
 | openclaw_alpha_fundamental_analysis | 2026-03-10 | ✅ 已完成 |
 | openclaw_alpha_index_analysis | 2026-03-10 | ✅ 已完成（已修复导入问题） |
 | openclaw_alpha_industry_trend | 2026-03-10 | ✅ 已完成（已修复导入和测试问题） |
-| openclaw_alpha_lhb_tracker | - | - |
+| openclaw_alpha_lhb_tracker | 2026-03-10 | ✅ 已完成（已修复 stock action buyers 字段缺失 bug） |
 | openclaw_alpha_limit_up_tracker | 2026-03-10 | ✅ 已完成（已修复 3 个 bug：炸板/跌停类型数据源选择、字段映射） |
 | openclaw_alpha_margin_trading | - | - |
 | openclaw_alpha_market_overview | 2026-03-10 | ✅ 已完成（已修复字段名问题） |
@@ -29,7 +29,7 @@
 | openclaw_alpha_risk_alert | 2026-03-10 | ✅ 已完成（已修复 mock 路径） |
 | openclaw_alpha_smart_dip | - | - |
 | openclaw_alpha_stock_analysis | 2026-03-10 | ✅ 已完成 |
-| openclaw_alpha_stock_compare | - | - |
+| openclaw_alpha_stock_compare | 2026-03-10 | ✅ 已完成（PE/PB数据缺失待修复） |
 | openclaw_alpha_stock_fund_flow | - | - |
 | openclaw_alpha_stock_screener | 2026-03-10 | ✅ 数据源注册问题已修复，性能优化待办（P3） |
 | openclaw_alpha_technical_indicators | 2026-03-10 | ✅ 已完成 |
@@ -509,6 +509,41 @@ uv run --env-file .env pytest tests/skills/limit_up_tracker/ -v
 **结论**：已修复 4 个 bug，功能正常。
 
 **进度文件**：`progress/2026-03-10-skill-self-check-limit-up-tracker.md`
+
+---
+
+### 2026-03-10: lhb_tracker
+
+**测试内容**：
+1. ✅ daily action（每日龙虎榜）
+2. ✅ stock action（个股龙虎榜历史）- 已修复 bug
+
+**测试命令**：
+```bash
+# 每日龙虎榜
+uv run --env-file .env python -m openclaw_alpha.skills.lhb_tracker.lhb_processor.lhb_processor --action daily --top-n 10
+
+# 个股龙虎榜历史
+uv run --env-file .env python -m openclaw_alpha.skills.lhb_tracker.lhb_processor.lhb_processor --action stock --symbol 002281 --days 10
+
+# 单元测试
+uv run --env-file .env pytest tests/skills/lhb_tracker/ -v
+```
+
+**发现问题**：
+1. **stock action 运行失败**
+   - 现象：`KeyError: 'buyers'`
+   - 原因：`process_stock()` 函数假设数据中有 `buyers` 字段，但 AKShare 返回的数据不包含此字段
+   - 修复：修改 `process_stock()` 函数，不依赖 `buyers` 字段，基于净买入金额粗略判断主力类型
+
+**测试结果**：
+- ✅ daily action 正常，返回 71 只股票，净买入 40 亿
+- ✅ stock action 正常（修复后）
+- ✅ 所有单元测试通过（10 passed in 0.77s）
+
+**结论**：已修复 stock action bug，功能正常。
+
+**进度文件**：`progress/2026-03-10-skill-self-check-lhb-tracker.md`
 
 ---
 

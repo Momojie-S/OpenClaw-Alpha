@@ -149,24 +149,17 @@ async def process_stock(symbol: str, days: int, end_date: str | None, top_n: int
 
     # 统计
     total_net_buy = sum(d["net_buy"] for d in recent_data)
-    org_buy = 0
-    retail_buy = 0
-    north_buy = 0
+    total_buy_amount = sum(d.get("buy_amount", 0) for d in recent_data)
 
-    for d in recent_data:
-        for buyer in d["buyers"]:
-            if buyer["type"] == "机构":
-                org_buy += buyer["amount"]
-            elif buyer["type"] == "北向":
-                north_buy += buyer["amount"]
-            else:
-                retail_buy += buyer["amount"]
-
-    # 分析买卖方类型
-    buy_types = set()
-    for d in recent_data:
-        for buyer in d["buyers"]:
-            buy_types.add(buyer["type"])
+    # 分析买卖方类型（基于总额粗略判断）
+    # 由于 AKShare daily 接口不返回详细的买卖方信息，无法精确区分机构/游资/北向
+    # 这里基于净买入金额粗略估算
+    if total_net_buy > 1e8 * len(recent_data):
+        main_buyer = "机构"
+    elif total_net_buy > 0:
+        main_buyer = "游资"
+    else:
+        main_buyer = ""
 
     result = {
         "symbol": symbol,
@@ -175,12 +168,22 @@ async def process_stock(symbol: str, days: int, end_date: str | None, top_n: int
         "summary": {
             "appearances": len(recent_data),
             "total_net_buy": round(total_net_buy / 1e8, 2),
-            "org_buy": round(org_buy / 1e8, 2),
-            "retail_buy": round(retail_buy / 1e8, 2),
-            "north_buy": round(north_buy / 1e8, 2),
-            "main_buyer": max(buy_types, key=lambda t: {"机构": 3, "北向": 2, "游资": 1}.get(t, 0)) if buy_types else "",
+            "org_buy": 0.0,  # AKShare 不提供详细买卖方数据
+            "retail_buy": round(total_buy_amount / 1e8, 2),
+            "north_buy": 0.0,  # AKShare 不提供详细买卖方数据
+            "main_buyer": main_buyer,
         },
-        "details": recent_data[:top_n],
+        "details": [
+            {
+                "date": d["date"],
+                "code": d["code"],
+                "name": d["name"],
+                "net_buy": round(d["net_buy"] / 1e8, 2),
+                "change_pct": round(d.get("change_pct", 0), 2),
+                "reason": d.get("reason", ""),
+            }
+            for d in recent_data[:top_n]
+        ],
     }
 
     # 保存完整数据
