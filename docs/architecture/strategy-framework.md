@@ -64,13 +64,13 @@ concept_fetcher/
 
 Processor 是可执行的脚本，大模型通过命令行调用，负责协调 Fetcher 获取数据并加工。
 
-**调用方式**：
+**运行方式**：
 ```bash
-# 直接执行脚本
-uv run --env-file .env python skills/{skill_name}/scripts/{scenario}_processor/{scenario}_processor.py [参数]
+# 模块运行方式（推荐）
+uv run --env-file .env python -m openclaw_alpha.skills.{skill_name}.{processor}.{processor}
 
-# 模块方式
-uv run --env-file .env python skills/{skill_name}/scripts/{processor}/{processor}.py [参数]
+# 示例
+uv run --env-file .env python -m openclaw_alpha.skills.industry_trend.industry_trend_processor.industry_trend_processor
 ```
 
 **职责**：
@@ -126,10 +126,23 @@ IndustryTrendProcessor  可执行脚本
 
 ```
 OpenClaw-Alpha/
-├── skills/                         # SKILL 目录（文档 + 代码）
+├── skills/                         # SKILL 文档目录（只放 SKILL.md 和 docs）
 │   └── {skill_name}/
 │       ├── SKILL.md                # 能力说明 + 分析指引
-│       └── scripts/                # Skill 代码
+│       └── docs/                   # 开发文档
+│           ├── spec.md
+│           ├── design.md
+│           └── decisions.md
+│
+├── src/openclaw_alpha/
+│   ├── core/                       # 框架核心（基类）
+│   │   ├── exceptions.py
+│   │   ├── data_source.py
+│   │   ├── fetcher.py
+│   │   └── processor_utils.py
+│   ├── data_sources/               # 数据源实现
+│   └── skills/                     # Skill 代码目录
+│       └── {skill_name}/
 │           ├── __init__.py
 │           ├── {data_type}_fetcher/
 │           │   ├── __init__.py
@@ -140,31 +153,26 @@ OpenClaw-Alpha/
 │               ├── __init__.py
 │               └── {scenario}_processor.py
 │
-├── src/openclaw_alpha/
-│   ├── core/                       # 框架核心（基类）
-│   │   ├── exceptions.py
-│   │   ├── data_source.py
-│   │   ├── fetcher.py
-│   │   └── processor_utils.py
-│   └── data_sources/               # 数据源实现
-│       ├── tushare.py
-│       └── akshare.py
+├── tests/
+│   └── skills/{skill_name}/
 │
-└── pyproject.toml                  # 包配置（注册 openclaw_alpha）
+├── pyproject.toml                  # 包配置（注册 openclaw_alpha）
+└── .env                            # 环境变量配置
 ```
 
 **组织原则**：
-- 每个 Skill 自包含：文档（SKILL.md）+ 代码（scripts/）在同一目录
-- `src/openclaw_alpha/core/` - 框架基类，通过 pyproject.toml 注册为包
-- `src/openclaw_alpha/data_sources/` - 数据源实现
+- `skills/{skill_name}/` - 只放文档（SKILL.md + docs/）
+- `src/openclaw_alpha/skills/{skill_name}/` - 放代码（fetcher + processor）
+- `src/openclaw_alpha/` - 通过 pyproject.toml 注册为包，所有代码统一导入
 
 **导入方式**：
 - 导入基类：`from openclaw_alpha.core.fetcher import Fetcher`
-- Skill 内部：相对路径 `from .xxx import xxx`
+- Skill 内部：相对导入 `from ..xxx_fetcher import fetch`
+- 跨 Skill：绝对导入 `from openclaw_alpha.skills.xxx.xxx_fetcher import fetch`
 
 **运行方式**：
 ```bash
-uv run --env-file .env python skills/{skill_name}/scripts/{scenario}_processor/{scenario}_processor.py
+uv run --env-file .env python -m openclaw_alpha.skills.{skill_name}.{processor}.{processor}
 ```
 
 **命名规范**：
@@ -254,19 +262,20 @@ uv run --env-file .env python skills/{skill_name}/scripts/{scenario}_processor/{
 
 ## 设计决策
 
-### 为什么把脚本放在 skills/{skill_name}/scripts/ 下？
+### 为什么把代码放在 src/openclaw_alpha/skills/ 下？
 
-**符合 OpenClaw skill 规范**：
-- 文档（SKILL.md）和代码（scripts/）在同一目录
-- Skill 自包含，方便复制和分发
+**统一的 package 结构**：
+- 所有代码在 `src/openclaw_alpha/` 下，通过 pyproject.toml 注册
+- 统一的导入路径：`from openclaw_alpha.xxx import xxx`
+- 支持相对导入和绝对导入
 
-**导入方式清晰**：
-- 基类通过 `openclaw_alpha.core.*` 导入（pyproject.toml 注册）
-- Skill 内部用相对路径 `from .`
+**分离文档和代码**：
+- `skills/` 目录只放文档（SKILL.md + docs/），符合 OpenClaw skill 规范
+- `src/openclaw_alpha/skills/` 放代码，符合 Python 包规范
 
 **简化结构**：
-- 删除 `src/openclaw_alpha/skills/` 目录
-- `src/` 只保留框架核心（core、data_sources）
+- 不需要 `scripts/` 这一层，skill name 下直接放 fetcher 和 processor
+- 每个技能目录都是 Python package（有 `__init__.py`）
 
 ### 为什么分离 Fetcher、FetchMethod 和 Processor？
 

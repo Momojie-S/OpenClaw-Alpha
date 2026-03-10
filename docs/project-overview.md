@@ -18,21 +18,28 @@ OpenClaw-Alpha 是一个股票金融数据获取和分析的 Python 技能模块
 
 ```
 OpenClaw-Alpha/
-├── skills/                         # SKILL 目录（文档 + 代码）
+├── skills/                         # SKILL 文档目录（只放 SKILL.md 和 docs）
 │   └── {skill_name}/
 │       ├── SKILL.md                # 能力说明 + 分析指引（对外）
-│       ├── docs/                   # 开发文档（对内）
-│       │   ├── spec.md             # 需求文档
-│       │   ├── design.md           # 设计文档
-│       │   └── decisions.md        # 调研/决策记录
-│       └── scripts/                # Skill 脚本
-│           ├── __init__.py
-│           ├── {data_type}_fetcher/
-│           └── {scenario}_processor/
+│       └── docs/                   # 开发文档（对内）
+│           ├── spec.md             # 需求文档
+│           ├── design.md           # 设计文档
+│           └── decisions.md        # 调研/决策记录
 │
 ├── src/openclaw_alpha/
 │   ├── core/                       # 框架核心（Fetcher, FetchMethod 等）
-│   └── data_sources/               # 数据源实现（Tushare, AKShare）
+│   ├── data_sources/               # 数据源实现（Tushare, AKShare）
+│   └── skills/                     # Skill 代码目录
+│       └── {skill_name}/
+│           ├── __init__.py
+│           ├── {data_type}_fetcher/
+│           │   ├── __init__.py
+│           │   ├── {data_type}_fetcher.py
+│           │   ├── tushare.py
+│           │   └── akshare.py
+│           └── {scenario}_processor/
+│               ├── __init__.py
+│               └── {scenario}_processor.py
 │
 ├── docs/                           # 项目文档
 │   ├── architecture/               # 架构设计
@@ -52,11 +59,10 @@ OpenClaw-Alpha/
 └── .env                            # 环境变量配置
 ```
 
-**自包含原则**：
-- `skills/{skill_name}/` - 文档 + 代码在一起，自包含
-- `skills/{skill_name}/docs/` - 开发文档（spec/design/decisions）
-- `src/openclaw_alpha/` - 框架核心，通过 pyproject.toml 注册为包
-- `docs/` - 项目级文档（架构、API 参考、规范）
+**分离关注点**：
+- `skills/{skill_name}/` - 只放文档（SKILL.md + docs/）
+- `src/openclaw_alpha/skills/{skill_name}/` - 放代码（fetcher + processor）
+- `src/openclaw_alpha/` - 通过 pyproject.toml 注册为包，所有代码统一导入
 
 **知识 vs 框架**：
 - `docs/knowledge/` - 投资知识体系，理论底座（概念、定义、公式）
@@ -96,17 +102,17 @@ OpenClaw-Alpha/
 
 **命令格式**：
 ```bash
-# 运行脚本（使用 -m 模块运行方式，支持相对导入）
-uv run --env-file .env python -m skills.{skill_name}.scripts.{processor}.{processor}
+# 运行脚本（使用 -m 模块运行方式）
+uv run --env-file .env python -m openclaw_alpha.skills.{skill_name}.{processor}.{processor}
 
 # 运行测试
 uv run --env-file .env pytest tests/{path}/test_xxx.py
 ```
 
 **注意**：
-- `--env-file .env` 用于加载环境变量（包括 PYTHONPATH）
-- 不要手动设置 PYTHONPATH
-- 使用 `python -m` 而非直接运行 `.py` 文件，确保相对导入正常工作
+- `--env-file .env` 用于加载环境变量
+- 所有代码在 `src/openclaw_alpha/` 下，通过 pyproject.toml 注册为包
+- 使用 `python -m` 模块运行方式，支持相对导入
 
 ## 环境说明
 

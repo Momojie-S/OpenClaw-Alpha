@@ -4,14 +4,19 @@
 
 ```
 OpenClaw-Alpha/
-├── skills/                         # SKILL 目录（文档 + 代码）
+├── skills/                         # SKILL 文档目录（只放 SKILL.md 和 docs）
 │   └── {skill_name}/
 │       ├── SKILL.md                # 能力说明 + 分析指引（对外）
-│       ├── docs/                   # 开发文档（对内）
-│       │   ├── spec.md             # 需求文档（业务视角）
-│       │   ├── design.md           # 设计文档（技术视角）
-│       │   └── decisions.md        # 关键决策/调研记录
-│       └── scripts/                # Skill 脚本
+│       └── docs/                   # 开发文档（对内）
+│           ├── spec.md             # 需求文档（业务视角）
+│           ├── design.md           # 设计文档（技术视角）
+│           └── decisions.md        # 关键决策/调研记录
+│
+├── src/openclaw_alpha/
+│   ├── core/                       # 框架核心
+│   ├── data_sources/               # 数据源实现
+│   └── skills/                     # Skill 代码目录
+│       └── {skill_name}/
 │           ├── __init__.py
 │           ├── {data_type}_fetcher/
 │           │   ├── __init__.py
@@ -22,35 +27,17 @@ OpenClaw-Alpha/
 │               ├── __init__.py
 │               └── {scenario}_processor.py
 │
-├── src/openclaw_alpha/
-│   ├── core/                       # 框架核心
-│   └── data_sources/               # 数据源实现
-│
-├── tests/                          # 测试
+├── tests/
 │   └── skills/{skill_name}/
 │
-├── pyproject.toml                  # 包配置
-└── .env                            # 环境变量
+├── pyproject.toml
+└── .env
 ```
 
 **分离关注点**：
-- `skills/` - 每个 Skill 自包含：文档 + 代码
-- `src/openclaw_alpha/` - 框架核心，通过包导入
-
-**文档分层**：
-- `SKILL.md` - 给用户看的，如何使用这个 skill
-- `docs/spec.md` - 需求，解决什么问题，业务规则
-- `docs/design.md` - 设计，技术方案，接口契约
-- `docs/decisions.md` - 开发过程中的调研、决策记录
-
-**导入方式**：
-- 基类：`from openclaw_alpha.core.fetcher import Fetcher`
-- Skill 内部：`from .xxx import xxx`
-
-**运行方式**：
-```bash
-uv run --env-file .env python skills/{skill_name}/scripts/{processor}/{processor}.py
-```
+- `skills/{skill_name}/` - 只放文档（SKILL.md + docs/）
+- `src/openclaw_alpha/skills/{skill_name}/` - 放代码（fetcher + processor）
+- `src/openclaw_alpha/` - 通过 pyproject.toml 注册为包，所有代码统一导入
 
 ---
 
@@ -134,8 +121,19 @@ Frontmatter
 
 ---
 
+## 运行方式
+
+```bash
+# 运行 processor
+uv run --env-file .env python -m openclaw_alpha.skills.{skill_name}.{processor}.{processor}
+
+# 示例
+uv run --env-file .env python -m openclaw_alpha.skills.industry_trend.industry_trend_processor.industry_trend_processor
+```
+
+---
+
 ## 参考资料
 
 - [DataFetcher 实现规范](fetcher-implementation-standard.md)
 - [Processor 实现规范](processor-implementation-standard.md)
-

@@ -37,12 +37,13 @@
 - **类型提示**: 所有类成员变量和函数签名必须包含类型提示 (Type Hinting)
 - **内置泛型**: 使用内置泛型类型（`list`, `dict`）而不是从 `typing` 模块导入（`List`, `Dict`）
 - **导入规范**:
-  - **框架基类导入**: 使用绝对路径导入，如 `from openclaw_alpha.core.fetcher import Fetcher`
-  - **Skill 内部导入**: scripts 内部使用相对路径导入，如 `from .xxx import xxx` 或 `from ..xxx import xxx`
+  - **框架基类导入**: `from openclaw_alpha.core.fetcher import Fetcher`
+  - **Skill 内部导入**: 使用相对导入，如 `from ..xxx_fetcher import fetch`
+  - **跨 Skill 导入**: 使用绝对导入，如 `from openclaw_alpha.skills.xxx.xxx_fetcher import fetch`
   - **类型注解导入**: 仅用于类型注解的导入应使用 `TYPE_CHECKING`
 - **脚本运行方式**:
-  - 使用 `python -m` 模块运行方式，如 `python -m skills.xxx.scripts.xxx_processor.xxx_processor`
-  - 不使用直接运行方式 `python skills/xxx/scripts/xxx_processor/xxx_processor.py`
+  - 使用 `python -m` 模块运行，如 `python -m openclaw_alpha.skills.xxx.xxx_processor.xxx_processor`
+  - 不使用直接运行方式 `python src/.../xxx_processor.py`
   - 原因：相对导入在模块运行方式下才能正常工作
 - **父类构造函数**: 在所有子类的 `__init__` 方法中，调用父类构造函数时必须显式传入所有必需参数
   - 允许使用 `super().__init__(...)`，但必须确保所有参数都显式传递
