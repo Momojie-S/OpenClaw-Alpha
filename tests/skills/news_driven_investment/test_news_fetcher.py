@@ -274,11 +274,14 @@ class TestNewsFetcherCls:
             source="财联社_全部",
         )
 
-        # Patch NewsFetcherAkshare.fetch 方法
+        # 同时 mock fetch 和 is_available，确保 mock 生效
         with patch(
             "openclaw_alpha.skills.news_driven_investment.news_fetcher.news_fetcher.NewsFetcherAkshare.fetch",
             new_callable=AsyncMock,
             return_value=mock_result,
+        ), patch(
+            "openclaw_alpha.skills.news_driven_investment.news_fetcher.news_fetcher.NewsFetcherAkshare.is_available",
+            return_value=(True, None),
         ):
             fetcher = NewsFetcherCls()
             result = await fetcher.fetch(source="cls_global", limit=10)
