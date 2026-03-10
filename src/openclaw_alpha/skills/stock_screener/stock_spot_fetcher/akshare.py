@@ -10,6 +10,7 @@ from tenacity import retry, stop_after_attempt, wait_exponential
 
 from openclaw_alpha.core.exceptions import NetworkError, RateLimitError, ServerError
 from openclaw_alpha.core.fetcher import FetchMethod
+from openclaw_alpha.data_sources import AkshareDataSource  # noqa: F401
 from .stock_spot_fetcher import StockSpot, StockSpotFetcher
 
 logger = logging.getLogger(__name__)

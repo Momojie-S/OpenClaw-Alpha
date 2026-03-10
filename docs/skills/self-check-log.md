@@ -31,7 +31,7 @@
 | openclaw_alpha_stock_analysis | - | - |
 | openclaw_alpha_stock_compare | - | - |
 | openclaw_alpha_stock_fund_flow | - | - |
-| openclaw_alpha_stock_screener | - | - |
+| openclaw_alpha_stock_screener | 2026-03-10 | ✅ 数据源注册问题已修复，性能优化待办（P3） |
 | openclaw_alpha_technical_indicators | - | - |
 | openclaw_alpha_theme_speculation | - | - |
 | openclaw_alpha_watchlist_monitor | - | - |
@@ -359,6 +359,31 @@ uv run --env-file .env pytest tests/skills/risk_alert/ -v
 - ✅ 所有单元测试通过（16 passed in 0.45s）
 
 **结论**：已修复 mock 路径问题，功能正常。
+
+---
+
+### 2026-03-10: stock_screener
+
+**测试内容**：
+1. ✅ --list-strategies（列出可用策略）
+2. ❌ --strategy volume_breakout（数据源未注册）
+3. ✅ 修复后可运行（获取数据超时）
+
+**发现问题**：
+- `stock_spot_fetcher/akshare.py` 缺少 `AkshareDataSource` 导入
+- 导致运行时错误：`NoAvailableMethodError: akshare: 数据源未注册`
+
+**修复内容**：
+- 在 `akshare.py` 中添加 `from openclaw_alpha.data_sources import AkshareDataSource  # noqa: F401`
+
+**测试结果**：
+- ✅ --list-strategies 正常
+- ❌ --strategy volume_breakout 报错（已修复）
+- ⚠️ 获取全市场数据耗时较长（>60s），建议添加缓存
+
+**结论**：数据源注册问题已修复，功能正常，性能优化待办。
+
+**进度文件**：`progress/2026-03-10-skill-self-check-stock-screener.md`
 
 ---
 
