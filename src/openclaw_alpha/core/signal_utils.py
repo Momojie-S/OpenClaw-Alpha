@@ -4,7 +4,7 @@
 import json
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Optional
+from typing import Optional
 
 
 # 信号文件存储根目录
@@ -62,6 +62,7 @@ def get_signal_path(
         "kdj": "technical",
         "northbound_flow": "flow",
         "main_flow": "flow",
+        "timing": "sentiment",
         "rotation": "rotation",
         "fundamental": "fundamental",
         "sentiment": "sentiment",

@@ -2,7 +2,6 @@
 """行业信息 Fetcher 入口"""
 
 from dataclasses import dataclass
-from typing import Optional
 
 from openclaw_alpha.core.exceptions import NoAvailableMethodError
 from openclaw_alpha.core.fetcher import Fetcher

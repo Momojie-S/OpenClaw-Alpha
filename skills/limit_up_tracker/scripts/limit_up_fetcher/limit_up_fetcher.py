@@ -11,8 +11,9 @@ from openclaw_alpha.core.fetcher import Fetcher
 # 导入数据源以触发注册
 import openclaw_alpha.data_sources  # noqa: F401
 
-from .models import LimitUpItem, LimitUpResult, LimitUpType
+from .models import LimitUpResult, LimitUpType
 from .akshare import LimitUpFetcherAkshare
+from .tushare import LimitUpFetcherTushare
 
 
 class LimitUpFetcher(Fetcher):
@@ -22,8 +23,9 @@ class LimitUpFetcher(Fetcher):
 
     def __init__(self):
         super().__init__()
-        # 注册 AKShare 实现
-        self.register(LimitUpFetcherAkshare())
+        # 注册实现（优先级：Tushare > AKShare）
+        self.register(LimitUpFetcherTushare(), priority=20)
+        self.register(LimitUpFetcherAkshare(), priority=10)
 
     async def fetch(
         self,

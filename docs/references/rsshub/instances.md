@@ -1,28 +1,19 @@
 # RSSHub 公共实例列表
 
-> 更新日期：2026-03-07
+> 更新日期：2026-03-10
 
 ---
 
-## 推荐实例
+## 可用实例（按速度排序）
 
-| 实例 | 位置 | 上次可用 | 说明 |
-|------|:----:|:--------:|------|
-| `rsshub.ktachibana.party` | 🇺🇸 | 2026-03-07 | 速度快，稳定 |
-| `rsshub.liumingye.cn` | 🇭🇰 | 2026-03-07 | 香港节点，国内访问友好 |
-
----
-
-## 其他实例
-
-| 实例 | 位置 | 上次可用 | 说明 |
-|------|:----:|:--------:|------|
-| `rsshub.rssforever.com` | 🇦🇪 | - | 响应较慢 |
-| `rsshub.feeded.xyz` | 🇺🇸 | - | 待测试 |
-| `hub.slarker.me` | 🇺🇸 | - | 待测试 |
-| `rsshub-instance.zeabur.app` | 🇺🇸 | - | 待测试 |
-| `rss.fatpandac.com` | 🇺🇸 | - | 待测试 |
-| `rsshub.pseudoyu.com` | 🇺🇸 | - | 待测试 |
+| 实例 | 响应时间 | 上次可用 | 说明 |
+|------|:--------:|:--------:|------|
+| `rsshub-instance.zeabur.app` | 0.50s | 2026-03-10 | 速度最快 |
+| `rsshub.liumingye.cn` | 0.73s | 2026-03-10 | 香港节点，国内访问友好 |
+| `rsshub.rssforever.com` | 0.95s | 2026-03-10 | 稳定 |
+| `rsshub.ktachibana.party` | 1.30s | 2026-03-10 | 美国节点 |
+| `hub.slarker.me` | 1.47s | 2026-03-10 | - |
+| `rsshub.pseudoyu.com` | 1.64s | 2026-03-10 | - |
 
 ---
 
@@ -30,6 +21,8 @@
 
 | 实例 | 状态 | 说明 |
 |------|:----:|------|
+| `rsshub.feeded.xyz` | ❌ | 超时 |
+| `rss.fatpandac.com` | ❌ | 超时 |
 | `rsshub.app` | ❌ | 官方限制，仅用于测试 |
 
 ---

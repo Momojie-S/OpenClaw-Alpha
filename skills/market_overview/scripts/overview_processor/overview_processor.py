@@ -7,8 +7,7 @@ import json
 import logging
 from dataclasses import dataclass, field, asdict
 from datetime import datetime
-from pathlib import Path
-from typing import Any, Optional
+from typing import Optional
 
 from openclaw_alpha.core.processor_utils import get_output_path, load_output
 

@@ -3,11 +3,13 @@
 
 from .financial_fetcher import FinancialFetcher
 from .akshare import FinancialFetcherAkshare
+from .tushare import FinancialFetcherTushare
 
-__all__ = ["FinancialFetcher", "FinancialFetcherAkshare"]
+__all__ = ["FinancialFetcher", "FinancialFetcherAkshare", "FinancialFetcherTushare"]
 
-# 注册默认实现
+# 注册实现（优先级：Tushare > AKShare）
 fetcher = FinancialFetcher()
+fetcher.register(FinancialFetcherTushare(), priority=20)
 fetcher.register(FinancialFetcherAkshare(), priority=10)
 
 

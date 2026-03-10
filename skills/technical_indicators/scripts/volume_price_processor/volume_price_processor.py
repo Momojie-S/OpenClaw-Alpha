@@ -11,7 +11,6 @@ from datetime import datetime
 from typing import Any
 
 import numpy as np
-import pandas as pd
 
 from openclaw_alpha.core.processor_utils import get_output_path
 

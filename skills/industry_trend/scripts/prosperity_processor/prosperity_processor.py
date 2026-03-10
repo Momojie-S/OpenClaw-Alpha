@@ -5,10 +5,9 @@ import argparse
 import asyncio
 import json
 from datetime import datetime, timedelta
-from pathlib import Path
 from typing import Any
 
-from openclaw_alpha.core.processor_utils import get_output_path, load_output
+from openclaw_alpha.core.processor_utils import get_output_path
 from ..sector_valuation_fetcher import fetch as fetch_valuation
 
 SKILL_NAME = "industry_trend"

@@ -2,7 +2,6 @@
 """公告数据模型"""
 
 from dataclasses import dataclass
-from typing import Optional
 
 
 @dataclass

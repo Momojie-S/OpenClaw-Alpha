@@ -3,7 +3,6 @@
 
 import asyncio
 import logging
-from typing import Any
 
 import akshare as ak
 import pandas as pd

@@ -17,6 +17,15 @@ docs/
 ├── architecture/           # 架构设计
 │   ├── strategy-framework.md
 │   └── signal-backtest-framework.md
+├── knowledge/              # 投资知识体系（Obsidian 风格）
+│   ├── README.md           # Map of Content
+│   ├── fundamentals/       # 基础概念
+│   ├── analysis/           # 分析方法
+│   ├── strategy/           # 投资策略
+│   └── risks/              # 风险管理
+├── skills/                 # 投资分析框架
+│   ├── analysis-framework.md
+│   └── daily-analysis-guide.md
 ├── references/             # API 参考
 │   ├── tushare/
 │   ├── akshare/
@@ -156,6 +165,111 @@ skills/{skill_name}/
 | 需求文档 | [spec-standard.md](spec-standard.md) |
 | 设计文档 | [design-standard.md](design-standard.md) |
 | API 文档 | [api-doc-standard.md](api-doc-standard.md) |
+| 知识体系 | 见下方规范 |
+
+---
+
+## 知识体系文档规范
+
+`docs/knowledge/` 下的文档采用 **Obsidian 风格**，便于在 Obsidian 中阅读和导航。
+
+**⚠️ 核心原则：知识体系独立于项目，只记录通用的理论知识，不包含项目特定的实现细节。**
+
+### 知识体系 vs 项目文档
+
+| 内容 | 归属 |
+|------|------|
+| 概念定义、公式、原理 | ✅ 知识体系 |
+| 通用分析方法、策略理论 | ✅ 知识体系 |
+| 项目特定的实现规范、接口格式 | ❌ 项目文档（standards/） |
+| OpenClaw-Alpha 的信号输出格式 | ❌ processor-implementation-standard.md |
+
+### Frontmatter
+
+```yaml
+---
+tags:
+  - 投资/知识体系
+  - 投资/知识体系/子分类
+aliases:
+  - 别名1
+  - 别名2
+---
+```
+
+### 内容结构
+
+```markdown
+# 概念名称
+
+## 定义
+<!-- 一句话定义 -->
+
+## 公式
+<!-- 计算公式（如有） -->
+
+## 应用场景
+<!-- 什么时候用，怎么用 -->
+
+## 注意事项
+<!-- 陷阱、局限性 -->
+
+## 相关概念
+- [[相关概念1]]
+- [[相关概念2]]
+```
+
+### 编写原则
+
+1. **客观准确** - 只记录公认的理论知识
+2. **结构清晰** - 概念 → 公式 → 应用场景
+3. **简明扼要** - 不冗余，可快速查阅
+4. **双向链接** - 关联概念用 `[[wikilinks]]`，不用 Markdown 链接
+
+### 层级关系
+
+```
+README.md（Map of Content）
+    ↓ 包含
+子目录笔记（如 fundamentals/）
+    ↓ 包含
+具体概念（如 估值指标.md）
+    ↓ 链接
+相关概念（[[财务指标]]）
+```
+
+### 示例
+
+`fundamentals/估值指标.md`:
+
+```markdown
+---
+tags:
+  - 投资/知识体系
+  - 投资/知识体系/基础概念
+aliases:
+  - 估值
+---
+
+# 估值指标
+
+## 定义
+评估股票价格是否合理的指标体系。
+
+## 常见指标
+- [[PE]] - 市盈率
+- [[PB]] - 市净率
+- [[PS]] - 市销率
+- [[PCF]] - 市现率
+
+## 应用场景
+- [[基本面分析]] - 评估投资价值
+- [[行业轮动]] - 对比行业估值水平
+
+## 注意事项
+- 不同行业适用不同指标
+- 需结合历史估值分位判断
+```
 
 ---
 

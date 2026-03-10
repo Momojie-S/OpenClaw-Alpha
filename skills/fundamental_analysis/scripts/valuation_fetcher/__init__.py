@@ -3,11 +3,13 @@
 
 from .valuation_fetcher import ValuationFetcher
 from .akshare import ValuationFetcherAkshare
+from .tushare import ValuationFetcherTushare
 
-__all__ = ["ValuationFetcher", "ValuationFetcherAkshare"]
+__all__ = ["ValuationFetcher", "ValuationFetcherAkshare", "ValuationFetcherTushare"]
 
-# 注册默认实现
+# 注册实现（优先级：Tushare > AKShare）
 fetcher = ValuationFetcher()
+fetcher.register(ValuationFetcherTushare(), priority=20)
 fetcher.register(ValuationFetcherAkshare(), priority=10)
 
 

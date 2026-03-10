@@ -8,15 +8,31 @@ from typing import Any
 
 import akshare as ak
 
+from openclaw_alpha.core.fetcher import FetchMethod
 
-class LhbFetcherAkshare:
+
+class LhbFetcherAkshare(FetchMethod):
     """AKShare 龙虎榜数据获取实现
 
-    注意：龙虎榜只有 AKShare 一个免费数据源，不需要多数据源调度，
-    因此不继承 FetchMethod，简化设计。
+    使用 stock_lhb_detail_em 接口获取龙虎榜数据。
     """
 
     name = "lhb_akshare"
+    required_data_source = "akshare"
+    priority = 10
+
+    async def fetch(self, date: str | None = None) -> list[dict]:
+        """获取每日龙虎榜数据
+
+        注意：AKShare 不支持单独的个股查询，需要通过每日龙虎榜筛选。
+
+        Args:
+            date: 日期 YYYY-MM-DD，默认最近交易日
+
+        Returns:
+            龙虎榜股票列表
+        """
+        return await self.fetch_daily(date)
 
     async def fetch_daily(self, date: str | None = None) -> list[dict]:
         """
@@ -110,7 +126,7 @@ class LhbFetcherAkshare:
             raw_data: 原始数据
 
         Returns:
-            转换后的数据
+            转换后的数据（统一格式）
         """
         result = []
         for item in raw_data:
@@ -125,6 +141,7 @@ class LhbFetcherAkshare:
                 net_buy = self._safe_float(item.get("龙虎榜净买额", 0))
 
                 result.append({
+                    # 必需字段
                     "code": str(item.get("代码", "")),
                     "name": str(item.get("名称", "")),
                     "date": formatted_date,
@@ -134,7 +151,15 @@ class LhbFetcherAkshare:
                     "buy_amount": buy_amount,
                     "sell_amount": sell_amount,
                     "net_buy": net_buy,
-                    "interpretation": str(item.get("解读", "")),
+                    # AKShare 特有字段
+                    "interpretation": str(item.get("解读", "")) or None,
+                    # Tushare 字段（AKShare 没有）
+                    "turnover_rate": None,
+                    "amount": None,
+                    "l_amount": None,
+                    "net_rate": None,
+                    "amount_rate": None,
+                    "float_values": None,
                 })
             except Exception as e:
                 print(f"转换数据失败: {e}, item: {item}")
@@ -159,30 +184,35 @@ if __name__ == "__main__":
     async def main():
         fetcher = LhbFetcherAkshare()
 
-        print("=== 测试每日龙虎榜 ===")
-        daily = await fetcher.fetch_daily()
-        print(f"上榜股票数: {len(daily)}")
-        if daily:
-            # 按净买入排序
-            sorted_daily = sorted(daily, key=lambda x: x["net_buy"], reverse=True)
-            print("Top 5 净买入:")
-            for stock in sorted_daily[:5]:
-                print(
-                    f"  {stock['code']} {stock['name']}: {stock['net_buy']/1e8:.2f}亿 ({stock['reason']})"
-                )
-            print("Top 5 净卖出:")
-            for stock in sorted_daily[-5:]:
-                print(
-                    f"  {stock['code']} {stock['name']}: {stock['net_buy']/1e8:.2f}亿 ({stock['reason']})"
-                )
+        print("=== 测试可用性 ===")
+        available, error = fetcher.is_available()
+        print(f"可用: {available}, 错误: {error}")
 
-        print("\n=== 测试个股龙虎榜历史 ===")
-        if daily:
-            # 取净买入最多的股票测试
-            test_code = sorted_daily[0]["code"]
-            history = await fetcher.fetch_stock_history(test_code)
-            print(f"股票 {test_code} 上榜次数: {len(history)}")
-            if history:
-                print(json.dumps(history[0], ensure_ascii=False, indent=2))
+        if available:
+            print("\n=== 测试每日龙虎榜 ===")
+            daily = await fetcher.fetch_daily()
+            print(f"上榜股票数: {len(daily)}")
+            if daily:
+                # 按净买入排序
+                sorted_daily = sorted(daily, key=lambda x: x["net_buy"], reverse=True)
+                print("Top 5 净买入:")
+                for stock in sorted_daily[:5]:
+                    print(
+                        f"  {stock['code']} {stock['name']}: {stock['net_buy']/1e8:.2f}亿 ({stock['reason']})"
+                    )
+                print("Top 5 净卖出:")
+                for stock in sorted_daily[-5:]:
+                    print(
+                        f"  {stock['code']} {stock['name']}: {stock['net_buy']/1e8:.2f}亿 ({stock['reason']})"
+                    )
+
+            print("\n=== 测试个股龙虎榜历史 ===")
+            if daily:
+                # 取净买入最多的股票测试
+                test_code = sorted_daily[0]["code"]
+                history = await fetcher.fetch_stock_history(test_code)
+                print(f"股票 {test_code} 上榜次数: {len(history)}")
+                if history:
+                    print(json.dumps(history[0], ensure_ascii=False, indent=2))
 
     asyncio.run(main())

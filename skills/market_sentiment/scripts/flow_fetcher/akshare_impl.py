@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 """资金流向数据获取器 - AKShare 实现"""
 
-from datetime import datetime
 
 import akshare as ak
 

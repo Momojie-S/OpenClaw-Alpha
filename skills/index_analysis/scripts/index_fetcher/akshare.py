@@ -2,7 +2,6 @@
 """指数行情获取器 - AKShare 实现"""
 
 import logging
-from datetime import datetime
 from typing import Any, Optional
 
 from tenacity import retry, stop_after_attempt, wait_exponential

@@ -5,7 +5,6 @@ import argparse
 import asyncio
 import json
 from datetime import datetime
-from pathlib import Path
 from typing import Any
 
 from openclaw_alpha.core.processor_utils import get_output_path

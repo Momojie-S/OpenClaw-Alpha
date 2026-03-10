@@ -6,7 +6,6 @@ import asyncio
 import json
 import logging
 from datetime import datetime, timedelta
-from pathlib import Path
 from typing import Any
 
 from openclaw_alpha.core.processor_utils import get_output_path

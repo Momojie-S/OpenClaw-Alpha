@@ -2,7 +2,6 @@
 """FinancialFetcher AKShare 实现"""
 
 import logging
-from typing import Optional
 
 import akshare as ak
 import pandas as pd

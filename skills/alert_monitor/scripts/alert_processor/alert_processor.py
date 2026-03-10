@@ -4,7 +4,7 @@
 import argparse
 import asyncio
 import json
-from dataclasses import dataclass, field, asdict
+from dataclasses import dataclass, asdict
 from datetime import datetime
 from pathlib import Path
 from typing import Optional
@@ -16,14 +16,8 @@ from skills.alert_monitor.scripts.config_parser import (
     load_config,
     get_watchlist_symbols,
 )
-from skills.alert_monitor.scripts.risk_scanner import (
-    scan_portfolio_risk,
-    format_risk_report,
-)
-from skills.alert_monitor.scripts.market_scanner import (
-    scan_market_anomalies,
-    format_market_report,
-)
+from skills.alert_monitor.scripts.risk_scanner import scan_portfolio_risk
+from skills.alert_monitor.scripts.market_scanner import scan_market_anomalies
 
 
 @dataclass

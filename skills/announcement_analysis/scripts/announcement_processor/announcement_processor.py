@@ -3,12 +3,10 @@
 
 import argparse
 import asyncio
-import json
 from datetime import datetime
 from typing import Optional
 
 import akshare as ak
-import pandas as pd
 
 from .models import Announcement
 
@@ -135,7 +133,7 @@ def format_output(announcements: list[Announcement], date: str, top_n: int) -> s
 
         lines.append("")
 
-    lines.append(f"---")
+    lines.append("---")
     lines.append(f"共 {len(announcements)} 条公告，显示 {min(len(announcements), top_n)} 条")
 
     return "\n".join(lines)
@@ -163,10 +161,8 @@ async def process(
     # 处理日期
     if date:
         date_str = date.replace("-", "")
-        display_date = date
     else:
         date_str = datetime.now().strftime("%Y%m%d")
-        display_date = datetime.now().strftime("%Y-%m-%d")
 
     # 获取数据
     announcements = await fetch_announcements(date_str, announcement_type)

@@ -6,7 +6,6 @@ import asyncio
 import json
 from datetime import datetime
 from pathlib import Path
-from typing import Optional
 
 # 标的代码到名称的映射
 UNDERLYING_NAMES = {

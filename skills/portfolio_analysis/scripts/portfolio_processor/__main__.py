@@ -20,7 +20,6 @@ if __name__ == "__main__":
         sys.path.insert(0, str(skills_dir))
 
     # 注册数据源
-    import openclaw_alpha.data_sources
 
 from openclaw_alpha.core.processor_utils import get_output_path
 

@@ -1,9 +1,8 @@
 # -*- coding: utf-8 -*-
 """持仓分析 Processor"""
 
-from dataclasses import dataclass, field, asdict
+from dataclasses import dataclass, asdict
 from typing import Any
-import json
 import logging
 
 logger = logging.getLogger(__name__)

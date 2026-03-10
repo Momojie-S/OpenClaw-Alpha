@@ -6,11 +6,9 @@
 
 import asyncio
 from dataclasses import dataclass
-from datetime import datetime, timedelta
 from typing import Optional
 
 import akshare as ak
-import pandas as pd
 
 from openclaw_alpha.core.fetcher import Fetcher, FetchMethod
 
@@ -150,7 +148,6 @@ async def fetch(symbol: str = "all", days: int = 30) -> list[BreadthData]:
 
 
 if __name__ == "__main__":
-    import json
 
     async def main():
         data = await fetch(days=10)

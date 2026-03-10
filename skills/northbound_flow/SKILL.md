@@ -99,6 +99,42 @@ uv run --env-file .env python skills/northbound_flow/scripts/northbound_processo
 - 查看 `total_inflow`：累计净流入
 - 结合 `inflow_days` 和 `outflow_days`：流入流出天数比
 
+### Step 4: 输出历史信号（用于回测）
+
+**输入**：天数（默认 30）、信号参数（连续天数阈值、大幅流入/流出阈值）
+
+**动作**：
+```bash
+# 只输出信号文件（用于回测）
+uv run --env-file .env python skills/northbound_flow/scripts/northbound_processor/northbound_processor.py \
+    --action signals \
+    --days 30 \
+    --signal-only
+
+# 同时输出趋势分析和信号
+uv run --env-file .env python skills/northbound_flow/scripts/northbound_processor/northbound_processor.py \
+    --action signals \
+    --days 30 \
+    --save-signals
+```
+
+**输出**：
+- 控制台：信号统计或趋势摘要 + 信号
+- 文件：`.openclaw_alpha/signals/flow/MARKET/northbound_30d.json`
+
+**信号逻辑**：
+- **买入信号**：
+  - 连续 3 天流入 + 单日大幅流入（>50 亿）
+  - 流出转流入（趋势转折向上）
+- **卖出信号**：
+  - 连续 3 天流出 + 单日大幅流出（<-50 亿）
+  - 流入转流出（趋势转折向下）
+
+**可调参数**：
+- `--consecutive`：连续天数阈值（默认 3）
+- `--large-inflow`：大幅流入阈值，亿元（默认 50）
+- `--large-outflow`：大幅流出阈值，亿元（默认 50）
+
 ## 输出说明
 
 ### 每日净流入（daily）

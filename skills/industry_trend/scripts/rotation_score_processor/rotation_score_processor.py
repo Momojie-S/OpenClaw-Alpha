@@ -5,7 +5,6 @@ import argparse
 import asyncio
 import json
 from datetime import datetime
-from pathlib import Path
 from typing import Any
 
 from openclaw_alpha.core.processor_utils import get_output_path, load_output
@@ -13,8 +12,6 @@ from openclaw_alpha.core.processor_utils import get_output_path, load_output
 # 导入数据源模块以触发注册
 from openclaw_alpha.data_sources import registry  # noqa: F401
 
-from skills.industry_trend.scripts.industry_fetcher import fetch as fetch_industry
-from skills.industry_trend.scripts.concept_fetcher import fetch as fetch_concept
 
 
 # 常量定义

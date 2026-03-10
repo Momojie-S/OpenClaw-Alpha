@@ -8,7 +8,7 @@ class LimitFetcher(Fetcher):
     """
     涨跌停数据获取器入口
 
-    调度 AKShare 或 Tushare 实现获取涨跌停统计数据
+    调度 Tushare 或 AKShare 实现获取涨跌停统计数据
     """
 
     name = "limit"
@@ -17,9 +17,11 @@ class LimitFetcher(Fetcher):
         """初始化，注册实现"""
         super().__init__()
 
-        # 注册 AKShare 实现（优先）
+        # 注册实现（优先级：Tushare > AKShare）
+        from skills.market_sentiment.scripts.limit_fetcher.tushare_impl import LimitFetcherTushare
         from skills.market_sentiment.scripts.limit_fetcher.akshare_impl import LimitFetcherAkshare
 
+        self.register(LimitFetcherTushare(), priority=20)
         self.register(LimitFetcherAkshare(), priority=10)
 
 

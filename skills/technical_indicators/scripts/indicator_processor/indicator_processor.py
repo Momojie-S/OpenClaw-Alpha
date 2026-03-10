@@ -20,7 +20,6 @@ from openclaw_alpha.core.signal_utils import (
 
 # 使用绝对导入
 import sys
-from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent))
 
 from skills.technical_indicators.scripts.history_fetcher import fetch as fetch_history

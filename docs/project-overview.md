@@ -36,17 +36,17 @@ OpenClaw-Alpha/
 │
 ├── docs/                           # 项目文档
 │   ├── architecture/               # 架构设计
+│   ├── knowledge/                  # 投资知识体系（理论底座）
 │   ├── references/                 # API 参考文档
 │   │   ├── akshare/
 │   │   ├── rsshub/
 │   │   └── tushare/
+│   ├── research/                   # 调研文档
+│   ├── skills/                     # 投资分析框架（实践方法）
 │   └── standards/                  # 开发规范
 │
 ├── tests/                          # 测试
 │   └── skills/{skill_name}/
-│
-├── progress/                       # 任务追踪
-│   └── YYYY-MM-DD-{任务名}.md
 │
 ├── pyproject.toml                  # 包配置
 └── .env                            # 环境变量配置
@@ -57,6 +57,10 @@ OpenClaw-Alpha/
 - `skills/{skill_name}/docs/` - 开发文档（spec/design/decisions）
 - `src/openclaw_alpha/` - 框架核心，通过 pyproject.toml 注册为包
 - `docs/` - 项目级文档（架构、API 参考、规范）
+
+**知识 vs 框架**：
+- `docs/knowledge/` - 投资知识体系，理论底座（概念、定义、公式）
+- `docs/skills/` - 投资分析框架，实践方法（流程、决策逻辑）
 
 ## 核心概念
 

@@ -7,7 +7,6 @@ from typing import Any
 import akshare as ak
 
 from openclaw_alpha.core.fetcher import FetchMethod
-from openclaw_alpha.data_sources import registry
 
 
 class ForecastFetcherAkshare(FetchMethod):
