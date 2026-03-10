@@ -10,7 +10,7 @@
 |----------|--------------|----------|
 | openclaw_alpha_alert_monitor | 2026-03-10 | ✅ 功能正常（导入问题已修复） |
 | openclaw_alpha_announcement_analysis | - | - |
-| openclaw_alpha_backtest | - | - |
+| openclaw_alpha_backtest | 2026-03-10 | ✅ 已修复导入问题 |
 | openclaw_alpha_etf_analysis | - | - |
 | openclaw_alpha_fund_flow_analysis | - | - |
 | openclaw_alpha_fundamental_analysis | 2026-03-10 | ✅ 功能正常 |
@@ -202,6 +202,36 @@ uv run --env-file .env pytest tests/skills/stock_analysis/ -v
 - ✅ 文档清晰完整
 
 **结论**：功能正常，无需改进。
+
+---
+
+### 2026-03-10: backtest
+
+**测试内容**：
+1. ✅ backtest_processor（策略回测）
+
+**测试命令**：
+```bash
+# 功能测试
+uv run --env-file .env python skills/backtest/scripts/backtest_processor/backtest_processor.py --stock 000001 --quiet
+
+# 单元测试
+uv run --env-file .env pytest tests/skills/backtest/ -v
+```
+
+**发现问题**：
+- backtest_processor.py 使用相对导入，导致直接运行脚本报错
+- 修复：将相对导入改为绝对导入
+  - `from .data_adapter import DataAdapter` → `from skills.backtest.scripts.backtest_processor.data_adapter import DataAdapter`
+  - `from ..strategies import ...` → `from skills.backtest.scripts.strategies import ...`
+
+**测试结果**：
+- ✅ 功能测试正常运行，输出格式正确
+- ✅ 单元测试：17 passed, 2 skipped in 0.92s
+- ✅ 文档清晰完整（包含详细策略说明）
+- ✅ 导入问题已修复
+
+**结论**：功能正常，已修复导入问题。
 
 ---
 

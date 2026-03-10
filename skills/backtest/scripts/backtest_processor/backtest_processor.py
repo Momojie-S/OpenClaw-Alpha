@@ -11,9 +11,9 @@ from typing import Optional, Type
 import backtrader as bt
 
 from openclaw_alpha.core.processor_utils import get_output_path
-from .data_adapter import DataAdapter
-from ..strategies import MACrossStrategy, RSIStrategy, BollingerBandsStrategy
-from ..strategies.base_strategy import BaseStrategy
+from skills.backtest.scripts.backtest_processor.data_adapter import DataAdapter
+from skills.backtest.scripts.strategies import MACrossStrategy, RSIStrategy, BollingerBandsStrategy
+from skills.backtest.scripts.strategies.base_strategy import BaseStrategy
 
 
 # 策略注册表
