@@ -96,8 +96,8 @@ OpenClaw-Alpha/
 
 **命令格式**：
 ```bash
-# 运行脚本
-uv run --env-file .env python skills/{skill_name}/scripts/{processor}/{processor}.py
+# 运行脚本（使用 -m 模块运行方式，支持相对导入）
+uv run --env-file .env python -m skills.{skill_name}.scripts.{processor}.{processor}
 
 # 运行测试
 uv run --env-file .env pytest tests/{path}/test_xxx.py
@@ -106,6 +106,7 @@ uv run --env-file .env pytest tests/{path}/test_xxx.py
 **注意**：
 - `--env-file .env` 用于加载环境变量（包括 PYTHONPATH）
 - 不要手动设置 PYTHONPATH
+- 使用 `python -m` 而非直接运行 `.py` 文件，确保相对导入正常工作
 
 ## 环境说明
 
