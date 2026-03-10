@@ -17,7 +17,7 @@
 | openclaw_alpha_index_analysis | 2026-03-10 | ✅ 已完成（已修复导入问题） |
 | openclaw_alpha_industry_trend | 2026-03-10 | ✅ 已完成（已修复导入和测试问题） |
 | openclaw_alpha_lhb_tracker | - | - |
-| openclaw_alpha_limit_up_tracker | - | - |
+| openclaw_alpha_limit_up_tracker | 2026-03-10 | ✅ 已完成（已修复 3 个 bug：炸板/跌停类型数据源选择、字段映射） |
 | openclaw_alpha_margin_trading | - | - |
 | openclaw_alpha_market_overview | 2026-03-10 | ✅ 已完成（已修复字段名问题） |
 | openclaw_alpha_market_sentiment | 2026-03-10 | ✅ 已完成（已修复字段名问题） |
@@ -447,6 +447,68 @@ uv run --env-file .env python -m openclaw_alpha.skills.option_analysis.market_ov
 **结论**：已修复 PCR 计算错误，功能正常。
 
 **进度文件**：`progress/2026-03-10-skill-self-check-option-analysis.md`
+
+---
+
+### 2026-03-10: limit_up_tracker
+
+**测试内容**：
+1. ✅ 涨停股池（56 只）
+2. ✅ 连板筛选（--min-continuous）
+3. ✅ 炸板股池（22 只）- 已修复
+4. ✅ 昨日涨停表现（42 只）
+5. ✅ 跌停股池（4 只）- 已修复
+
+**测试命令**：
+```bash
+# 涨停股
+uv run --env-file .env python -m openclaw_alpha.skills.limit_up_tracker.limit_up_fetcher.limit_up_fetcher --date 2026-03-10 --top-n 10
+
+# 炸板股
+uv run --env-file .env python -m openclaw_alpha.skills.limit_up_tracker.limit_up_fetcher.limit_up_fetcher --date 2026-03-10 --type broken --top-n 10
+
+# 昨日涨停
+uv run --env-file .env python -m openclaw_alpha.skills.limit_up_tracker.limit_up_fetcher.limit_up_fetcher --date 2026-03-10 --type previous --top-n 10
+
+# 跌停股
+uv run --env-file .env python -m openclaw_alpha.skills.limit_up_tracker.limit_up_fetcher.limit_up_fetcher --date 2026-03-10 --type limit_down --top-n 10
+
+# 单元测试
+uv run --env-file .env pytest tests/skills/limit_up_tracker/ -v
+```
+
+**发现问题**：
+1. **炸板和昨日涨停类型返回错误数据**
+   - 现象：--type broken 返回涨停数据（82 只），而不是炸板数据
+   - 原因：Tushare 实现不支持 BROKEN 和 PREVIOUS 类型，但优先级高于 AKShare
+   - 修复：在 Fetcher 入口类中，强制 BROKEN、PREVIOUS、LIMIT_DOWN 类型使用 AKShare 实现
+
+2. **跌停类型返回错误数据**
+   - 现象：--type limit_down 返回涨停数据（82 只），而不是跌停数据
+   - 原因：Tushare 的 `limit='D'` 参数不是筛选跌停，而是返回所有数据
+   - 修复：强制 LIMIT_DOWN 类型使用 AKShare 实现
+
+3. **炸板股字段缺失**
+   - 现象：炸板股的 `first_limit_time`、`industry` 等字段为空
+   - 原因：AKShare 实现中未正确映射这些字段
+   - 修复：补充炸板股的字段映射
+
+4. **跌停股连板数错误**
+   - 现象：跌停股的 `continuous` 字段为 0
+   - 原因：AKShare 跌停接口有"连续跌停"字段，但未映射
+   - 修复：读取"连续跌停"字段作为 `continuous` 值
+
+**测试结果**：
+- ✅ 涨停股池运行正常，输出格式正确
+- ✅ 连板筛选功能正常
+- ✅ 炸板股池运行正常（修复后），返回 22 只炸板股
+- ✅ 昨日涨停运行正常，返回 42 只
+- ✅ 跌停股池运行正常（修复后），返回 4 只跌停股
+- ✅ 所有单元测试通过（16 passed）
+
+**结论**：已修复 4 个 bug，功能正常。
+
+**进度文件**：`progress/2026-03-10-skill-self-check-limit-up-tracker.md`
 
 ---
 

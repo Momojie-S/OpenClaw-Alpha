@@ -49,7 +49,24 @@ class LimitUpFetcher(Fetcher):
             date_fmt = date
 
         # 选择可用实现
-        method, errors = self._select_available()
+        # 注意：Tushare 不支持 BROKEN、PREVIOUS 和 LIMIT_DOWN 类型，需要强制使用 AKShare
+        method = None
+        errors = []
+
+        if limit_type in (LimitUpType.BROKEN, LimitUpType.PREVIOUS, LimitUpType.LIMIT_DOWN):
+            # 强制使用 AKShare 实现
+            for m in self._methods:
+                if m.name == "limit_up_akshare":
+                    available, error = m.is_available()
+                    if available:
+                        method = m
+                        break
+                    if error:
+                        errors.append(error)
+        else:
+            # 按优先级选择
+            method, errors = self._select_available()
+
         if method is None:
             from openclaw_alpha.core.exceptions import NoAvailableMethodError
             checked = [m.name for m in self._methods]

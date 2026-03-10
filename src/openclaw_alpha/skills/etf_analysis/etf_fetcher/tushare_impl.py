@@ -106,10 +106,26 @@ class EtfFetcherTushare(FetchMethod):
         return result
 
     async def fetch(self, params: dict[str, Any]) -> list[dict]:
-        """获取 ETF 数据"""
+        """获取 ETF 数据
+
+        注意：Tushare fund_daily API 要求至少填写 ts_code 或 trade_date 参数。
+        对于获取全部 ETF 实时行情的场景，应该使用 AKShare 实现。
+        """
+        ts_code = params.get("ts_code")
+        trade_date = params.get("trade_date")
+
+        # 检查参数是否满足 API 要求
+        if not ts_code and not trade_date:
+            # 不满足 API 要求，让其他实现处理
+            raise DataSourceUnavailableError(
+                data_source_name="tushare",
+                reason="fund_daily API 要求至少填写 ts_code 或 trade_date 参数，"
+                       "获取全部 ETF 实时行情请使用 AKShare 实现",
+            )
+
         df = await self._call_api(
-            ts_code=params.get("ts_code"),
-            trade_date=params.get("trade_date"),
+            ts_code=ts_code,
+            trade_date=trade_date,
             start_date=params.get("start_date"),
             end_date=params.get("end_date"),
         )

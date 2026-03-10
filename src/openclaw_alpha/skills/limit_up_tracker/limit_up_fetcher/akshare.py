@@ -90,27 +90,7 @@ class LimitUpFetcherAkshare(FetchMethod):
                 )
                 items.append(item)
         elif limit_type == LimitUpType.BROKEN:
-            # 炸板股池字段较少
-            for _, row in df.iterrows():
-                item = LimitUpItem(
-                    code=str(row.get("代码", "")),
-                    name=str(row.get("名称", "")),
-                    change_pct=float(row.get("涨跌幅", 0)),
-                    price=float(row.get("最新价", 0)),
-                    amount=float(row.get("成交额", 0)) / 1e8,
-                    float_mv=float(row.get("流通市值", 0)) / 1e8,
-                    total_mv=float(row.get("总市值", 0)) / 1e8,
-                    turnover_rate=float(row.get("换手率", 0)),
-                    first_limit_time="",
-                    last_limit_time="",
-                    limit_times=0,
-                    limit_stat="",
-                    continuous=0,
-                    industry="",
-                )
-                items.append(item)
-        else:
-            # 涨停/跌停
+            # 炸板股池字段
             for _, row in df.iterrows():
                 item = LimitUpItem(
                     code=str(row.get("代码", "")),
@@ -122,10 +102,36 @@ class LimitUpFetcherAkshare(FetchMethod):
                     total_mv=float(row.get("总市值", 0)) / 1e8,
                     turnover_rate=float(row.get("换手率", 0)),
                     first_limit_time=str(row.get("首次封板时间", "")),
-                    last_limit_time=str(row.get("最后封板时间", "")),
+                    last_limit_time="",
                     limit_times=int(row.get("炸板次数", 0)),
-                    limit_stat=str(row.get("涨停统计", "") if limit_type == LimitUpType.LIMIT_UP else ""),
-                    continuous=int(row.get("连板数", 1) if limit_type == LimitUpType.LIMIT_UP else 0),
+                    limit_stat=str(row.get("涨停统计", "")),
+                    continuous=0,  # 炸板股没有连板概念
+                    industry=str(row.get("所属行业", "")),
+                )
+                items.append(item)
+        else:
+            # 涨停/跌停
+            for _, row in df.iterrows():
+                # 跌停使用"连续跌停"字段，涨停使用"连板数"字段
+                if limit_type == LimitUpType.LIMIT_DOWN:
+                    continuous_val = int(row.get("连续跌停", 1))
+                else:
+                    continuous_val = int(row.get("连板数", 1))
+
+                item = LimitUpItem(
+                    code=str(row.get("代码", "")),
+                    name=str(row.get("名称", "")),
+                    change_pct=float(row.get("涨跌幅", 0)),
+                    price=float(row.get("最新价", 0)),
+                    amount=float(row.get("成交额", 0)) / 1e8,
+                    float_mv=float(row.get("流通市值", 0)) / 1e8,
+                    total_mv=float(row.get("总市值", 0)) / 1e8,
+                    turnover_rate=float(row.get("换手率", 0)),
+                    first_limit_time=str(row.get("首次封板时间", "")),
+                    last_limit_time=str(row.get("最后封板时间", "")),
+                    limit_times=int(row.get("炸板次数", 0) if limit_type == LimitUpType.LIMIT_UP else row.get("开板次数", 0)),
+                    limit_stat=str(row.get("涨停统计", "") if limit_type == LimitUpType.LIMIT_UP else f"{continuous_val}连跌"),
+                    continuous=continuous_val,
                     industry=str(row.get("所属行业", "")),
                 )
                 items.append(item)

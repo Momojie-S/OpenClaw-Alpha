@@ -135,6 +135,8 @@ class TestLimitUpFetcherAkshareTransform:
                 "炸板次数": 1,
                 "涨停统计": "",
                 "连板数": 0,
+                "连续跌停": 2,  # 连续跌停2天
+                "开板次数": 0,
                 "所属行业": "银行",
             }
         ])
@@ -143,7 +145,7 @@ class TestLimitUpFetcherAkshareTransform:
 
         assert len(items) == 1
         assert items[0].change_pct == -10.0
-        assert items[0].continuous == 0  # 跌停无连板数
+        assert items[0].continuous == 2  # 连续跌停数
 
     # ============== 炸板股转换测试 ==============
 
@@ -159,6 +161,10 @@ class TestLimitUpFetcherAkshareTransform:
                 "流通市值": 20000000000,
                 "总市值": 30000000000,
                 "换手率": 4.0,
+                "首次封板时间": "10:30:00",
+                "炸板次数": 2,
+                "涨停统计": "1/1",
+                "所属行业": "银行",
             }
         ])
 
@@ -167,8 +173,11 @@ class TestLimitUpFetcherAkshareTransform:
         assert len(items) == 1
         assert items[0].code == "000001"
         assert items[0].change_pct == 5.0
-        assert items[0].first_limit_time == ""  # 炸板无封板时间
-        assert items[0].continuous == 0
+        assert items[0].first_limit_time == "10:30:00"
+        assert items[0].limit_times == 2
+        assert items[0].limit_stat == "1/1"
+        assert items[0].continuous == 0  # 炸板股没有连板概念
+        assert items[0].industry == "银行"
 
     # ============== 昨日涨停转换测试 ==============
 
