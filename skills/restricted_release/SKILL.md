@@ -52,7 +52,7 @@ uv run --env-file .env python -m openclaw_alpha.skills.restricted_release.restri
 
 **动作**：
 ```bash
-uv run --env-file .env python skills/restricted_release/scripts/restricted_release_processor/restricted_release_processor.py upcoming --days 7 --sort-by value
+uv run --env-file .env python -m openclaw_alpha.skills.restricted_release.restricted_release_processor.restricted_release_processor upcoming --days 7 --sort-by value
 ```
 
 **输出**：
@@ -65,7 +65,7 @@ uv run --env-file .env python skills/restricted_release/scripts/restricted_relea
 
 **动作**：
 ```bash
-uv run --env-file .env python skills/restricted_release/scripts/restricted_release_processor/restricted_release_processor.py high-risk --min-ratio 0.2
+uv run --env-file .env python -m openclaw_alpha.skills.restricted_release.restricted_release_processor.restricted_release_processor high-risk --min-ratio 0.2
 ```
 
 **输出**：
@@ -78,7 +78,7 @@ uv run --env-file .env python skills/restricted_release/scripts/restricted_relea
 
 **动作**：
 ```bash
-uv run --env-file .env python skills/restricted_release/scripts/restricted_release_processor/restricted_release_processor.py queue {股票代码}
+uv run --env-file .env python -m openclaw_alpha.skills.restricted_release.restricted_release_processor.restricted_release_processor queue {股票代码}
 ```
 
 **输出**：

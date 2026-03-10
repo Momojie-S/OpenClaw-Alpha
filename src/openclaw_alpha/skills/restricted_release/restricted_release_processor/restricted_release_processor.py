@@ -42,7 +42,7 @@ def parse_args():
         "--min-ratio",
         type=float,
         default=0.1,
-        help="最小占流通市值比例（默认0.1即10%）",
+        help="最小占流通市值比例（默认0.1即10%%）",
     )
 
     return parser.parse_args()
