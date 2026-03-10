@@ -46,7 +46,7 @@ class TestDataLoading:
         """测试宏观数据不存在"""
         processor = MarketOverviewProcessor(date="2026-03-07", mode="quick")
 
-        with patch("skills.market_overview.scripts.overview_processor.overview_processor.load_output", return_value=None):
+        with patch("openclaw_alpha.skills.market_overview.overview_processor.overview_processor.load_output", return_value=None):
             result = await processor._load_macro_data()
             assert result is None
             assert "index_analysis: 数据不存在" in processor.errors
@@ -74,7 +74,7 @@ class TestDataLoading:
 
         processor = MarketOverviewProcessor(date="2026-03-07")
 
-        with patch("skills.market_overview.scripts.overview_processor.overview_processor.load_output", return_value=mock_data):
+        with patch("openclaw_alpha.skills.market_overview.overview_processor.overview_processor.load_output", return_value=mock_data):
             result = await processor._load_macro_data()
 
             assert result is not None
@@ -99,7 +99,7 @@ class TestDataLoading:
 
         processor = MarketOverviewProcessor(date="2026-03-07")
 
-        with patch("skills.market_overview.scripts.overview_processor.overview_processor.load_output", return_value=mock_data):
+        with patch("openclaw_alpha.skills.market_overview.overview_processor.overview_processor.load_output", return_value=mock_data):
             result = await processor._load_sentiment_data()
 
             assert result is not None
@@ -125,7 +125,7 @@ class TestDataLoading:
 
         processor = MarketOverviewProcessor(date="2026-03-07")
 
-        with patch("skills.market_overview.scripts.overview_processor.overview_processor.load_output", return_value=mock_data):
+        with patch("openclaw_alpha.skills.market_overview.overview_processor.overview_processor.load_output", return_value=mock_data):
             result = await processor._load_northbound_data()
 
             assert result is not None
@@ -346,7 +346,7 @@ class TestProcess:
     @pytest.mark.timeout(5)
     async def test_process_quick_mode(self):
         """测试快速模式"""
-        with patch("skills.market_overview.scripts.overview_processor.overview_processor.load_output", return_value=None):
+        with patch("openclaw_alpha.skills.market_overview.overview_processor.overview_processor.load_output", return_value=None):
             result = await process(date="2026-03-07", mode="quick")
 
             assert result.date == "2026-03-07"
@@ -360,7 +360,7 @@ class TestProcess:
     @pytest.mark.timeout(5)
     async def test_process_full_mode(self):
         """测试完整模式"""
-        with patch("skills.market_overview.scripts.overview_processor.overview_processor.load_output", return_value=None):
+        with patch("openclaw_alpha.skills.market_overview.overview_processor.overview_processor.load_output", return_value=None):
             result = await process(date="2026-03-07", mode="full")
 
             assert result.date == "2026-03-07"

@@ -144,7 +144,7 @@ class TestWatchlistProcessor:
         manager.add(["000001", "600000"])
 
         with patch(
-            "skills.watchlist_monitor.scripts.watchlist_processor.watchlist_processor.fetch_spot",
+            "openclaw_alpha.skills.watchlist_monitor.watchlist_processor.watchlist_processor.fetch_spot",
             new_callable=AsyncMock,
             return_value=sample_stocks,
         ):
@@ -161,7 +161,7 @@ class TestWatchlistProcessor:
         manager.add(["000001", "600000", "002475"])
 
         with patch(
-            "skills.watchlist_monitor.scripts.watchlist_processor.watchlist_processor.fetch_spot",
+            "openclaw_alpha.skills.watchlist_monitor.watchlist_processor.watchlist_processor.fetch_spot",
             new_callable=AsyncMock,
             return_value=sample_stocks,
         ):
@@ -179,7 +179,7 @@ class TestWatchlistProcessor:
         manager.add(["000001", "600000", "002475"])
 
         with patch(
-            "skills.watchlist_monitor.scripts.watchlist_processor.watchlist_processor.fetch_spot",
+            "openclaw_alpha.skills.watchlist_monitor.watchlist_processor.watchlist_processor.fetch_spot",
             new_callable=AsyncMock,
             return_value=sample_stocks,
         ):
@@ -305,7 +305,7 @@ class TestEdgeCases:
         ]
 
         with patch(
-            "skills.watchlist_monitor.scripts.watchlist_processor.watchlist_processor.fetch_spot",
+            "openclaw_alpha.skills.watchlist_monitor.watchlist_processor.watchlist_processor.fetch_spot",
             new_callable=AsyncMock,
             return_value=sample,
         ):

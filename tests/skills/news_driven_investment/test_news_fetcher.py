@@ -266,7 +266,6 @@ class TestNewsFetcherCls:
     @pytest.mark.timeout(10)
     async def test_fetch_returns_result(self):
         """fetch 返回正确结果"""
-        fetcher = NewsFetcherCls()
 
         # Mock 实现
         mock_result = NewsResult(
@@ -275,11 +274,13 @@ class TestNewsFetcherCls:
             source="财联社_全部",
         )
 
-        with patch.object(fetcher, '_select_available') as mock_select:
-            mock_method = AsyncMock()
-            mock_method.fetch.return_value = mock_result
-            mock_select.return_value = (mock_method, [])
-
+        # Patch NewsFetcherAkshare.fetch 方法
+        with patch(
+            "openclaw_alpha.skills.news_driven_investment.news_fetcher.news_fetcher.NewsFetcherAkshare.fetch",
+            new_callable=AsyncMock,
+            return_value=mock_result,
+        ):
+            fetcher = NewsFetcherCls()
             result = await fetcher.fetch(source="cls_global", limit=10)
 
             assert result.total == 1
@@ -306,7 +307,7 @@ class TestFetchFunction:
         )
 
         with patch(
-            "skills.news_driven_investment.scripts.news_fetcher.news_fetcher._fetcher"
+            "openclaw_alpha.skills.news_driven_investment.news_fetcher.news_fetcher._fetcher"
         ) as mock_fetcher:
             mock_fetcher.fetch = AsyncMock(return_value=mock_result)
 

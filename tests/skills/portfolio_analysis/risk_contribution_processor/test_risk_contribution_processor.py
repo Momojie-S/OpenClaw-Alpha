@@ -199,7 +199,7 @@ class TestProcess:
         holdings = {"000001": 0.5, "600000": 0.3, "002475": 0.2}
 
         with patch(
-            "skills.portfolio_analysis.scripts.risk_contribution_processor.risk_contribution_processor.fetch_prices",
+            "openclaw_alpha.skills.portfolio_analysis.risk_contribution_processor.risk_contribution_processor.fetch_prices",
             new_callable=AsyncMock,
             return_value=mock_price_data,
         ):
@@ -216,7 +216,7 @@ class TestProcess:
         holdings = {"000001": 0.5, "600000": 0.3, "002475": 0.2}
 
         with patch(
-            "skills.portfolio_analysis.scripts.risk_contribution_processor.risk_contribution_processor.fetch_prices",
+            "openclaw_alpha.skills.portfolio_analysis.risk_contribution_processor.risk_contribution_processor.fetch_prices",
             new_callable=AsyncMock,
             return_value=mock_price_data,
         ):

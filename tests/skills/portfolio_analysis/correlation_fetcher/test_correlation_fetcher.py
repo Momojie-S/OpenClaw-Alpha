@@ -46,7 +46,7 @@ class TestCorrelationFetcherAkshare:
 
         # Mock AKShare API
         with patch(
-            "skills.portfolio_analysis.scripts.correlation_fetcher.correlation_fetcher.ak.stock_zh_a_hist",
+            "openclaw_alpha.skills.portfolio_analysis.correlation_fetcher.correlation_fetcher.ak.stock_zh_a_hist",
             return_value=mock_akshare_data,
         ):
             data = await method.fetch(["000001"], days=30)
@@ -68,7 +68,7 @@ class TestCorrelationFetcherAkshare:
 
         # Mock AKShare API
         with patch(
-            "skills.portfolio_analysis.scripts.correlation_fetcher.correlation_fetcher.ak.stock_zh_a_hist",
+            "openclaw_alpha.skills.portfolio_analysis.correlation_fetcher.correlation_fetcher.ak.stock_zh_a_hist",
             return_value=mock_akshare_data,
         ):
             data = await method.fetch(["000001", "600000"], days=30)
@@ -87,7 +87,7 @@ class TestCorrelationFetcherAkshare:
 
         method = CorrelationFetcherAkshare()
 
-        with pytest.raises(ValueError, match="股票代码列表不能为空"):
+        with pytest.raises(ValueError, match="参数 codes 不能为空"):
             await method.fetch([])
 
     @pytest.mark.asyncio
@@ -102,7 +102,7 @@ class TestCorrelationFetcherAkshare:
 
         # Mock AKShare API - 返回空数据
         with patch(
-            "skills.portfolio_analysis.scripts.correlation_fetcher.correlation_fetcher.ak.stock_zh_a_hist",
+            "openclaw_alpha.skills.portfolio_analysis.correlation_fetcher.correlation_fetcher.ak.stock_zh_a_hist",
             return_value=pd.DataFrame(),
         ):
             with pytest.raises(RuntimeError, match="所有股票数据获取失败"):
@@ -121,7 +121,7 @@ class TestCorrelationFetcher:
         )
 
         with patch(
-            "skills.portfolio_analysis.scripts.correlation_fetcher.correlation_fetcher.ak.stock_zh_a_hist",
+            "openclaw_alpha.skills.portfolio_analysis.correlation_fetcher.correlation_fetcher.ak.stock_zh_a_hist",
             return_value=mock_akshare_data,
         ):
             data = await fetch(["000001"], days=30)
@@ -140,7 +140,7 @@ class TestCorrelationFetcher:
         fetcher = CorrelationFetcher()
 
         with patch(
-            "skills.portfolio_analysis.scripts.correlation_fetcher.correlation_fetcher.ak.stock_zh_a_hist",
+            "openclaw_alpha.skills.portfolio_analysis.correlation_fetcher.correlation_fetcher.ak.stock_zh_a_hist",
             return_value=mock_akshare_data,
         ):
             data = await fetcher.fetch(["000001"], days=30)

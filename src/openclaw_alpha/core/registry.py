@@ -97,7 +97,7 @@ class DataSourceRegistry:
         try:
             ds = self.get(name)
             return ds.is_available()
-        except KeyError:
+        except UnregisteredDataSourceError:
             return False
 
     async def close_all(self) -> None:

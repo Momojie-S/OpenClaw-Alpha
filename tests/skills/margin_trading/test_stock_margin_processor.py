@@ -189,7 +189,7 @@ class TestProcess:
     @pytest.mark.timeout(10)
     async def test_process_no_data(self, monkeypatch):
         """测试无数据情况"""
-        import skills.margin_trading.scripts.stock_margin_processor.stock_margin_processor as module
+        import openclaw_alpha.skills.margin_trading.stock_margin_processor.stock_margin_processor as module
 
         # Mock API 返回空数据
         monkeypatch.setattr(module, "get_sh_stocks", lambda x: pd.DataFrame())

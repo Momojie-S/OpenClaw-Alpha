@@ -68,7 +68,7 @@ class TestEtfFetcherAkshareTransform:
         mock_registry.get.return_value = mock_ds
 
         with patch(
-            "skills.etf_analysis.scripts.etf_fetcher.akshare_impl.DataSourceRegistry.get_instance",
+            "openclaw_alpha.skills.etf_analysis.etf_fetcher.akshare_impl.DataSourceRegistry.get_instance",
             return_value=mock_registry,
         ), patch.dict("sys.modules", {"akshare": mock_ak}):
             result = await fetcher._fetch_spot()
@@ -104,7 +104,7 @@ class TestEtfFetcherAkshareTransform:
         mock_registry.get.return_value = mock_ds
 
         with patch(
-            "skills.etf_analysis.scripts.etf_fetcher.akshare_impl.DataSourceRegistry.get_instance",
+            "openclaw_alpha.skills.etf_analysis.etf_fetcher.akshare_impl.DataSourceRegistry.get_instance",
             return_value=mock_registry,
         ), patch.dict("sys.modules", {"akshare": mock_ak}):
             result = await fetcher._fetch_history("sz159915", days=2)
@@ -132,7 +132,7 @@ class TestEtfFetcherAkshareTransform:
         mock_registry.get.return_value = mock_ds
 
         with patch(
-            "skills.etf_analysis.scripts.etf_fetcher.akshare_impl.DataSourceRegistry.get_instance",
+            "openclaw_alpha.skills.etf_analysis.etf_fetcher.akshare_impl.DataSourceRegistry.get_instance",
             return_value=mock_registry,
         ), patch.dict("sys.modules", {"akshare": mock_ak}):
             result = await fetcher._fetch_spot()
@@ -155,7 +155,7 @@ class TestEtfFetcherAkshareTransform:
         mock_registry.get.return_value = mock_ds
 
         with patch(
-            "skills.etf_analysis.scripts.etf_fetcher.akshare_impl.DataSourceRegistry.get_instance",
+            "openclaw_alpha.skills.etf_analysis.etf_fetcher.akshare_impl.DataSourceRegistry.get_instance",
             return_value=mock_registry,
         ), patch.dict("sys.modules", {"akshare": mock_ak}):
             result = await fetcher._fetch_history("sz159915", days=30)

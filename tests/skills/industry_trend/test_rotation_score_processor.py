@@ -195,10 +195,10 @@ class TestRotationScoreProcessor:
     @pytest.mark.timeout(10)
     async def test_process_with_existing_data(self, processor, sample_heat_data, sample_crowdedness_data, tmp_path):
         """测试使用已有数据的完整流程"""
-        with patch('skills.industry_trend.scripts.rotation_score_processor.rotation_score_processor.load_output') as mock_load:
+        with patch('openclaw_alpha.skills.industry_trend.rotation_score_processor.rotation_score_processor.load_output') as mock_load:
             mock_load.side_effect = [sample_heat_data, sample_crowdedness_data]
             
-            with patch('skills.industry_trend.scripts.rotation_score_processor.rotation_score_processor.get_output_path') as mock_path:
+            with patch('openclaw_alpha.skills.industry_trend.rotation_score_processor.rotation_score_processor.get_output_path') as mock_path:
                 mock_path.return_value = tmp_path / "rotation_score.json"
                 
                 result = await processor.process(
@@ -220,10 +220,10 @@ class TestRotationScoreProcessor:
     @pytest.mark.timeout(10)
     async def test_process_top_n_filtering(self, processor, sample_heat_data, sample_crowdedness_data, tmp_path):
         """测试 Top N 过滤"""
-        with patch('skills.industry_trend.scripts.rotation_score_processor.rotation_score_processor.load_output') as mock_load:
+        with patch('openclaw_alpha.skills.industry_trend.rotation_score_processor.rotation_score_processor.load_output') as mock_load:
             mock_load.side_effect = [sample_heat_data, sample_crowdedness_data]
             
-            with patch('skills.industry_trend.scripts.rotation_score_processor.rotation_score_processor.get_output_path') as mock_path:
+            with patch('openclaw_alpha.skills.industry_trend.rotation_score_processor.rotation_score_processor.get_output_path') as mock_path:
                 mock_path.return_value = tmp_path / "rotation_score.json"
                 
                 result = await processor.process(
@@ -239,7 +239,7 @@ class TestRotationScoreProcessor:
     async def test_process_no_heat_data(self, processor, tmp_path):
         """测试无热度数据时的错误处理"""
         # Mock load_output 返回 None，并 mock 获取数据的方法也返回 None
-        with patch('skills.industry_trend.scripts.rotation_score_processor.rotation_score_processor.load_output') as mock_load:
+        with patch('openclaw_alpha.skills.industry_trend.rotation_score_processor.rotation_score_processor.load_output') as mock_load:
             mock_load.return_value = None
             
             # Mock 获取数据的方法

@@ -4,7 +4,10 @@
 import pytest
 
 from openclaw_alpha.core.data_source import DataSource
-from openclaw_alpha.core.exceptions import DuplicateDataSourceError
+from openclaw_alpha.core.exceptions import (
+    DuplicateDataSourceError,
+    UnregisteredDataSourceError,
+)
 from openclaw_alpha.core.registry import DataSourceRegistry
 
 
@@ -73,7 +76,7 @@ class TestDataSourceRegistry:
         """测试获取未注册的数据源"""
         registry = DataSourceRegistry.get_instance()
 
-        with pytest.raises(KeyError) as exc_info:
+        with pytest.raises(UnregisteredDataSourceError) as exc_info:
             registry.get("not_exist")
 
         assert "not_exist" in str(exc_info.value)
@@ -118,7 +121,7 @@ class TestDataSourceRegistry:
         registry.reset()
 
         # 重置后无法获取
-        with pytest.raises(KeyError):
+        with pytest.raises(UnregisteredDataSourceError):
             registry.get("test_ds")
 
     def test_register_multiple(self):

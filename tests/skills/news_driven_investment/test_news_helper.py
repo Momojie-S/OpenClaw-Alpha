@@ -23,7 +23,7 @@ class TestKeywords:
         keywords = ["AI", "算力", "光模块"]
 
         with patch(
-            "skills.news_driven_investment.scripts.news_helper.get_output_path"
+            "openclaw_alpha.skills.news_driven_investment.news_helper.get_output_path"
         ) as mock_path:
             path = tmp_path / "keywords.json"
             mock_path.return_value = path
@@ -39,7 +39,7 @@ class TestKeywords:
     def test_load_keywords_not_exists(self, tmp_path):
         """读取不存在的关键词文件"""
         with patch(
-            "skills.news_driven_investment.scripts.news_helper.get_output_path"
+            "openclaw_alpha.skills.news_driven_investment.news_helper.get_output_path"
         ) as mock_path:
             path = tmp_path / "not_exists.json"
             mock_path.return_value = path
@@ -50,7 +50,7 @@ class TestKeywords:
     def test_save_empty_keywords(self, tmp_path):
         """保存空关键词列表"""
         with patch(
-            "skills.news_driven_investment.scripts.news_helper.get_output_path"
+            "openclaw_alpha.skills.news_driven_investment.news_helper.get_output_path"
         ) as mock_path:
             path = tmp_path / "keywords.json"
             mock_path.return_value = path
@@ -77,7 +77,7 @@ class TestAnalysis:
 """
 
         with patch(
-            "skills.news_driven_investment.scripts.news_helper.get_output_path"
+            "openclaw_alpha.skills.news_driven_investment.news_helper.get_output_path"
         ) as mock_path:
             path = tmp_path / "analysis.md"
             mock_path.return_value = path
@@ -99,7 +99,7 @@ class TestCandidates:
         ]
 
         with patch(
-            "skills.news_driven_investment.scripts.news_helper.get_output_path"
+            "openclaw_alpha.skills.news_driven_investment.news_helper.get_output_path"
         ) as mock_path:
             path = tmp_path / "candidates.json"
             mock_path.return_value = path
@@ -115,7 +115,7 @@ class TestCandidates:
     def test_load_candidates_not_exists(self, tmp_path):
         """读取不存在的候选标的文件"""
         with patch(
-            "skills.news_driven_investment.scripts.news_helper.get_output_path"
+            "openclaw_alpha.skills.news_driven_investment.news_helper.get_output_path"
         ) as mock_path:
             path = tmp_path / "not_exists.json"
             mock_path.return_value = path
@@ -135,7 +135,7 @@ class TestCandidates:
         ]
 
         with patch(
-            "skills.news_driven_investment.scripts.news_helper.get_output_path"
+            "openclaw_alpha.skills.news_driven_investment.news_helper.get_output_path"
         ) as mock_path:
             path = tmp_path / "candidates.json"
             mock_path.return_value = path

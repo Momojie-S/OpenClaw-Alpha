@@ -235,7 +235,7 @@ class TestCrowdednessProcessor:
             mock_fetch.return_value = sample_industry_data
             
             # Mock 输出路径
-            with patch('skills.industry_trend.scripts.crowdedness_processor.crowdedness_processor.get_output_path') as mock_path:
+            with patch('openclaw_alpha.skills.industry_trend.crowdedness_processor.crowdedness_processor.get_output_path') as mock_path:
                 mock_path.return_value = tmp_path / "crowdedness.json"
                 
                 result = await processor.process(
@@ -260,7 +260,7 @@ class TestCrowdednessProcessor:
         with patch.object(processor, '_fetch_data', new_callable=AsyncMock) as mock_fetch:
             mock_fetch.return_value = sample_concept_data
             
-            with patch('skills.industry_trend.scripts.crowdedness_processor.crowdedness_processor.get_output_path') as mock_path:
+            with patch('openclaw_alpha.skills.industry_trend.crowdedness_processor.crowdedness_processor.get_output_path') as mock_path:
                 mock_path.return_value = tmp_path / "crowdedness.json"
                 
                 result = await processor.process(
@@ -279,7 +279,7 @@ class TestCrowdednessProcessor:
         with patch.object(processor, '_fetch_data', new_callable=AsyncMock) as mock_fetch:
             mock_fetch.return_value = sample_industry_data
             
-            with patch('skills.industry_trend.scripts.crowdedness_processor.crowdedness_processor.get_output_path') as mock_path:
+            with patch('openclaw_alpha.skills.industry_trend.crowdedness_processor.crowdedness_processor.get_output_path') as mock_path:
                 mock_path.return_value = tmp_path / "crowdedness.json"
                 
                 result = await processor.process(

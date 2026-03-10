@@ -93,7 +93,7 @@ class TestGetDipAdvice:
         }
 
         with patch(
-            "skills.smart_dip.scripts.dip_advice_processor.dip_advice_processor.EquityBondRatioProcessor"
+            "openclaw_alpha.skills.smart_dip.dip_advice_processor.dip_advice_processor.EquityBondRatioProcessor"
         ) as mock_processor_class:
             mock_processor = AsyncMock()
             mock_processor.process.return_value = mock_ebr_data
@@ -118,7 +118,7 @@ class TestGetDipAdvice:
         }
 
         with patch(
-            "skills.smart_dip.scripts.dip_advice_processor.dip_advice_processor.EquityBondRatioProcessor"
+            "openclaw_alpha.skills.smart_dip.dip_advice_processor.dip_advice_processor.EquityBondRatioProcessor"
         ) as mock_processor_class:
             mock_processor = AsyncMock()
             mock_processor.process.return_value = mock_ebr_data
@@ -136,7 +136,7 @@ class TestGetDipAdvice:
         }
 
         with patch(
-            "skills.smart_dip.scripts.dip_advice_processor.dip_advice_processor.EquityBondRatioProcessor"
+            "openclaw_alpha.skills.smart_dip.dip_advice_processor.dip_advice_processor.EquityBondRatioProcessor"
         ) as mock_processor_class:
             mock_processor = AsyncMock()
             mock_processor.process.return_value = mock_ebr_data
@@ -157,7 +157,7 @@ class TestGetDipAdvice:
         }
 
         with patch(
-            "skills.smart_dip.scripts.dip_advice_processor.dip_advice_processor.EquityBondRatioProcessor"
+            "openclaw_alpha.skills.smart_dip.dip_advice_processor.dip_advice_processor.EquityBondRatioProcessor"
         ) as mock_processor_class:
             mock_processor = AsyncMock()
             mock_processor.process.return_value = mock_ebr_data

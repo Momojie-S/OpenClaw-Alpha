@@ -9,6 +9,7 @@ from openclaw_alpha.core.exceptions import (
     InsufficientCreditError,
     MissingConfigError,
     NoAvailableMethodError,
+    UnregisteredDataSourceError,
 )
 from openclaw_alpha.core.registry import DataSourceRegistry
 
@@ -53,7 +54,7 @@ class FetchMethod(ABC):
         # 检查数据源是否注册
         try:
             ds = registry.get(self.required_data_source)
-        except KeyError:
+        except UnregisteredDataSourceError:
             return (
                 False,
                 DataSourceUnavailableError(

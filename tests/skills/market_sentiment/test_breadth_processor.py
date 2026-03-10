@@ -354,7 +354,7 @@ class TestProcess:
     async def test_process_with_mock(self, sample_breadth_data):
         """测试处理流程（mock 数据）"""
         with patch(
-            "skills.market_sentiment.scripts.breadth_processor.breadth_processor.fetch_breadth"
+            "openclaw_alpha.skills.market_sentiment.breadth_processor.breadth_processor.fetch_breadth"
         ) as mock_fetch:
             mock_fetch.return_value = sample_breadth_data
 
@@ -371,7 +371,7 @@ class TestProcess:
     async def test_process_empty_data(self):
         """测试空数据处理"""
         with patch(
-            "skills.market_sentiment.scripts.breadth_processor.breadth_processor.fetch_breadth"
+            "openclaw_alpha.skills.market_sentiment.breadth_processor.breadth_processor.fetch_breadth"
         ) as mock_fetch:
             mock_fetch.return_value = []
 

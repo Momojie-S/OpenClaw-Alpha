@@ -209,7 +209,7 @@ class TestProcess:
     async def test_process_text_format(self, mock_price_data):
         """测试文本格式输出"""
         with patch(
-            "skills.portfolio_analysis.scripts.correlation_processor.correlation_processor.fetch_prices",
+            "openclaw_alpha.skills.portfolio_analysis.correlation_processor.correlation_processor.fetch_prices",
             new_callable=AsyncMock,
             return_value=mock_price_data,
         ):
@@ -228,7 +228,7 @@ class TestProcess:
     async def test_process_json_format(self, mock_price_data):
         """测试 JSON 格式输出"""
         with patch(
-            "skills.portfolio_analysis.scripts.correlation_processor.correlation_processor.fetch_prices",
+            "openclaw_alpha.skills.portfolio_analysis.correlation_processor.correlation_processor.fetch_prices",
             new_callable=AsyncMock,
             return_value=mock_price_data,
         ):

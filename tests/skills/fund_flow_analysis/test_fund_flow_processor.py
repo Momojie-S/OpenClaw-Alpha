@@ -83,7 +83,7 @@ class TestFundFlowData:
 class TestFetchFundFlow:
     """测试获取资金流向数据"""
 
-    @patch("skills.fund_flow_analysis.scripts.fund_flow_processor.fund_flow_processor.ak.stock_fund_flow_industry")
+    @patch("openclaw_alpha.skills.fund_flow_analysis.fund_flow_processor.fund_flow_processor.ak.stock_fund_flow_industry")
     def test_fetch_industry(self, mock_api, sample_industry_df):
         """测试获取行业资金流向"""
         mock_api.return_value = sample_industry_df
@@ -91,7 +91,7 @@ class TestFetchFundFlow:
         assert len(result) == 5
         assert list(result.columns) == list(sample_industry_df.columns)
 
-    @patch("skills.fund_flow_analysis.scripts.fund_flow_processor.fund_flow_processor.ak.stock_fund_flow_concept")
+    @patch("openclaw_alpha.skills.fund_flow_analysis.fund_flow_processor.fund_flow_processor.ak.stock_fund_flow_concept")
     def test_fetch_concept(self, mock_api, sample_concept_df):
         """测试获取概念资金流向"""
         mock_api.return_value = sample_concept_df

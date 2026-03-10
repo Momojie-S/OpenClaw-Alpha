@@ -74,7 +74,7 @@ class TestVolumePriceProcessor:
         processor = VolumePriceProcessor("000001", days=30)
 
         with patch(
-            "skills.technical_indicators.scripts.volume_price_processor.volume_price_processor.fetch_history",
+            "openclaw_alpha.skills.technical_indicators.volume_price_processor.volume_price_processor.fetch_history",
             new_callable=AsyncMock,
             return_value=mock_history_data,
         ):
@@ -96,7 +96,7 @@ class TestVolumePriceProcessor:
         processor = VolumePriceProcessor("000001", days=60)
 
         with patch(
-            "skills.technical_indicators.scripts.volume_price_processor.volume_price_processor.fetch_history",
+            "openclaw_alpha.skills.technical_indicators.volume_price_processor.volume_price_processor.fetch_history",
             new_callable=AsyncMock,
             return_value=pd.DataFrame(),
         ):
