@@ -91,11 +91,11 @@ class TestConceptFetcherAkshareTransform:
         assert first['metrics']['down_count'] == 12
 
     def test_transform_amount_conversion(self, fetcher, sample_concept_data):
-        """测试成交额单位转换（元 -> 万元）"""
+        """测试成交额单位转换（估算值：总市值 × 换手率 / 100 -> 万元）"""
         result = fetcher._transform(sample_concept_data, '2026-03-06')
 
-        # 成交额：1234567890 元 -> 123456.789 万元
-        assert abs(result[0]['metrics']['amount'] - 123456.789) < 1
+        # 成交额估算：5000000000 × 2.5 / 100 = 125000000 元 = 12500 万元
+        assert abs(result[0]['metrics']['amount'] - 12500.0) < 1
 
     def test_transform_float_mv_conversion(self, fetcher, sample_concept_data):
         """测试市值单位转换（元 -> 万元）"""
