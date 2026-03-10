@@ -104,6 +104,9 @@
 - **按功能组组织测试**: 测试文件应按功能相关性组织。对于特别复杂的方法，可以单独创建测试文件；简单方法应合并到相关功能组的测试文件中
 - **异步测试装饰器**: 所有异步测试方法必须同时包含 `@pytest.mark.asyncio` 和 `@pytest.mark.timeout` 装饰器
 - **Mock 路径规则**: Mock 时 patch 模块被导入的位置，而非定义位置。例如：`patch("openclaw_alpha.fetchers.concept_board.akshare.ak.stock_board_concept_name_em")` 而非 `patch("ak.stock_board_concept_name_em")`
+- **Mock 重写方法**: 当被测类重写了基类方法（如 NewsFetcherCls 重写 fetch），需要 mock 实际调用的方法，而不是基类方法
+- **Mock 多个方法**: 测试 mock 时需要同时 mock 核心方法和辅助方法（如 `fetch()` 和 `is_available()`），避免因环境问题导致意外行为
+- **测试隔离**: 单独运行测试时可能通过，但运行所有测试时可能因环境变化而失败。需要注意单例状态和测试隔离，确保测试独立运行和全量运行结果一致
 - **临时文件**: 使用当前工作目录下的 `.temp` 目录来存储临时文件
 - **保证逻辑正确**: 除非源代码逻辑有错误，否则不能因为测试不通过而修改源代码
 - **诚实原则**: 当测试用例失败且不知道原因或如何修复时，应停下来询问下一步该怎么做
