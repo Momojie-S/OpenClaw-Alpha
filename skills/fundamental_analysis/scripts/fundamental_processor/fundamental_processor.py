@@ -7,14 +7,13 @@ import json
 import logging
 import sys
 from pathlib import Path
-from datetime import datetime
-from typing import Dict, List, Optional
+from typing import Dict, Optional
 
 # 添加项目根目录到 Python 路径
 sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent.parent))
 
 # 导入数据源模块以注册数据源
-import openclaw_alpha.data_sources
+from openclaw_alpha.data_sources import registry  # noqa: F401
 
 from skills.fundamental_analysis.scripts.financial_fetcher import fetch_financial
 from skills.fundamental_analysis.scripts.valuation_fetcher import fetch_valuation

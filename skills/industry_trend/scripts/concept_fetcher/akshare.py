@@ -76,6 +76,10 @@ class ConceptFetcherAkshare(FetchMethod):
         
         Returns:
             转换后的数据列表
+        
+        Note:
+            AKShare 的 stock_board_concept_name_em 接口不返回成交额，
+            使用 总市值 × 换手率 / 100 估算成交额（换手率基于流通市值，此处用总市值近似）
         """
         result = []
         
@@ -88,6 +92,11 @@ class ConceptFetcherAkshare(FetchMethod):
             if not name or not code:
                 continue
             
+            # 估算成交额：总市值 × 换手率 / 100
+            total_mv = self._parse_float(item.get('总市值'), 0.0)
+            turnover_rate = self._parse_float(item.get('换手率'), 0.0)
+            estimated_amount = total_mv * turnover_rate / 100 if total_mv > 0 and turnover_rate > 0 else 0.0
+            
             # 构建结果
             result.append({
                 'name': name,
@@ -96,9 +105,9 @@ class ConceptFetcherAkshare(FetchMethod):
                 'metrics': {
                     'close': self._parse_float(item.get('最新价')),
                     'pct_change': self._parse_float(item.get('涨跌幅')),
-                    'amount': self._parse_float(item.get('成交额'), 0.0) / 10000,  # 元 -> 万元
-                    'turnover_rate': self._parse_float(item.get('换手率')),
-                    'float_mv': self._parse_float(item.get('总市值'), 0.0) / 10000,  # 元 -> 万元（使用总市值代替流通市值）
+                    'amount': estimated_amount / 10000,  # 元 -> 万元
+                    'turnover_rate': turnover_rate,
+                    'float_mv': total_mv / 10000,  # 元 -> 万元（使用总市值代替流通市值）
                     'up_count': self._parse_int(item.get('上涨家数')),
                     'down_count': self._parse_int(item.get('下跌家数')),
                 }
