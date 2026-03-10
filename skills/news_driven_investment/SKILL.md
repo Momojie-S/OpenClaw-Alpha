@@ -17,8 +17,14 @@ metadata:
 ### 获取新闻
 
 ```bash
-# 获取财联社全球资讯（推荐）
+# 获取财联社全球资讯（推荐，AKShare 接口）
 uv run --env-file .env python skills/news_driven_investment/scripts/news_fetcher/news_fetcher.py --source cls_global --limit 10
+
+# 获取财联社电报快讯（RSSHub 接口）
+uv run --env-file .env python skills/news_driven_investment/scripts/news_fetcher/news_fetcher.py --source cls_telegraph --limit 10
+
+# 获取雪球今日话题（RSSHub 接口）
+uv run --env-file .env python skills/news_driven_investment/scripts/news_fetcher/news_fetcher.py --source xueqiu_today --limit 10
 
 # 获取财联社重点资讯
 uv run --env-file .env python skills/news_driven_investment/scripts/news_fetcher/news_fetcher.py --source cls_important --limit 5
@@ -27,7 +33,7 @@ uv run --env-file .env python skills/news_driven_investment/scripts/news_fetcher
 uv run --env-file .env python skills/news_driven_investment/scripts/news_fetcher/news_fetcher.py --source stock --symbol 000001 --limit 5
 
 # 按关键词筛选新闻
-uv run --env-file .env python skills/news_driven_investment/scripts/news_fetcher/news_fetcher.py --source cls_global --keyword "AI" --limit 10
+uv run --env-file .env python skills/news_driven_investment/scripts/news_fetcher/news_fetcher.py --source cls_telegraph --keyword "AI" --limit 10
 
 # 按日期筛选新闻
 uv run --env-file .env python skills/news_driven_investment/scripts/news_fetcher/news_fetcher.py --source cls_global --date "2026-03-07" --limit 10
@@ -35,13 +41,20 @@ uv run --env-file .env python skills/news_driven_investment/scripts/news_fetcher
 
 ### 数据源说明
 
-**AKShare 接口**（脚本内置）：
+**AKShare 接口**（优先使用）：
 
 | 数据源 | 来源 | 特点 | 推荐度 |
 |--------|------|------|:------:|
 | `cls_global` | 财联社 | 实时、快速、覆盖广 | ⭐⭐⭐ |
 | `cls_important` | 财联社 | 重点精选，数量少 | ⭐⭐ |
 | `stock` | 东方财富 | 按股票代码获取个股新闻 | ⭐⭐ |
+
+**RSSHub 接口**（备选）：
+
+| 数据源 | 来源 | 特点 | 推荐度 |
+|--------|------|------|:------:|
+| `cls_telegraph` | 财联社电报 | 实时快讯，响应快 | ⭐⭐⭐ |
+| `xueqiu_today` | 雪球 | 今日热门话题 | ⭐⭐ |
 
 ### 筛选参数
 
@@ -50,15 +63,6 @@ uv run --env-file .env python skills/news_driven_investment/scripts/news_fetcher
 | `--keyword` | 关键词筛选（标题和内容匹配） | `--keyword "AI"` |
 | `--date` | 日期筛选（YYYY-MM-DD） | `--date "2026-03-07"` |
 | `--limit` | 返回数量限制 | `--limit 10` |
-
-**RSSHub 公共实例**（备选）：
-
-```bash
-# 财联社电报（实时快讯）
-curl -s "https://rsshub.ktachibana.party/cls/telegraph"
-```
-
-更多可用实例见 [RSSHub 实例列表](../../../docs/references/rsshub/instances.md)
 
 ---
 

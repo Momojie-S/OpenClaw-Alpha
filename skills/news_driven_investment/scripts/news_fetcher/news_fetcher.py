@@ -42,6 +42,27 @@ class NewsFetcherCls(Fetcher):
         super().__init__()
         # 注册实现（按优先级）
         self.register(NewsFetcherAkshare(), priority=10)
+        
+        # RSSHub 实现（动态导入，处理直接运行时的路径问题）
+        try:
+            import importlib.util
+            import os
+            
+            # 获取 rsshub.py 的路径
+            current_dir = os.path.dirname(os.path.abspath(__file__))
+            rsshub_path = os.path.join(current_dir, "rsshub.py")
+            
+            # 动态加载模块
+            spec = importlib.util.spec_from_file_location("rsshub", rsshub_path)
+            if spec and spec.loader:
+                rsshub_module = importlib.util.module_from_spec(spec)
+                # 先加载模块，再注册
+                spec.loader.exec_module(rsshub_module)
+                rsshub_class = getattr(rsshub_module, "NewsFetcherRsshub", None)
+                if rsshub_class:
+                    self.register(rsshub_class(), priority=5)
+        except Exception:
+            pass  # RSSHub 不可用时跳过（如依赖缺失等）
     
     async def fetch(
         self,
@@ -53,11 +74,17 @@ class NewsFetcherCls(Fetcher):
     ) -> NewsResult:
         """获取新闻数据
         
+        如果第一个实现返回空结果或不支持该 source，尝试下一个实现。
+        
         Args:
             source: 新闻源
+                AKShare 接口：
                 - "cls_global": 财联社全球资讯（默认）
                 - "cls_important": 财联社重点资讯
                 - "stock": 个股新闻（需指定 symbol）
+                RSSHub 接口：
+                - "cls_telegraph": 财联社电报快讯
+                - "xueqiu_today": 雪球今日话题
             symbol: 股票代码（仅 source="stock" 时使用）
             keyword: 关键词筛选（在标题和内容中匹配）
             date: 日期筛选（YYYY-MM-DD 格式）
@@ -66,13 +93,48 @@ class NewsFetcherCls(Fetcher):
         Returns:
             NewsResult: 新闻结果
         """
-        return await super().fetch(
-            source=source,
-            symbol=symbol,
-            keyword=keyword,
-            date=date,
-            limit=limit
-        )
+        # 按优先级排序所有实现
+        sorted_methods = sorted(self._methods, key=lambda m: m.priority, reverse=True)
+        
+        last_error = None
+        for method in sorted_methods:
+            # 检查是否可用
+            available, error = method.is_available()
+            if not available:
+                last_error = error
+                continue
+            
+            # 尝试获取数据
+            try:
+                result = await method.fetch(
+                    source=source,
+                    symbol=symbol,
+                    keyword=keyword,
+                    date=date,
+                    limit=limit
+                )
+                
+                # 如果有结果，直接返回
+                if result.total > 0:
+                    return result
+                
+                # 如果返回空结果（可能是不支持该 source），尝试下一个实现
+                if result.source.endswith("_unsupported"):
+                    continue
+                    
+                # 真正的空结果，也返回
+                return result
+                
+            except Exception as e:
+                last_error = e
+                continue
+        
+        # 所有实现都失败
+        if last_error:
+            raise last_error
+        
+        # 没有可用的实现
+        return NewsResult(news=[], total=0, source="")
 
 
 class NewsFetcherAkshare(FetchMethod):
@@ -82,6 +144,9 @@ class NewsFetcherAkshare(FetchMethod):
     required_data_source = "akshare"
     priority = 10
     
+    # 支持的 source 列表
+    SUPPORTED_SOURCES = {"cls_global", "cls_important", "stock"}
+    
     async def fetch(
         self,
         source: str = "cls_global",
@@ -90,7 +155,14 @@ class NewsFetcherAkshare(FetchMethod):
         date: Optional[str] = None,
         limit: int = 20
     ) -> NewsResult:
-        """从 AKShare 获取新闻并筛选"""
+        """从 AKShare 获取新闻并筛选
+        
+        注意：不支持的 source 返回空结果，让 Fetcher 尝试其他实现
+        """
+        # 检查是否支持该 source
+        if source not in self.SUPPORTED_SOURCES:
+            # 返回空结果，让其他实现处理
+            return NewsResult(news=[], total=0, source="akshare_unsupported")
         
         # 获取原始新闻数据（多获取一些以便筛选）
         fetch_limit = limit * 5 if keyword or date else limit
@@ -107,10 +179,8 @@ class NewsFetcherAkshare(FetchMethod):
                 )
             result = await self._fetch_stock_news(symbol=symbol, limit=fetch_limit)
         else:
-            raise ValueError(
-                f"参数 source '{source}' 不存在（收到 '{source}'）。"
-                f"可用来源：cls_global（财联社全球）、cls_important（财联社重点）、stock（个股新闻）"
-            )
+            # 不会到达这里，因为上面已经检查过
+            result = NewsResult(news=[], total=0, source="")
         
         # 应用筛选
         filtered_news = self._filter_news(result.news, keyword=keyword, date=date)
@@ -259,8 +329,16 @@ class NewsFetcherAkshare(FetchMethod):
         )
 
 
-# 单例实例
-_fetcher = NewsFetcherCls()
+# 单例实例（延迟创建，处理直接运行时的导入问题）
+_fetcher = None
+
+
+def _get_fetcher():
+    """获取 Fetcher 单例（延迟创建）"""
+    global _fetcher
+    if _fetcher is None:
+        _fetcher = NewsFetcherCls()
+    return _fetcher
 
 
 async def fetch(
@@ -274,9 +352,13 @@ async def fetch(
     
     Args:
         source: 新闻源
+            AKShare 接口：
             - "cls_global": 财联社全球资讯（默认）
             - "cls_important": 财联社重点资讯
             - "stock": 个股新闻（需指定 symbol）
+            RSSHub 接口：
+            - "cls_telegraph": 财联社电报快讯
+            - "xueqiu_today": 雪球今日话题
         symbol: 股票代码（仅 source="stock" 时使用）
         keyword: 关键词筛选（在标题和内容中匹配）
         date: 日期筛选（YYYY-MM-DD 格式）
@@ -294,8 +376,11 @@ async def fetch(
         
         # 筛选包含关键词的新闻
         result = await fetch(source="cls_global", keyword="AI", limit=10)
+        
+        # 获取 RSSHub 财联社电报
+        result = await fetch(source="cls_telegraph", limit=10)
     """
-    return await _fetcher.fetch(
+    return await _get_fetcher().fetch(
         source=source,
         symbol=symbol,
         keyword=keyword,
@@ -312,9 +397,9 @@ def _main():
     parser = argparse.ArgumentParser(description="获取财经新闻")
     parser.add_argument(
         "--source",
-        choices=["cls_global", "cls_important", "stock"],
+        choices=["cls_global", "cls_important", "stock", "cls_telegraph", "xueqiu_today"],
         default="cls_global",
-        help="新闻源"
+        help="新闻源（AKShare: cls_global, cls_important, stock; RSSHub: cls_telegraph, xueqiu_today）"
     )
     parser.add_argument(
         "--symbol",
