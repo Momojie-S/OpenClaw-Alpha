@@ -165,10 +165,10 @@ OpenClaw-Alpha/
 - `src/openclaw_alpha/skills/{skill_name}/` - 放代码（fetcher + processor）
 - `src/openclaw_alpha/` - 通过 pyproject.toml 注册为包，所有代码统一导入
 
-**导入方式**：
+**导入方式**：统一使用绝对导入
 - 导入基类：`from openclaw_alpha.core.fetcher import Fetcher`
-- Skill 内部：相对导入 `from ..xxx_fetcher import fetch`
-- 跨 Skill：绝对导入 `from openclaw_alpha.skills.xxx.xxx_fetcher import fetch`
+- Skill 内部：`from openclaw_alpha.skills.{skill_name}.xxx_fetcher import fetch`
+- 跨 Skill：`from openclaw_alpha.skills.other_skill.xxx_fetcher import fetch`
 
 **运行方式**：
 ```bash
