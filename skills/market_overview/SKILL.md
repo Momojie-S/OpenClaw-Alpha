@@ -14,6 +14,39 @@ metadata:
 
 ## 使用说明
 
+### 交易日历工具
+
+获取交易日历上下文信息，包括市场状态、交易日判断等：
+
+```bash
+# 获取当前时间的交易日历上下文
+uv run --env-file .env python skills/market_overview/scripts/trading_calendar_processor/trading_calendar_processor.py
+
+# 获取指定日期的交易日历上下文
+uv run --env-file .env python skills/market_overview/scripts/trading_calendar_processor/trading_calendar_processor.py --date 2026-03-10
+
+# 获取指定日期时间的交易日历上下文
+uv run --env-file .env python skills/market_overview/scripts/trading_calendar_processor/trading_calendar_processor.py --datetime "2026-03-10 10:30:00"
+```
+
+**输出示例**：
+```json
+{
+  "current_time": "2026-03-10 10:31:58",
+  "is_trading_day": true,
+  "is_trading_time": true,
+  "market_status": "早盘",
+  "suggested_date": "2026-03-10",
+  "previous_trading_day": "2026-03-09",
+  "next_trading_day": "2026-03-11"
+}
+```
+
+**应用场景**：
+- 判断当前是否为交易时段，避免开盘前/休市日的数据空值被误报为 bug
+- 获取应使用的日期（开盘前使用上一个交易日）
+- 了解市场状态（休市/集合竞价/早盘/午间休市/午盘/收盘）
+
 ### 脚本运行
 
 ```bash
