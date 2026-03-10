@@ -23,6 +23,7 @@ htmlcov/
 
 # Temp files
 .temp/
+*.bak/
 
 # Runtime data
 .openclaw_alpha/
