@@ -162,13 +162,15 @@ Tushare 数据源有积分要求，通过 `required_credit` 声明。
 - 确保参数命名一致（统一使用 `date`、`symbol`，在 FetchMethod 内部转换为 API 所需格式）
 
 **股票代码格式转换**：
+- 使用框架提供的代码转换器（见 [代码转换器设计](../architecture/code-converter-design.md)）
 - 内部统一使用 6 位代码（如 `000001`）
-- FetchMethod 内部转换为数据源所需格式
-- 转换规则（Tushare/AKShare）：
-  - `60*`, `68*` → 上交所 `.SH`
-  - `00*`, `30*` → 深交所 `.SZ`
-  - `688*`, `689*` → 科创板 `.SH`
-- 参考策略框架的"数据格式约定"
+- FetchMethod 内部调用 `convert_code()` 转换为数据源所需格式
+
+```python
+from openclaw_alpha.core.code_converter import convert_code
+
+ts_code = convert_code(code, "tushare")  # → "000001.SZ"
+```
 
 ---
 

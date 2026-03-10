@@ -8,6 +8,7 @@ from typing import List
 import pandas as pd
 from tenacity import retry, stop_after_attempt, wait_exponential
 
+from openclaw_alpha.core.code_converter import convert_code
 from openclaw_alpha.core.fetcher import FetchMethod
 from openclaw_alpha.core.exceptions import DataSourceUnavailableError
 from .models import ValuationData
@@ -84,12 +85,8 @@ class ValuationFetcherTushare(FetchMethod):
         start_date_str = start_date.strftime("%Y%m%d")
         end_date_str = end_date.strftime("%Y%m%d")
 
-        # 构造 ts_code（Tushare 格式：000001.SZ）
-        # 假设 A 股代码为 6 位数字
-        if code.startswith("6"):
-            ts_code = f"{code}.SH"
-        else:
-            ts_code = f"{code}.SZ"
+        # 使用代码转换器转换为 Tushare 格式
+        ts_code = convert_code(code, "tushare")
 
         try:
             client = await self.get_client()

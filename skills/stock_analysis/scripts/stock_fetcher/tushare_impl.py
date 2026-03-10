@@ -7,6 +7,7 @@ from datetime import datetime
 
 from tenacity import retry, stop_after_attempt, wait_exponential
 
+from openclaw_alpha.core.code_converter import convert_code
 from openclaw_alpha.core.fetcher import FetchMethod
 from openclaw_alpha.core.registry import DataSourceRegistry
 
@@ -66,14 +67,9 @@ class StockFetcherTushare(FetchMethod):
         tushare = registry.get("tushare")
         client = await tushare.get_client()
 
-        # 如果是 6 位数字，补充交易所后缀
+        # 如果是 6 位数字，使用代码转换器转换
         if identifier.isdigit() and len(identifier) == 6:
-            code = identifier
-            # 判断交易所
-            if code.startswith(("60", "68")):
-                ts_code = f"{code}.SH"
-            else:
-                ts_code = f"{code}.SZ"
+            ts_code = convert_code(identifier, "tushare")
 
             # 查询股票名称
             df = client.stock_basic(exchange="", list_status="L")

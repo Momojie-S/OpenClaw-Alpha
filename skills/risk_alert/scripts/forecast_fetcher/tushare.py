@@ -7,6 +7,7 @@ from typing import Any
 import pandas as pd
 from tenacity import retry, stop_after_attempt, wait_exponential
 
+from openclaw_alpha.core.code_converter import convert_code
 from openclaw_alpha.core.fetcher import FetchMethod
 from openclaw_alpha.core.exceptions import DataSourceUnavailableError
 
@@ -80,14 +81,8 @@ class ForecastFetcherTushare(FetchMethod):
             # 构造请求参数
             api_params = {}
             if params.get("ts_code"):
-                # 将 6 位股票代码转换为 Tushare 格式（带后缀）
-                ts_code = params["ts_code"]
-                if len(ts_code) == 6:
-                    # 判断市场
-                    if ts_code.startswith(("6",)):
-                        ts_code = f"{ts_code}.SH"
-                    else:
-                        ts_code = f"{ts_code}.SZ"
+                # 使用代码转换器转换为 Tushare 格式
+                ts_code = convert_code(params["ts_code"], "tushare")
                 api_params["ts_code"] = ts_code
             if params.get("period"):
                 api_params["period"] = params["period"].replace("-", "")

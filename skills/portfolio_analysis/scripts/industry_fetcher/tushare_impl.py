@@ -8,6 +8,7 @@ from typing import Any
 import pandas as pd
 from tenacity import retry, stop_after_attempt, wait_exponential
 
+from openclaw_alpha.core.code_converter import convert_codes
 from openclaw_alpha.core.exceptions import NetworkError, RateLimitError, ServerError
 from openclaw_alpha.core.fetcher import FetchMethod
 from openclaw_alpha.data_sources import registry
@@ -60,8 +61,8 @@ class IndustryInfoFetcherTushare(FetchMethod):
             tushare_ds = registry.get("tushare")
             pro = await tushare_ds.get_client()
 
-            # 转换代码格式：000001 -> 000001.SZ
-            ts_codes = [self._convert_code(code) for code in codes]
+            # 使用代码转换器批量转换格式
+            ts_codes = convert_codes(codes, "tushare")
 
             # 批量查询（一次最多 100 个）
             dfs = []
@@ -91,29 +92,6 @@ class IndustryInfoFetcherTushare(FetchMethod):
                 raise ServerError(f"服务端错误: {e}")
             else:
                 raise
-
-    def _convert_code(self, symbol: str) -> str:
-        """转换股票代码格式
-
-        Args:
-            symbol: 6 位股票代码（如 "000001"）
-
-        Returns:
-            Tushare 格式代码（如 "000001.SZ"）
-        """
-        if "." in symbol:
-            return symbol
-
-        # 根据代码前缀判断市场
-        if symbol.startswith(("60", "68")):
-            return f"{symbol}.SH"
-        elif symbol.startswith(("00", "30")):
-            return f"{symbol}.SZ"
-        elif symbol.startswith(("688", "689")):
-            return f"{symbol}.SH"
-        else:
-            # 默认深圳
-            return f"{symbol}.SZ"
 
     def _parse_data(self, df: pd.DataFrame) -> dict[str, Any]:
         """
