@@ -80,9 +80,20 @@ class ForecastFetcherTushare(FetchMethod):
             # 构造请求参数
             api_params = {}
             if params.get("ts_code"):
-                api_params["ts_code"] = params["ts_code"]
+                # 将 6 位股票代码转换为 Tushare 格式（带后缀）
+                ts_code = params["ts_code"]
+                if len(ts_code) == 6:
+                    # 判断市场
+                    if ts_code.startswith(("6",)):
+                        ts_code = f"{ts_code}.SH"
+                    else:
+                        ts_code = f"{ts_code}.SZ"
+                api_params["ts_code"] = ts_code
             if params.get("period"):
                 api_params["period"] = params["period"].replace("-", "")
+            if params.get("date"):
+                # 将日期格式转换为 YYYYMMDD
+                api_params["ann_date"] = params["date"].replace("-", "")
 
             df = client.forecast(**api_params)
 

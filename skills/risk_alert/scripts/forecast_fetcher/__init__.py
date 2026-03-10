@@ -9,12 +9,17 @@ from .forecast_fetcher import ForecastFetcher
 _fetcher = ForecastFetcher()
 
 
-async def fetch(date: str | None = None, risk_type: str | None = None) -> list[dict]:
+async def fetch(
+    date: str | None = None,
+    ts_code: str | None = None,
+    risk_type: str | None = None,
+) -> list[dict]:
     """
     获取业绩预告数据
 
     Args:
         date: 日期，格式 YYYY-MM-DD（可选）
+        ts_code: 股票代码（可选）
         risk_type: 风险类型过滤（"高"或"中"）
 
     Returns:
@@ -23,6 +28,8 @@ async def fetch(date: str | None = None, risk_type: str | None = None) -> list[d
     params = {}
     if date:
         params["date"] = date
+    if ts_code:
+        params["ts_code"] = ts_code
     if risk_type:
         params["risk_type"] = risk_type
 

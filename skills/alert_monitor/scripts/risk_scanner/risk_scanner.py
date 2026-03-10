@@ -74,9 +74,10 @@ async def scan_stock_risk(symbol: str, date: str, days: int = 5) -> StockRiskRep
         StockRiskReport
     """
     # 导入 risk_alert 的 processor
-    from skills.risk_alert.scripts.risk_processor.risk_processor import check_stock_risk
+    from skills.risk_alert.scripts.risk_processor.risk_processor import RiskProcessor
 
-    result = await check_stock_risk(symbol, date, days)
+    processor = RiskProcessor(symbol=symbol, date=date, days=days)
+    result = await processor.check()
 
     signals = []
     for risk in result.get("risks", []):

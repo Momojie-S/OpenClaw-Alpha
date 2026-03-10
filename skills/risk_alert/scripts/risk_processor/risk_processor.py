@@ -94,7 +94,8 @@ class RiskProcessor:
         try:
             from skills.risk_alert.scripts.forecast_fetcher import fetch
 
-            records = await fetch()
+            # 传递当前检查日期
+            records = await fetch(date=self.date)
 
             # 筛选该股票的业绩预告
             stock_records = [r for r in records if r["code"] == self.symbol]
@@ -274,7 +275,8 @@ class RiskProcessor:
             # 从业绩预告数据中查找
             from skills.risk_alert.scripts.forecast_fetcher import fetch
 
-            records = await fetch()
+            # 传递股票代码，按代码查询
+            records = await fetch(ts_code=self.symbol)
             for r in records:
                 if r["code"] == self.symbol:
                     return r["name"]
