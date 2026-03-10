@@ -29,6 +29,12 @@ uv run --env-file .env python skills/news_driven_investment/scripts/news_fetcher
 # 获取第一财经简报（RSSHub 接口）
 uv run --env-file .env python skills/news_driven_investment/scripts/news_fetcher/news_fetcher.py --source yicai_brief --limit 10
 
+# 获取 36氪资讯（RSSHub 接口）
+uv run --env-file .env python skills/news_driven_investment/scripts/news_fetcher/news_fetcher.py --source 36kr_news --limit 10
+
+# 获取华尔街见闻资讯（RSSHub 接口）
+uv run --env-file .env python skills/news_driven_investment/scripts/news_fetcher/news_fetcher.py --source wallstreetcn_news --limit 10
+
 # 获取财联社重点资讯
 uv run --env-file .env python skills/news_driven_investment/scripts/news_fetcher/news_fetcher.py --source cls_important --limit 5
 
@@ -59,6 +65,8 @@ uv run --env-file .env python skills/news_driven_investment/scripts/news_fetcher
 | `cls_telegraph` | 财联社电报 | 实时快讯，响应快 | ⭐⭐⭐ |
 | `jin10` | 金十数据 | 专业金融资讯，更新频繁 | ⭐⭐⭐ |
 | `yicai_brief` | 第一财经 | 权威财经媒体，覆盖广 | ⭐⭐ |
+| `36kr_news` | 36氪 | 科技财经资讯，投资视角 | ⭐⭐ |
+| `wallstreetcn_news` | 华尔街见闻 | 全球市场资讯，专业深度 | ⭐⭐⭐ |
 
 完整路由列表：[RSSHub 投资相关路由](docs/references/rsshub/routes.md)
 

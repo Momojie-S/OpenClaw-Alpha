@@ -42,15 +42,21 @@ RSSHUB_ROUTES = {
     
     # 财经媒体
     "yicai_brief": "/yicai/brief",  # 第一财经简报
+    "36kr_news": "/36kr/news",  # 36氪最新资讯频道
+    "wallstreetcn_news": "/wallstreetcn/news",  # 华尔街见闻资讯
     
     # 社区（已失效）
     # "xueqiu_today": "/xueqiu/today",  # 雪球今日话题
 }
 
-# 默认 RSSHub 实例（按优先级）
+# 默认 RSSHub 实例（按响应速度排序，2026-03-10 测试）
 DEFAULT_RSSHUB_INSTANCES = [
-    "rsshub.liumingye.cn",  # 香港节点，国内访问友好
-    "rsshub.ktachibana.party",  # 美国节点
+    "rsshub-instance.zeabur.app",  # 0.50s
+    "rsshub.liumingye.cn",         # 0.73s，香港节点
+    "rsshub.rssforever.com",       # 0.95s
+    "rsshub.ktachibana.party",     # 1.30s，美国节点
+    "hub.slarker.me",              # 1.47s
+    "rsshub.pseudoyu.com",         # 1.64s
 ]
 
 
@@ -192,7 +198,19 @@ class NewsFetcherRsshub(FetchMethod):
                     date_str = date_published[:10] if len(date_published) >= 10 else ""
             
             # 来源名称
-            source_name = "财联社" if "cls" in source else "雪球" if "xueqiu" in source else "RSSHub"
+            source_names = {
+                "cls": "财联社",
+                "jin10": "金十数据",
+                "yicai": "第一财经",
+                "36kr": "36氪",
+                "wallstreetcn": "华尔街见闻",
+                "xueqiu": "雪球",
+            }
+            source_name = "RSSHub"
+            for key, name in source_names.items():
+                if key in source:
+                    source_name = name
+                    break
             
             # 创建 NewsItem
             news_item = NewsItem(

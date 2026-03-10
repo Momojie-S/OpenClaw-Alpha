@@ -86,6 +86,8 @@ class NewsFetcherCls(Fetcher):
                 - "cls_telegraph": 财联社电报快讯
                 - "jin10": 金十数据快讯
                 - "yicai_brief": 第一财经简报
+                - "36kr_news": 36氪最新资讯频道
+                - "wallstreetcn_news": 华尔街见闻资讯
             symbol: 股票代码（仅 source="stock" 时使用）
             keyword: 关键词筛选（在标题和内容中匹配）
             date: 日期筛选（YYYY-MM-DD 格式）
@@ -361,6 +363,8 @@ async def fetch(
             - "cls_telegraph": 财联社电报快讯
             - "jin10": 金十数据快讯
             - "yicai_brief": 第一财经简报
+            - "36kr_news": 36氪最新资讯频道
+            - "wallstreetcn_news": 华尔街见闻资讯
         symbol: 股票代码（仅 source="stock" 时使用）
         keyword: 关键词筛选（在标题和内容中匹配）
         date: 日期筛选（YYYY-MM-DD 格式）
@@ -384,6 +388,12 @@ async def fetch(
         
         # 获取金十数据快讯
         result = await fetch(source="jin10", limit=10)
+        
+        # 获取 36氪资讯
+        result = await fetch(source="36kr_news", limit=10)
+        
+        # 获取华尔街见闻资讯
+        result = await fetch(source="wallstreetcn_news", limit=10)
     """
     return await _get_fetcher().fetch(
         source=source,
@@ -402,9 +412,9 @@ def _main():
     parser = argparse.ArgumentParser(description="获取财经新闻")
     parser.add_argument(
         "--source",
-        choices=["cls_global", "cls_important", "stock", "cls_telegraph", "jin10", "yicai_brief"],
+        choices=["cls_global", "cls_important", "stock", "cls_telegraph", "jin10", "yicai_brief", "36kr_news", "wallstreetcn_news"],
         default="cls_global",
-        help="新闻源（AKShare: cls_global, cls_important, stock; RSSHub: cls_telegraph, jin10, yicai_brief）"
+        help="新闻源（AKShare: cls_global, cls_important, stock; RSSHub: cls_telegraph, jin10, yicai_brief, 36kr_news, wallstreetcn_news）"
     )
     parser.add_argument(
         "--symbol",

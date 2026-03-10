@@ -17,6 +17,8 @@
 | 路由 | source 值 | 说明 |
 |------|----------|------|
 | `/yicai/brief` | `yicai_brief` | 第一财经简报 |
+| `/36kr/news` | `36kr_news` | 36氪最新资讯频道 |
+| `/wallstreetcn/news` | `wallstreetcn_news` | 华尔街见闻资讯 |
 
 ## 社区资讯（已失效）
 
