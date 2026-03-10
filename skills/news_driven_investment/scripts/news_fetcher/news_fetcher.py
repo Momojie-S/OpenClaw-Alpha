@@ -11,6 +11,7 @@ from dataclasses import dataclass, field
 import akshare as ak
 
 from openclaw_alpha.core.fetcher import Fetcher, FetchMethod
+from openclaw_alpha.data_sources import registry  # noqa: F401
 
 
 @dataclass
