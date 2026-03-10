@@ -3,7 +3,7 @@
 
 import pytest
 
-from skills.stock_analysis.scripts.stock_analysis_processor.stock_analysis_processor import StockAnalysisProcessor
+from openclaw_alpha.skills.stock_analysis.stock_analysis_processor.stock_analysis_processor import StockAnalysisProcessor
 
 
 class TestStockAnalysisProcessorAnalyze:

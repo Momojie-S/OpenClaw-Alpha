@@ -3,7 +3,7 @@
 
 import pytest
 
-from skills.option_analysis.scripts.sentiment_processor.sentiment_processor import (
+from openclaw_alpha.skills.option_analysis.sentiment_processor.sentiment_processor import (
     judge_pcr_sentiment,
     judge_iv_level,
     generate_signal,

@@ -3,7 +3,7 @@
 
 import pytest
 
-from skills.industry_trend.scripts.prosperity_processor.prosperity_processor import (
+from openclaw_alpha.skills.industry_trend.prosperity_processor.prosperity_processor import (
     _calc_change,
     _judge_valuation_trend,
     _calc_prosperity_score,

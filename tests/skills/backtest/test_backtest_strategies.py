@@ -4,11 +4,11 @@
 import pytest
 import backtrader as bt
 
-from skills.backtest.scripts.strategies.base_strategy import BaseStrategy
-from skills.backtest.scripts.strategies.ma_cross_strategy import MACrossStrategy
-from skills.backtest.scripts.strategies.rsi_strategy import RSIStrategy
-from skills.backtest.scripts.strategies.bollinger_strategy import BollingerBandsStrategy
-from skills.backtest.scripts.backtest_processor.backtest_processor import (
+from openclaw_alpha.skills.backtest.strategies.base_strategy import BaseStrategy
+from openclaw_alpha.skills.backtest.strategies.ma_cross_strategy import MACrossStrategy
+from openclaw_alpha.skills.backtest.strategies.rsi_strategy import RSIStrategy
+from openclaw_alpha.skills.backtest.strategies.bollinger_strategy import BollingerBandsStrategy
+from openclaw_alpha.skills.backtest.backtest_processor.backtest_processor import (
     STRATEGY_REGISTRY,
     BacktestEngine,
 )

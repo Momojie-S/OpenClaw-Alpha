@@ -7,7 +7,7 @@ from datetime import datetime
 from pathlib import Path
 from unittest.mock import AsyncMock, patch, MagicMock
 
-from skills.industry_trend.scripts.rotation_score_processor.rotation_score_processor import (
+from openclaw_alpha.skills.industry_trend.rotation_score_processor.rotation_score_processor import (
     RotationScoreProcessor,
     SCORE_LEVELS,
     GOLDEN_COMBO,

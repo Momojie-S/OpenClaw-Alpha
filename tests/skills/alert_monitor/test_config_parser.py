@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-from skills.alert_monitor.scripts.config_parser import (
+from openclaw_alpha.skills.alert_monitor.config_parser import (
     AlertConfig,
     WatchlistItem,
     RiskAlertRule,

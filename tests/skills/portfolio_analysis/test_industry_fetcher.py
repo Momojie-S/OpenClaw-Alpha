@@ -3,11 +3,11 @@
 
 import pytest
 
-from skills.portfolio_analysis.scripts.industry_fetcher.industry_fetcher import (
+from openclaw_alpha.skills.portfolio_analysis.industry_fetcher.industry_fetcher import (
     IndustryInfo,
     IndustryInfoFetcher,
 )
-from skills.portfolio_analysis.scripts.industry_fetcher.akshare import (
+from openclaw_alpha.skills.portfolio_analysis.industry_fetcher.akshare import (
     IndustryInfoFetcherAkshare,
 )
 

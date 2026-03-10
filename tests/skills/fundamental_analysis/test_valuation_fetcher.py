@@ -7,11 +7,11 @@ from pathlib import Path
 import pandas as pd
 import pytest
 
-from skills.fundamental_analysis.scripts.valuation_fetcher.akshare import (
+from openclaw_alpha.skills.fundamental_analysis.valuation_fetcher.akshare import (
     ValuationFetcherAkshare,
     INDICATOR_MAP,
 )
-from skills.fundamental_analysis.scripts.valuation_fetcher.models import ValuationData
+from openclaw_alpha.skills.fundamental_analysis.valuation_fetcher.models import ValuationData
 
 
 class TestValuationFetcherAkshareTransform:

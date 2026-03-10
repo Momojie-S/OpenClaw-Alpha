@@ -3,7 +3,7 @@
 
 import pytest
 
-from skills.restricted_release.scripts.restricted_release_processor.restricted_release_processor import (
+from openclaw_alpha.skills.restricted_release.restricted_release_processor.restricted_release_processor import (
     format_upcoming,
     format_queue,
     format_high_risk,

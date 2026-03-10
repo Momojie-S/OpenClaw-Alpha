@@ -3,7 +3,7 @@
 
 import pytest
 
-from skills.market_sentiment.scripts.flow_fetcher.akshare_impl import FlowFetcherAkshare
+from openclaw_alpha.skills.market_sentiment.flow_fetcher.akshare_impl import FlowFetcherAkshare
 
 
 class TestFlowFetcherTransform:

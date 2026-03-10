@@ -19,7 +19,7 @@ metadata:
 所有脚本需在项目根目录下运行，使用 `uv run --env-file .env` 加载环境变量：
 
 ```bash
-uv run --env-file .env python skills/northbound_flow/scripts/northbound_processor/northbound_processor.py [参数]
+uv run --env-file .env python -m openclaw_alpha.skills.northbound_flow.northbound_processor.northbound_processor [参数]
 ```
 
 **如果脚本运行失败**：
@@ -46,7 +46,7 @@ uv run --env-file .env python skills/northbound_flow/scripts/northbound_processo
 
 **动作**：
 ```bash
-uv run --env-file .env python skills/northbound_flow/scripts/northbound_processor/northbound_processor.py \
+uv run --env-file .env python -m openclaw_alpha.skills.northbound_flow.northbound_processor.northbound_processor \
     --action daily
 ```
 
@@ -65,7 +65,7 @@ uv run --env-file .env python skills/northbound_flow/scripts/northbound_processo
 
 **动作**：
 ```bash
-uv run --env-file .env python skills/northbound_flow/scripts/northbound_processor/northbound_processor.py \
+uv run --env-file .env python -m openclaw_alpha.skills.northbound_flow.northbound_processor.northbound_processor \
     --action stock \
     --top-n 20
 ```
@@ -85,7 +85,7 @@ uv run --env-file .env python skills/northbound_flow/scripts/northbound_processo
 
 **动作**：
 ```bash
-uv run --env-file .env python skills/northbound_flow/scripts/northbound_processor/northbound_processor.py \
+uv run --env-file .env python -m openclaw_alpha.skills.northbound_flow.northbound_processor.northbound_processor \
     --action trend \
     --days 10
 ```
@@ -106,13 +106,13 @@ uv run --env-file .env python skills/northbound_flow/scripts/northbound_processo
 **动作**：
 ```bash
 # 只输出信号文件（用于回测）
-uv run --env-file .env python skills/northbound_flow/scripts/northbound_processor/northbound_processor.py \
+uv run --env-file .env python -m openclaw_alpha.skills.northbound_flow.northbound_processor.northbound_processor \
     --action signals \
     --days 30 \
     --signal-only
 
 # 同时输出趋势分析和信号
-uv run --env-file .env python skills/northbound_flow/scripts/northbound_processor/northbound_processor.py \
+uv run --env-file .env python -m openclaw_alpha.skills.northbound_flow.northbound_processor.northbound_processor \
     --action signals \
     --days 30 \
     --save-signals

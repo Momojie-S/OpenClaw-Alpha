@@ -8,7 +8,7 @@ import os
 # 添加项目根目录到路径
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../../../..'))
 
-from skills.industry_trend.scripts.concept_fetcher.akshare import ConceptFetcherAkshare
+from openclaw_alpha.skills.industry_trend.concept_fetcher.akshare import ConceptFetcherAkshare
 
 
 class TestConceptFetcherAkshareTransform:

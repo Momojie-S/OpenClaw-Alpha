@@ -38,7 +38,7 @@ class TestCorrelationFetcherAkshare:
     @pytest.mark.timeout(10)
     async def test_fetch_single_stock(self, mock_akshare_data):
         """测试获取单只股票数据"""
-        from skills.portfolio_analysis.scripts.correlation_fetcher.correlation_fetcher import (
+        from openclaw_alpha.skills.portfolio_analysis.correlation_fetcher.correlation_fetcher import (
             CorrelationFetcherAkshare,
         )
 
@@ -60,7 +60,7 @@ class TestCorrelationFetcherAkshare:
     @pytest.mark.timeout(10)
     async def test_fetch_multiple_stocks(self, mock_akshare_data):
         """测试获取多只股票数据"""
-        from skills.portfolio_analysis.scripts.correlation_fetcher.correlation_fetcher import (
+        from openclaw_alpha.skills.portfolio_analysis.correlation_fetcher.correlation_fetcher import (
             CorrelationFetcherAkshare,
         )
 
@@ -81,7 +81,7 @@ class TestCorrelationFetcherAkshare:
     @pytest.mark.timeout(5)
     async def test_fetch_empty_codes_raises_error(self):
         """测试空代码列表抛出异常"""
-        from skills.portfolio_analysis.scripts.correlation_fetcher.correlation_fetcher import (
+        from openclaw_alpha.skills.portfolio_analysis.correlation_fetcher.correlation_fetcher import (
             CorrelationFetcherAkshare,
         )
 
@@ -94,7 +94,7 @@ class TestCorrelationFetcherAkshare:
     @pytest.mark.timeout(10)
     async def test_fetch_invalid_code_logs_warning(self, mock_akshare_data):
         """测试无效代码记录警告"""
-        from skills.portfolio_analysis.scripts.correlation_fetcher.correlation_fetcher import (
+        from openclaw_alpha.skills.portfolio_analysis.correlation_fetcher.correlation_fetcher import (
             CorrelationFetcherAkshare,
         )
 
@@ -116,7 +116,7 @@ class TestCorrelationFetcher:
     @pytest.mark.timeout(10)
     async def test_fetch_function(self, mock_akshare_data):
         """测试便捷函数"""
-        from skills.portfolio_analysis.scripts.correlation_fetcher.correlation_fetcher import (
+        from openclaw_alpha.skills.portfolio_analysis.correlation_fetcher.correlation_fetcher import (
             fetch,
         )
 
@@ -133,7 +133,7 @@ class TestCorrelationFetcher:
     @pytest.mark.timeout(10)
     async def test_fetcher_entry(self, mock_akshare_data):
         """测试 Fetcher 入口类"""
-        from skills.portfolio_analysis.scripts.correlation_fetcher.correlation_fetcher import (
+        from openclaw_alpha.skills.portfolio_analysis.correlation_fetcher.correlation_fetcher import (
             CorrelationFetcher,
         )
 

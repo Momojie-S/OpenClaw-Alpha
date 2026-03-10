@@ -20,33 +20,33 @@ metadata:
 
 ```bash
 # 基础用法：回测平安银行（000001）
-uv run --env-file .env python skills/backtest/scripts/backtest_processor/backtest_processor.py \
+uv run --env-file .env python -m openclaw_alpha.skills.backtest.backtest_processor \
     --stock 000001
 
 # 指定日期范围
-uv run --env-file .env python skills/backtest/scripts/backtest_processor/backtest_processor.py \
+uv run --env-file .env python -m openclaw_alpha.skills.backtest.backtest_processor \
     --stock 000001 \
     --start-date 2025-01-01 \
     --end-date 2026-01-01
 
 # 自定义策略参数（均线交叉）
-uv run --env-file .env python skills/backtest/scripts/backtest_processor/backtest_processor.py \
+uv run --env-file .env python -m openclaw_alpha.skills.backtest.backtest_processor \
     --stock 000001 \
     --fast-period 10 \
     --slow-period 30
 
 # 自定义初始资金
-uv run --env-file .env python skills/backtest/scripts/backtest_processor/backtest_processor.py \
+uv run --env-file .env python -m openclaw_alpha.skills.backtest.backtest_processor \
     --stock 000001 \
     --cash 500000
 
 # 安静模式（只输出结果）
-uv run --env-file .env python skills/backtest/scripts/backtest_processor/backtest_processor.py \
+uv run --env-file .env python -m openclaw_alpha.skills.backtest.backtest_processor \
     --stock 000001 \
     --quiet
 
 # 指定输出文件
-uv run --env-file .env python skills/backtest/scripts/backtest_processor/backtest_processor.py \
+uv run --env-file .env python -m openclaw_alpha.skills.backtest.backtest_processor \
     --stock 000001 \
     --output .temp/backtest_result.json
 ```
@@ -66,7 +66,7 @@ uv run --env-file .env python skills/backtest/scripts/backtest_processor/backtes
 **动作**：运行回测脚本
 
 ```bash
-uv run --env-file .env python skills/backtest/scripts/backtest_processor/backtest_processor.py \
+uv run --env-file .env python -m openclaw_alpha.skills.backtest.backtest_processor \
     --stock 000001 \
     --strategy ma_cross \
     --start-date 2025-03-01 \
@@ -156,12 +156,12 @@ uv run --env-file .env python skills/backtest/scripts/backtest_processor/backtes
 
 ```bash
 # 使用 RSI 策略回测
-uv run --env-file .env python skills/backtest/scripts/backtest_processor/backtest_processor.py \
+uv run --env-file .env python -m openclaw_alpha.skills.backtest.backtest_processor \
     --stock 000001 \
     --strategy rsi
 
 # 自定义 RSI 参数
-uv run --env-file .env python skills/backtest/scripts/backtest_processor/backtest_processor.py \
+uv run --env-file .env python -m openclaw_alpha.skills.backtest.backtest_processor \
     --stock 000001 \
     --strategy rsi \
     --rsi-period 9 \
@@ -190,12 +190,12 @@ uv run --env-file .env python skills/backtest/scripts/backtest_processor/backtes
 
 ```bash
 # 使用布林带策略回测
-uv run --env-file .env python skills/backtest/scripts/backtest_processor/backtest_processor.py \
+uv run --env-file .env python -m openclaw_alpha.skills.backtest.backtest_processor \
     --stock 000001 \
     --strategy bollinger
 
 # 自定义布林带参数
-uv run --env-file .env python skills/backtest/scripts/backtest_processor/backtest_processor.py \
+uv run --env-file .env python -m openclaw_alpha.skills.backtest.backtest_processor \
     --stock 000001 \
     --strategy bollinger \
     --bollinger-period 15 \

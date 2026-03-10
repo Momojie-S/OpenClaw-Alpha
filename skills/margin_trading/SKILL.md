@@ -19,7 +19,7 @@ metadata:
 查看沪深两市融资融券整体情况：
 
 ```bash
-uv run --env-file .env python skills/margin_trading/scripts/market_margin_processor/market_margin_processor.py
+uv run --env-file .env python -m openclaw_alpha.skills.margin_trading.market_margin_processor.market_margin_processor
 ```
 
 **参数**：
@@ -33,7 +33,7 @@ uv run --env-file .env python skills/margin_trading/scripts/market_margin_proces
 查看融资余额最高的个股：
 
 ```bash
-uv run --env-file .env python skills/margin_trading/scripts/stock_margin_processor/stock_margin_processor.py --top-n 20
+uv run --env-file .env python -m openclaw_alpha.skills.margin_trading.stock_margin_processor.stock_margin_processor --top-n 20
 ```
 
 **参数**：
@@ -49,7 +49,7 @@ uv run --env-file .env python skills/margin_trading/scripts/stock_margin_process
 查看融券余额最高的个股：
 
 ```bash
-uv run --env-file .env python skills/margin_trading/scripts/stock_margin_processor/stock_margin_processor.py --type securities
+uv run --env-file .env python -m openclaw_alpha.skills.margin_trading.stock_margin_processor.stock_margin_processor --type securities
 ```
 
 ## 分析步骤

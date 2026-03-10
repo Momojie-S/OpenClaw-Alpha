@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 from unittest.mock import AsyncMock, patch
 
-from skills.technical_indicators.scripts.volume_price_processor.volume_price_processor import (
+from openclaw_alpha.skills.technical_indicators.volume_price_processor.volume_price_processor import (
     VolumePriceProcessor,
 )
 

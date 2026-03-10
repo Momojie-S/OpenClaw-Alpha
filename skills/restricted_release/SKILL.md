@@ -28,16 +28,16 @@ metadata:
 
 ```bash
 # 查询即将解禁的股票（默认未来7天）
-uv run --env-file .env python skills/restricted_release/scripts/restricted_release_processor/restricted_release_processor.py upcoming
+uv run --env-file .env python -m openclaw_alpha.skills.restricted_release.restricted_release_processor.restricted_release_processor upcoming
 
 # 按占流通市值比例排序（找高风险股票）
-uv run --env-file .env python skills/restricted_release/scripts/restricted_release_processor/restricted_release_processor.py upcoming --sort-by ratio --top-n 30
+uv run --env-file .env python -m openclaw_alpha.skills.restricted_release.restricted_release_processor.restricted_release_processor upcoming --sort-by ratio --top-n 30
 
 # 查询单只股票的解禁历史和排期
-uv run --env-file .env python skills/restricted_release/scripts/restricted_release_processor/restricted_release_processor.py queue 600000
+uv run --env-file .env python -m openclaw_alpha.skills.restricted_release.restricted_release_processor.restricted_release_processor queue 600000
 
 # 筛选高解禁风险股票（占流通市值 >= 20%）
-uv run --env-file .env python skills/restricted_release/scripts/restricted_release_processor/restricted_release_processor.py high-risk --min-ratio 0.2
+uv run --env-file .env python -m openclaw_alpha.skills.restricted_release.restricted_release_processor.restricted_release_processor high-risk --min-ratio 0.2
 ```
 
 ### 运行记录

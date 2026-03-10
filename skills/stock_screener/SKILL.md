@@ -19,7 +19,7 @@ metadata:
 所有脚本需在项目根目录下运行，使用 `uv run --env-file .env` 加载环境变量：
 
 ```bash
-uv run --env-file .env python skills/stock_screener/scripts/screener_processor/screener_processor.py [参数]
+uv run --env-file .env python -m openclaw_alpha.skills.stock_screener.screener_processor.screener_processor [参数]
 ```
 
 **如果脚本运行失败**：
@@ -47,11 +47,11 @@ uv run --env-file .env python skills/stock_screener/scripts/screener_processor/s
 **动作**：
 ```bash
 # 放量突破策略
-uv run --env-file .env python skills/stock_screener/scripts/screener_processor/screener_processor.py \
+uv run --env-file .env python -m openclaw_alpha.skills.stock_screener.screener_processor.screener_processor \
     --strategy volume_breakout --top-n 10
 
 # 龙头股策略
-uv run --env-file .env python skills/stock_screener/scripts/screener_processor/screener_processor.py \
+uv run --env-file .env python -m openclaw_alpha.skills.stock_screener.screener_processor.screener_processor \
     --strategy leader --top-n 20
 ```
 
@@ -75,11 +75,11 @@ uv run --env-file .env python skills/stock_screener/scripts/screener_processor/s
 **动作**：
 ```bash
 # 自定义筛选：涨幅 > 5%，成交额 > 5 亿
-uv run --env-file .env python skills/stock_screener/scripts/screener_processor/screener_processor.py \
+uv run --env-file .env python -m openclaw_alpha.skills.stock_screener.screener_processor.screener_processor \
     --change-min 5 --amount-min 5 --top-n 20
 
 # 多条件组合
-uv run --env-file .env python skills/stock_screener/scripts/screener_processor/screener_processor.py \
+uv run --env-file .env python -m openclaw_alpha.skills.stock_screener.screener_processor.screener_processor \
     --change-min 2 --change-max 9 \
     --turnover-min 3 --turnover-max 15 \
     --cap-min 50 --cap-max 500 \
@@ -104,7 +104,7 @@ uv run --env-file .env python skills/stock_screener/scripts/screener_processor/s
 
 **动作**：
 ```bash
-uv run --env-file .env python skills/stock_screener/scripts/screener_processor/screener_processor.py --list-strategies
+uv run --env-file .env python -m openclaw_alpha.skills.stock_screener.screener_processor.screener_processor --list-strategies
 ```
 
 ## 输出说明

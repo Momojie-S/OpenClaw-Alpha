@@ -4,7 +4,7 @@
 import pytest
 import pandas as pd
 
-from skills.market_sentiment.scripts.limit_fetcher.akshare_impl import LimitFetcherAkshare
+from openclaw_alpha.skills.market_sentiment.limit_fetcher.akshare_impl import LimitFetcherAkshare
 
 
 class TestLimitFetcherTransform:

@@ -18,34 +18,34 @@ metadata:
 
 ```bash
 # 获取财联社全球资讯（推荐，AKShare 接口）
-uv run --env-file .env python skills/news_driven_investment/scripts/news_fetcher/news_fetcher.py --source cls_global --limit 10
+uv run --env-file .env python -m openclaw_alpha.skills.news_driven_investment.news_fetcher.news_fetcher --source cls_global --limit 10
 
 # 获取财联社电报快讯（RSSHub 接口）
-uv run --env-file .env python skills/news_driven_investment/scripts/news_fetcher/news_fetcher.py --source cls_telegraph --limit 10
+uv run --env-file .env python -m openclaw_alpha.skills.news_driven_investment.news_fetcher.news_fetcher --source cls_telegraph --limit 10
 
 # 获取金十数据快讯（RSSHub 接口）
-uv run --env-file .env python skills/news_driven_investment/scripts/news_fetcher/news_fetcher.py --source jin10 --limit 10
+uv run --env-file .env python -m openclaw_alpha.skills.news_driven_investment.news_fetcher.news_fetcher --source jin10 --limit 10
 
 # 获取第一财经简报（RSSHub 接口）
-uv run --env-file .env python skills/news_driven_investment/scripts/news_fetcher/news_fetcher.py --source yicai_brief --limit 10
+uv run --env-file .env python -m openclaw_alpha.skills.news_driven_investment.news_fetcher.news_fetcher --source yicai_brief --limit 10
 
 # 获取 36氪资讯（RSSHub 接口）
-uv run --env-file .env python skills/news_driven_investment/scripts/news_fetcher/news_fetcher.py --source 36kr_news --limit 10
+uv run --env-file .env python -m openclaw_alpha.skills.news_driven_investment.news_fetcher.news_fetcher --source 36kr_news --limit 10
 
 # 获取华尔街见闻资讯（RSSHub 接口）
-uv run --env-file .env python skills/news_driven_investment/scripts/news_fetcher/news_fetcher.py --source wallstreetcn_news --limit 10
+uv run --env-file .env python -m openclaw_alpha.skills.news_driven_investment.news_fetcher.news_fetcher --source wallstreetcn_news --limit 10
 
 # 获取财联社重点资讯
-uv run --env-file .env python skills/news_driven_investment/scripts/news_fetcher/news_fetcher.py --source cls_important --limit 5
+uv run --env-file .env python -m openclaw_alpha.skills.news_driven_investment.news_fetcher.news_fetcher --source cls_important --limit 5
 
 # 获取个股新闻
-uv run --env-file .env python skills/news_driven_investment/scripts/news_fetcher/news_fetcher.py --source stock --symbol 000001 --limit 5
+uv run --env-file .env python -m openclaw_alpha.skills.news_driven_investment.news_fetcher.news_fetcher --source stock --symbol 000001 --limit 5
 
 # 按关键词筛选新闻
-uv run --env-file .env python skills/news_driven_investment/scripts/news_fetcher/news_fetcher.py --source cls_telegraph --keyword "AI" --limit 10
+uv run --env-file .env python -m openclaw_alpha.skills.news_driven_investment.news_fetcher.news_fetcher --source cls_telegraph --keyword "AI" --limit 10
 
 # 按日期筛选新闻
-uv run --env-file .env python skills/news_driven_investment/scripts/news_fetcher/news_fetcher.py --source cls_global --date "2026-03-07" --limit 10
+uv run --env-file .env python -m openclaw_alpha.skills.news_driven_investment.news_fetcher.news_fetcher --source cls_global --date "2026-03-07" --limit 10
 ```
 
 ### 数据源说明

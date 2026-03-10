@@ -3,7 +3,7 @@
 
 import pytest
 
-from skills.risk_alert.scripts.forecast_fetcher.akshare import ForecastFetcherAkshare
+from openclaw_alpha.skills.risk_alert.forecast_fetcher.akshare import ForecastFetcherAkshare
 
 
 class TestForecastFetcherAkshare:

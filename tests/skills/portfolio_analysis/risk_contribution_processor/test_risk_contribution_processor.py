@@ -8,7 +8,7 @@ from unittest.mock import AsyncMock, patch
 
 from openclaw_alpha.core.registry import DataSourceRegistry
 from openclaw_alpha.data_sources import AkshareDataSource
-from skills.portfolio_analysis.scripts.risk_contribution_processor.risk_contribution_processor import (
+from openclaw_alpha.skills.portfolio_analysis.risk_contribution_processor.risk_contribution_processor import (
     RiskContributionProcessor,
     RiskContributionResult,
     process,
@@ -151,7 +151,7 @@ class TestRiskContributionProcessor:
         """测试投资建议生成"""
         processor = RiskContributionProcessor()
 
-        from skills.portfolio_analysis.scripts.risk_contribution_processor.risk_contribution_processor import (
+        from openclaw_alpha.skills.portfolio_analysis.risk_contribution_processor.risk_contribution_processor import (
             RiskContribution,
         )
 

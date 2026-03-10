@@ -5,12 +5,12 @@ import pytest
 from unittest.mock import patch, MagicMock
 import pandas as pd
 
-from skills.market_sentiment.scripts.breadth_fetcher import (
+from openclaw_alpha.skills.market_sentiment.breadth_fetcher import (
     BreadthData,
     BreadthFetcher,
     fetch,
 )
-from skills.market_sentiment.scripts.breadth_processor import (
+from openclaw_alpha.skills.market_sentiment.breadth_processor import (
     process,
     _calc_health_level,
     _calc_trend,

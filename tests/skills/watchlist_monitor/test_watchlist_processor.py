@@ -7,7 +7,7 @@ from dataclasses import asdict
 from pathlib import Path
 from unittest.mock import AsyncMock, patch
 
-from skills.watchlist_monitor.scripts.watchlist_processor.watchlist_processor import (
+from openclaw_alpha.skills.watchlist_monitor.watchlist_processor.watchlist_processor import (
     WatchlistManager,
     WatchlistProcessor,
     WatchlistData,

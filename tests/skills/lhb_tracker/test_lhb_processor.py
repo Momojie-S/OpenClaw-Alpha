@@ -2,7 +2,7 @@
 """龙虎榜 Processor 测试"""
 
 import pytest
-from skills.lhb_tracker.scripts.lhb_processor.lhb_processor import analyze_buyer_type
+from openclaw_alpha.skills.lhb_tracker.lhb_processor.lhb_processor import analyze_buyer_type
 
 
 class TestLhbProcessor:

@@ -7,10 +7,10 @@ from pathlib import Path
 import pandas as pd
 import pytest
 
-from skills.fundamental_analysis.scripts.financial_fetcher.akshare import (
+from openclaw_alpha.skills.fundamental_analysis.financial_fetcher.akshare import (
     FinancialFetcherAkshare,
 )
-from skills.fundamental_analysis.scripts.financial_fetcher.models import FinancialData
+from openclaw_alpha.skills.fundamental_analysis.financial_fetcher.models import FinancialData
 
 
 class TestFinancialFetcherAkshareTransform:

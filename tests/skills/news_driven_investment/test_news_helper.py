@@ -6,7 +6,7 @@ import pytest
 from pathlib import Path
 from unittest.mock import patch
 
-from skills.news_driven_investment.scripts.news_helper import (
+from openclaw_alpha.skills.news_driven_investment.news_helper import (
     save_keywords,
     load_keywords,
     save_analysis,

@@ -5,7 +5,7 @@ import pytest
 import pandas as pd
 from datetime import datetime
 
-from skills.backtest.scripts.backtest_processor.data_adapter import DataAdapter
+from openclaw_alpha.skills.backtest.backtest_processor.data_adapter import DataAdapter
 
 
 class TestDataAdapter:

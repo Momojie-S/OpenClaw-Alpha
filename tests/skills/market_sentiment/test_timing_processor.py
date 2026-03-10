@@ -3,7 +3,7 @@
 
 import pytest
 
-from skills.market_sentiment.scripts.timing_processor.timing_processor import (
+from openclaw_alpha.skills.market_sentiment.timing_processor.timing_processor import (
     MarketTimingProcessor,
 )
 

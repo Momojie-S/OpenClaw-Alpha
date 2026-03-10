@@ -3,13 +3,13 @@
 
 import pytest
 
-from skills.announcement_analysis.scripts.announcement_processor.announcement_processor import (
+from openclaw_alpha.skills.announcement_analysis.announcement_processor.announcement_processor import (
     filter_by_code,
     filter_by_keyword,
     format_output,
     sort_by_priority,
 )
-from skills.announcement_analysis.scripts.announcement_processor.models import (
+from openclaw_alpha.skills.announcement_analysis.announcement_processor.models import (
     Announcement,
 )
 

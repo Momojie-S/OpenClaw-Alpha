@@ -32,7 +32,7 @@ class TestIndexProcessor:
     @pytest.fixture
     def processor(self):
         """创建处理器实例"""
-        from skills.index_analysis.scripts.index_processor.index_processor import IndexProcessor
+        from openclaw_alpha.skills.index_analysis.index_processor.index_processor import IndexProcessor
         return IndexProcessor(date="2026-03-06", top_n=6)
 
     def test_calc_ma_basic(self, processor):
@@ -219,7 +219,7 @@ class TestIndexFetcher:
 
     def test_transform_basic(self, sample_raw_data):
         """测试数据转换 - 基本场景"""
-        from skills.index_analysis.scripts.index_fetcher.akshare import IndexFetcherAkshare
+        from openclaw_alpha.skills.index_analysis.index_fetcher.akshare import IndexFetcherAkshare
 
         fetcher = IndexFetcherAkshare()
         result = fetcher._transform(sample_raw_data)
@@ -231,7 +231,7 @@ class TestIndexFetcher:
 
     def test_transform_empty_data(self):
         """测试数据转换 - 空数据"""
-        from skills.index_analysis.scripts.index_fetcher.akshare import IndexFetcherAkshare
+        from openclaw_alpha.skills.index_analysis.index_fetcher.akshare import IndexFetcherAkshare
         import pandas as pd
 
         fetcher = IndexFetcherAkshare()
@@ -241,7 +241,7 @@ class TestIndexFetcher:
 
     def test_transform_none_data(self):
         """测试数据转换 - None"""
-        from skills.index_analysis.scripts.index_fetcher.akshare import IndexFetcherAkshare
+        from openclaw_alpha.skills.index_analysis.index_fetcher.akshare import IndexFetcherAkshare
 
         fetcher = IndexFetcherAkshare()
         result = fetcher._transform(None)
@@ -250,7 +250,7 @@ class TestIndexFetcher:
 
     def test_transform_sorted_by_date(self, sample_raw_data):
         """测试数据转换 - 按日期排序"""
-        from skills.index_analysis.scripts.index_fetcher.akshare import IndexFetcherAkshare
+        from openclaw_alpha.skills.index_analysis.index_fetcher.akshare import IndexFetcherAkshare
 
         fetcher = IndexFetcherAkshare()
         result = fetcher._transform(sample_raw_data)

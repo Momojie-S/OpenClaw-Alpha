@@ -9,7 +9,7 @@ from unittest.mock import patch, MagicMock
 import pandas as pd
 import pytest
 
-from skills.fund_flow_analysis.scripts.fund_flow_processor.fund_flow_processor import (
+from openclaw_alpha.skills.fund_flow_analysis.fund_flow_processor.fund_flow_processor import (
     FundFlowData,
     fetch_fund_flow,
     transform_data,

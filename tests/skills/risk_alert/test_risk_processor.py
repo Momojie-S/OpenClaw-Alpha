@@ -6,7 +6,7 @@ from unittest.mock import AsyncMock, patch
 import pandas as pd
 import pytest
 
-from skills.risk_alert.scripts.risk_processor.risk_processor import RiskProcessor
+from openclaw_alpha.skills.risk_alert.risk_processor.risk_processor import RiskProcessor
 
 
 class TestRiskProcessor:
@@ -108,7 +108,7 @@ class TestRiskProcessor:
             new_callable=AsyncMock,
         ) as mock_fetch:
             # 模拟 fetch 返回数据
-            from skills.risk_alert.scripts.forecast_fetcher.akshare import ForecastFetcherAkshare
+            from openclaw_alpha.skills.risk_alert.forecast_fetcher.akshare import ForecastFetcherAkshare
 
             fetcher = ForecastFetcherAkshare()
             mock_fetch.return_value = fetcher._transform(forecast_response)
@@ -130,7 +130,7 @@ class TestRiskProcessor:
             "skills.risk_alert.scripts.forecast_fetcher.fetch",
             new_callable=AsyncMock,
         ) as mock_fetch:
-            from skills.risk_alert.scripts.forecast_fetcher.akshare import ForecastFetcherAkshare
+            from openclaw_alpha.skills.risk_alert.forecast_fetcher.akshare import ForecastFetcherAkshare
 
             fetcher = ForecastFetcherAkshare()
             mock_fetch.return_value = fetcher._transform(forecast_response)
@@ -152,7 +152,7 @@ class TestRiskProcessor:
             "skills.risk_alert.scripts.forecast_fetcher.fetch",
             new_callable=AsyncMock,
         ) as mock_fetch:
-            from skills.risk_alert.scripts.forecast_fetcher.akshare import ForecastFetcherAkshare
+            from openclaw_alpha.skills.risk_alert.forecast_fetcher.akshare import ForecastFetcherAkshare
 
             fetcher = ForecastFetcherAkshare()
             mock_fetch.return_value = fetcher._transform(forecast_response)

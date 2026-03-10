@@ -3,7 +3,7 @@
 
 import pytest
 
-from skills.market_sentiment.scripts.equity_bond_ratio_processor.equity_bond_ratio_processor import (
+from openclaw_alpha.skills.market_sentiment.equity_bond_ratio_processor.equity_bond_ratio_processor import (
     EquityBondRatioProcessor,
 )
 

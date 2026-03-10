@@ -5,13 +5,13 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
-from skills.alert_monitor.scripts.risk_scanner import (
+from openclaw_alpha.skills.alert_monitor.risk_scanner import (
     RiskSignal,
     StockRiskReport,
     RiskScanResult,
     format_risk_report,
 )
-from skills.alert_monitor.scripts.config_parser import AlertConfig, WatchlistItem
+from openclaw_alpha.skills.alert_monitor.config_parser import AlertConfig, WatchlistItem
 
 
 class TestRiskSignal:

@@ -4,7 +4,7 @@
 import pytest
 import pandas as pd
 
-from skills.margin_trading.scripts.market_margin_processor.market_margin_processor import (
+from openclaw_alpha.skills.margin_trading.market_margin_processor.market_margin_processor import (
     calculate_change_pct,
     get_latest_trading_day,
     format_text,

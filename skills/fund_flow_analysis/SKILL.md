@@ -18,22 +18,22 @@ metadata:
 
 ```bash
 # 查看今日行业资金流向 Top 10
-uv run --env-file .env python skills/fund_flow_analysis/scripts/fund_flow_processor/fund_flow_processor.py
+uv run --env-file .env python -m openclaw_alpha.skills.fund_flow_analysis.fund_flow_processor.fund_flow_processor
 
 # 查看概念资金流向
-uv run --env-file .env python skills/fund_flow_analysis/scripts/fund_flow_processor/fund_flow_processor.py --type concept
+uv run --env-file .env python -m openclaw_alpha.skills.fund_flow_analysis.fund_flow_processor.fund_flow_processor --type concept
 
 # 指定时间周期（今日/3日/5日/10日/20日）
-uv run --env-file .env python skills/fund_flow_analysis/scripts/fund_flow_processor/fund_flow_processor.py --period 5日
+uv run --env-file .env python -m openclaw_alpha.skills.fund_flow_analysis.fund_flow_processor.fund_flow_processor --period 5日
 
 # 按涨幅排序
-uv run --env-file .env python skills/fund_flow_analysis/scripts/fund_flow_processor/fund_flow_processor.py --sort-by change
+uv run --env-file .env python -m openclaw_alpha.skills.fund_flow_analysis.fund_flow_processor.fund_flow_processor --sort-by change
 
 # 筛选净流入 > 10 亿的板块
-uv run --env-file .env python skills/fund_flow_analysis/scripts/fund_flow_processor/fund_flow_processor.py --min-net 10
+uv run --env-file .env python -m openclaw_alpha.skills.fund_flow_analysis.fund_flow_processor.fund_flow_processor --min-net 10
 
 # 组合条件
-uv run --env-file .env python skills/fund_flow_analysis/scripts/fund_flow_processor/fund_flow_processor.py \
+uv run --env-file .env python -m openclaw_alpha.skills.fund_flow_analysis.fund_flow_processor.fund_flow_processor \
     --type concept \
     --period 5日 \
     --sort-by net \
@@ -64,7 +64,7 @@ uv run --env-file .env python skills/fund_flow_analysis/scripts/fund_flow_proces
 **输出**：今日资金净流入 Top 10 行业
 
 ```bash
-uv run --env-file .env python skills/fund_flow_analysis/scripts/fund_flow_processor/fund_flow_processor.py
+uv run --env-file .env python -m openclaw_alpha.skills.fund_flow_analysis.fund_flow_processor.fund_flow_processor
 ```
 
 ### Step 2: 对比概念资金流向
@@ -74,7 +74,7 @@ uv run --env-file .env python skills/fund_flow_analysis/scripts/fund_flow_proces
 **输出**：今日资金净流入 Top 10 概念
 
 ```bash
-uv run --env-file .env python skills/fund_flow_analysis/scripts/fund_flow_processor/fund_flow_processor.py --type concept
+uv run --env-file .env python -m openclaw_alpha.skills.fund_flow_analysis.fund_flow_processor.fund_flow_processor --type concept
 ```
 
 ### Step 3: 多周期对比
@@ -84,7 +84,7 @@ uv run --env-file .env python skills/fund_flow_analysis/scripts/fund_flow_proces
 **输出**：各周期资金持续流入的板块
 
 ```bash
-uv run --env-file .env python skills/fund_flow_analysis/scripts/fund_flow_processor/fund_flow_processor.py --period 5日 --top-n 20
+uv run --env-file .env python -m openclaw_alpha.skills.fund_flow_analysis.fund_flow_processor.fund_flow_processor --period 5日 --top-n 20
 ```
 
 ### Step 4: 筛选重点板块
@@ -94,7 +94,7 @@ uv run --env-file .env python skills/fund_flow_analysis/scripts/fund_flow_proces
 **输出**：符合条件的板块列表
 
 ```bash
-uv run --env-file .env python skills/fund_flow_analysis/scripts/fund_flow_processor/fund_flow_processor.py --min-net 20 --sort-by change
+uv run --env-file .env python -m openclaw_alpha.skills.fund_flow_analysis.fund_flow_processor.fund_flow_processor --min-net 20 --sort-by change
 ```
 
 ## 分析思路

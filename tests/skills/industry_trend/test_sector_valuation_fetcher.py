@@ -4,7 +4,7 @@
 import pytest
 from unittest.mock import patch, MagicMock
 
-from skills.industry_trend.scripts.sector_valuation_fetcher.tushare import (
+from openclaw_alpha.skills.industry_trend.sector_valuation_fetcher.tushare import (
     SectorValuationFetcherTushare,
 )
 

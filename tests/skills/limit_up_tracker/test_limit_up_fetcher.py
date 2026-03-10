@@ -5,13 +5,13 @@ import pytest
 import pandas as pd
 from unittest.mock import AsyncMock, patch
 
-from skills.limit_up_tracker.scripts.limit_up_fetcher.models import (
+from openclaw_alpha.skills.limit_up_tracker.limit_up_fetcher.models import (
     LimitUpItem,
     LimitUpResult,
     LimitUpType,
 )
-from skills.limit_up_tracker.scripts.limit_up_fetcher.akshare import LimitUpFetcherAkshare
-from skills.limit_up_tracker.scripts.limit_up_fetcher.limit_up_fetcher import (
+from openclaw_alpha.skills.limit_up_tracker.limit_up_fetcher.akshare import LimitUpFetcherAkshare
+from openclaw_alpha.skills.limit_up_tracker.limit_up_fetcher.limit_up_fetcher import (
     LimitUpFetcher,
     format_output,
 )

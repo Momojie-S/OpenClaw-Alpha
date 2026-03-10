@@ -93,7 +93,7 @@ uv run --env-file .env python skills/portfolio_analysis.scripts.portfolio_proces
 
 **动作**：
 ```bash
-uv run --env-file .env python skills/portfolio_analysis/scripts/correlation_processor/correlation_processor.py \
+uv run --env-file .env python -m openclaw_alpha.skills.portfolio_analysis.correlation_processor \
     "000001,600000,002475" \
     --days 60
 ```
@@ -113,7 +113,7 @@ uv run --env-file .env python skills/portfolio_analysis/scripts/correlation_proc
 
 **动作**：
 ```bash
-uv run --env-file .env python skills/portfolio_analysis/scripts/risk_contribution_processor/risk_contribution_processor.py \
+uv run --env-file .env python -m openclaw_alpha.skills.portfolio_analysis.risk_contribution_processor \
     "000001:0.5,600000:0.3,002475:0.2" \
     --days 60
 ```

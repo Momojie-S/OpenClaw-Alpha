@@ -20,12 +20,12 @@ metadata:
 
 ```bash
 # 情绪分析（PCR + IV）
-uv run --env-file .env python skills/option_analysis/scripts/sentiment_processor/sentiment_processor.py \
+uv run --env-file .env python -m openclaw_alpha.skills.option_analysis.sentiment_processor.sentiment_processor \
     --underlying 510050 \
     --date 2026-03-08
 
 # 市场概况（各品种统计）
-uv run --env-file .env python skills/option_analysis/scripts/market_overview_processor/market_overview_processor.py \
+uv run --env-file .env python -m openclaw_alpha.skills.option_analysis.market_overview_processor.market_overview_processor \
     --date 2026-03-08
 ```
 
@@ -43,7 +43,7 @@ uv run --env-file .env python skills/option_analysis/scripts/market_overview_pro
 
 **动作**：
 ```bash
-uv run --env-file .env python skills/option_analysis/scripts/sentiment_processor/sentiment_processor.py \
+uv run --env-file .env python -m openclaw_alpha.skills.option_analysis.sentiment_processor.sentiment_processor \
     --underlying 510050
 ```
 
@@ -83,7 +83,7 @@ uv run --env-file .env python skills/option_analysis/scripts/sentiment_processor
 
 **动作**：
 ```bash
-uv run --env-file .env python skills/option_analysis/scripts/market_overview_processor/market_overview_processor.py
+uv run --env-file .env python -m openclaw_alpha.skills.option_analysis.market_overview_processor.market_overview_processor
 ```
 
 **输出**：

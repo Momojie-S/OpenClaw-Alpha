@@ -19,7 +19,7 @@ metadata:
 所有脚本需在项目根目录下运行，使用 `uv run --env-file .env` 加载环境变量：
 
 ```bash
-uv run --env-file .env python skills/industry_trend/scripts/industry_trend_processor/industry_trend_processor.py [参数]
+uv run --env-file .env python -m openclaw_alpha.skills.industry_trend.industry_trend_processor [参数]
 ```
 
 **如果脚本运行失败**：
@@ -46,7 +46,7 @@ uv run --env-file .env python skills/industry_trend/scripts/industry_trend_proce
 
 **动作**：
 ```bash
-uv run --env-file .env python skills/industry_trend/scripts/industry_trend_processor/industry_trend_processor.py \
+uv run --env-file .env python -m openclaw_alpha.skills.industry_trend.industry_trend_processor \
     --category L1 \
     --top-n 10
 ```
@@ -66,7 +66,7 @@ uv run --env-file .env python skills/industry_trend/scripts/industry_trend_proce
 
 **动作**：
 ```bash
-uv run --env-file .env python skills/industry_trend/scripts/industry_trend_processor/industry_trend_processor.py \
+uv run --env-file .env python -m openclaw_alpha.skills.industry_trend.industry_trend_processor \
     --category concept \
     --top-n 10
 ```
@@ -84,14 +84,14 @@ uv run --env-file .env python skills/industry_trend/scripts/industry_trend_proce
 
 **二级行业**：
 ```bash
-uv run --env-file .env python skills/industry_trend/scripts/industry_trend_processor/industry_trend_processor.py \
+uv run --env-file .env python -m openclaw_alpha.skills.industry_trend.industry_trend_processor \
     --category L2 \
     --top-n 20
 ```
 
 **三级行业**：
 ```bash
-uv run --env-file .env python skills/industry_trend/scripts/industry_trend_processor/industry_trend_processor.py \
+uv run --env-file .env python -m openclaw_alpha.skills.industry_trend.industry_trend_processor \
     --category L3 \
     --top-n 30
 ```
@@ -102,7 +102,7 @@ uv run --env-file .env python skills/industry_trend/scripts/industry_trend_proce
 
 **动作**：
 ```bash
-uv run --env-file .env python skills/industry_trend/scripts/crowdedness_processor/crowdedness_processor.py \
+uv run --env-file .env python -m openclaw_alpha.skills.industry_trend.crowdedness_processor \
     --category L1 \
     --top-n 10
 ```
@@ -122,7 +122,7 @@ uv run --env-file .env python skills/industry_trend/scripts/crowdedness_processo
 
 **动作**：
 ```bash
-uv run --env-file .env python skills/industry_trend/scripts/prosperity_processor/prosperity_processor.py \
+uv run --env-file .env python -m openclaw_alpha.skills.industry_trend.prosperity_processor \
     --category L1 \
     --top-n 10
 ```
@@ -157,7 +157,7 @@ uv run --env-file .env python skills/industry_trend/scripts/prosperity_processor
 
 **动作**：
 ```bash
-uv run --env-file .env python skills/industry_trend/scripts/rotation_score_processor/rotation_score_processor.py \
+uv run --env-file .env python -m openclaw_alpha.skills.industry_trend.rotation_score_processor \
     --category L1 \
     --top-n 10
 ```

@@ -4,7 +4,7 @@
 import pandas as pd
 import pytest
 
-from skills.stock_fund_flow.scripts.stock_fund_flow_processor.stock_fund_flow_processor import (
+from openclaw_alpha.skills.stock_fund_flow.stock_fund_flow_processor.stock_fund_flow_processor import (
     normalize_stock_code,
     calculate_summaries,
     analyze_trend,

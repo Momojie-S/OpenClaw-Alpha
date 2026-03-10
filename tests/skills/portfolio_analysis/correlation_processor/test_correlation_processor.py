@@ -8,7 +8,7 @@ from unittest.mock import AsyncMock, patch
 
 from openclaw_alpha.core.registry import DataSourceRegistry
 from openclaw_alpha.data_sources import AkshareDataSource
-from skills.portfolio_analysis.scripts.correlation_processor.correlation_processor import (
+from openclaw_alpha.skills.portfolio_analysis.correlation_processor.correlation_processor import (
     CorrelationProcessor,
     CorrelationResult,
     process,
@@ -162,7 +162,7 @@ class TestCorrelationProcessor:
         """测试投资建议生成"""
         processor = CorrelationProcessor()
 
-        from skills.portfolio_analysis.scripts.correlation_processor.correlation_processor import (
+        from openclaw_alpha.skills.portfolio_analysis.correlation_processor.correlation_processor import (
             CorrelationPair,
         )
 

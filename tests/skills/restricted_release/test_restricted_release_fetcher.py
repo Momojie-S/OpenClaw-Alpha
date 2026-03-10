@@ -4,7 +4,7 @@
 import pytest
 import pandas as pd
 
-from skills.restricted_release.scripts.restricted_release_fetcher.restricted_release_fetcher import (
+from openclaw_alpha.skills.restricted_release.restricted_release_fetcher.restricted_release_fetcher import (
     RestrictedReleaseFetcherAkshare,
 )
 

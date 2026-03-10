@@ -8,7 +8,7 @@ from unittest.mock import patch, AsyncMock
 
 import pandas as pd
 
-from skills.stock_screener.scripts.stock_spot_fetcher.stock_spot_fetcher import (
+from openclaw_alpha.skills.stock_screener.stock_spot_fetcher.stock_spot_fetcher import (
     StockSpot,
     StockSpotFetcher,
 )
@@ -31,7 +31,7 @@ class TestStockSpotFetcherAkshare:
     @pytest.fixture
     def fetcher(self):
         """创建 Fetcher 实例"""
-        from skills.stock_screener.scripts.stock_spot_fetcher.akshare import (
+        from openclaw_alpha.skills.stock_screener.stock_spot_fetcher.akshare import (
             StockSpotFetcherAkshare,
         )
 

@@ -4,7 +4,7 @@
 import pytest
 from unittest.mock import AsyncMock, patch
 
-from skills.smart_dip.scripts.dip_advice_processor.dip_advice_processor import (
+from openclaw_alpha.skills.smart_dip.dip_advice_processor.dip_advice_processor import (
     get_multiplier,
     get_dip_advice,
     format_text,

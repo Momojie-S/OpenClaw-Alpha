@@ -5,7 +5,7 @@ import pytest
 from unittest.mock import patch, MagicMock, AsyncMock
 import pandas as pd
 
-from skills.etf_analysis.scripts.etf_fetcher.akshare_impl import (
+from openclaw_alpha.skills.etf_analysis.etf_fetcher.akshare_impl import (
     EtfFetcherAkshare,
     EtfSpot,
     EtfHistory,

@@ -4,7 +4,7 @@
 import pandas as pd
 import pytest
 
-from skills.technical_indicators.scripts.indicator_processor.indicator_processor import (
+from openclaw_alpha.skills.technical_indicators.indicator_processor.indicator_processor import (
     IndicatorProcessor,
 )
 

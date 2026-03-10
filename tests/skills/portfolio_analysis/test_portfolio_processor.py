@@ -3,7 +3,7 @@
 
 import pytest
 
-from skills.portfolio_analysis.scripts.portfolio_processor.portfolio_processor import (
+from openclaw_alpha.skills.portfolio_analysis.portfolio_processor.portfolio_processor import (
     PortfolioProcessor,
     Holding,
     IndustryDistribution,

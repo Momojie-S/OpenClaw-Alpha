@@ -3,7 +3,7 @@
 
 import pytest
 
-from skills.alert_monitor.scripts.alert_processor import (
+from openclaw_alpha.skills.alert_monitor.alert_processor import (
     AlertReport,
     format_alert_report,
 )

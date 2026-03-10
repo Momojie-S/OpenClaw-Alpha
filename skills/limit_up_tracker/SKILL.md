@@ -17,7 +17,7 @@ metadata:
 ### 脚本运行
 
 ```bash
-uv run --env-file .env python skills/limit_up_tracker/scripts/limit_up_fetcher/limit_up_fetcher.py [参数]
+uv run --env-file .env python -m openclaw_alpha.skills.limit_up_tracker.limit_up_fetcher.limit_up_fetcher [参数]
 ```
 
 ### 运行记录
@@ -36,10 +36,10 @@ uv run --env-file .env python skills/limit_up_tracker/scripts/limit_up_fetcher/l
 **动作**：运行脚本获取涨停股
 ```bash
 # 默认获取今日涨停
-uv run --env-file .env python skills/limit_up_tracker/scripts/limit_up_fetcher/limit_up_fetcher.py
+uv run --env-file .env python -m openclaw_alpha.skills.limit_up_tracker.limit_up_fetcher.limit_up_fetcher
 
 # 指定日期
-uv run --env-file .env python skills/limit_up_tracker/scripts/limit_up_fetcher/limit_up_fetcher.py --date "2026-03-07"
+uv run --env-file .env python -m openclaw_alpha.skills.limit_up_tracker.limit_up_fetcher.limit_up_fetcher --date "2026-03-07"
 ```
 
 **输出**：涨停股列表（含连板统计、封板时间、炸板次数等）
@@ -53,10 +53,10 @@ uv run --env-file .env python skills/limit_up_tracker/scripts/limit_up_fetcher/l
 **动作**：筛选连板股
 ```bash
 # 获取 2 连板以上
-uv run --env-file .env python skills/limit_up_tracker/scripts/limit_up_fetcher/limit_up_fetcher.py --min-continuous 2
+uv run --env-file .env python -m openclaw_alpha.skills.limit_up_tracker.limit_up_fetcher.limit_up_fetcher --min-continuous 2
 
 # 获取 3 连板以上（高连板）
-uv run --env-file .env python skills/limit_up_tracker/scripts/limit_up_fetcher/limit_up_fetcher.py --min-continuous 3
+uv run --env-file .env python -m openclaw_alpha.skills.limit_up_tracker.limit_up_fetcher.limit_up_fetcher --min-continuous 3
 ```
 
 **输出**：高连板股列表
@@ -70,7 +70,7 @@ uv run --env-file .env python skills/limit_up_tracker/scripts/limit_up_fetcher/l
 **动作**：获取炸板股池
 ```bash
 # 获取今日炸板股
-uv run --env-file .env python skills/limit_up_tracker/scripts/limit_up_fetcher/limit_up_fetcher.py --type broken
+uv run --env-file .env python -m openclaw_alpha.skills.limit_up_tracker.limit_up_fetcher.limit_up_fetcher --type broken
 ```
 
 **输出**：炸板股列表（涨停后打开的股票）
@@ -84,7 +84,7 @@ uv run --env-file .env python skills/limit_up_tracker/scripts/limit_up_fetcher/l
 **动作**：获取昨日涨停今日表现
 ```bash
 # 查看昨日涨停股今日表现
-uv run --env-file .env python skills/limit_up_tracker/scripts/limit_up_fetcher/limit_up_fetcher.py --type previous
+uv run --env-file .env python -m openclaw_alpha.skills.limit_up_tracker.limit_up_fetcher.limit_up_fetcher --type previous
 ```
 
 **输出**：昨日涨停股今日涨跌幅、振幅等
@@ -98,7 +98,7 @@ uv run --env-file .env python skills/limit_up_tracker/scripts/limit_up_fetcher/l
 **动作**：获取跌停股池
 ```bash
 # 获取今日跌停股
-uv run --env-file .env python skills/limit_up_tracker/scripts/limit_up_fetcher/limit_up_fetcher.py --type limit_down
+uv run --env-file .env python -m openclaw_alpha.skills.limit_up_tracker.limit_up_fetcher.limit_up_fetcher --type limit_down
 ```
 
 **输出**：跌停股列表

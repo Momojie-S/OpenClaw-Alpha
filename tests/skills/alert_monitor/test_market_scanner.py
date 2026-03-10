@@ -3,7 +3,7 @@
 
 import pytest
 
-from skills.alert_monitor.scripts.market_scanner import (
+from openclaw_alpha.skills.alert_monitor.market_scanner import (
     MarketSignal,
     MarketScanResult,
     format_market_report,

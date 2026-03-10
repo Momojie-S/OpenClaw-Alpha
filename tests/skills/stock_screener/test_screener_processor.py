@@ -3,8 +3,8 @@
 
 import pytest
 
-from skills.stock_screener.scripts.stock_spot_fetcher.stock_spot_fetcher import StockSpot
-from skills.stock_screener.scripts.screener_processor.screener_processor import (
+from openclaw_alpha.skills.stock_screener.stock_spot_fetcher.stock_spot_fetcher import StockSpot
+from openclaw_alpha.skills.stock_screener.screener_processor.screener_processor import (
     FilterConditions,
     ScreenerProcessor,
     STRATEGIES,

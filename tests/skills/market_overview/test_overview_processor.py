@@ -7,7 +7,7 @@ from datetime import datetime
 from pathlib import Path
 from unittest.mock import patch, AsyncMock
 
-from skills.market_overview.scripts.overview_processor.overview_processor import (
+from openclaw_alpha.skills.market_overview.overview_processor.overview_processor import (
     MarketOverviewProcessor,
     OverviewReport,
     MacroData,

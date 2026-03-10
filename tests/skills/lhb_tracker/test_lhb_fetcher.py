@@ -2,7 +2,7 @@
 """龙虎榜 Fetcher 测试"""
 
 import pytest
-from skills.lhb_tracker.scripts.lhb_fetcher.akshare_lhb import LhbFetcherAkshare
+from openclaw_alpha.skills.lhb_tracker.lhb_fetcher.akshare_lhb import LhbFetcherAkshare
 
 
 class TestLhbFetcherAkshare:

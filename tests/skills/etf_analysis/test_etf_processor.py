@@ -2,7 +2,7 @@
 """ETF Processor 测试"""
 
 import pytest
-from skills.etf_analysis.scripts.etf_processor.etf_processor import (
+from openclaw_alpha.skills.etf_analysis.etf_processor.etf_processor import (
     filter_spot,
     sort_spot,
 )

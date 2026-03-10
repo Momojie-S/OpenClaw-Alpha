@@ -4,7 +4,7 @@
 import pytest
 import pandas as pd
 
-from skills.margin_trading.scripts.stock_margin_processor.stock_margin_processor import (
+from openclaw_alpha.skills.margin_trading.stock_margin_processor.stock_margin_processor import (
     normalize_df,
     merge_stocks,
     process,

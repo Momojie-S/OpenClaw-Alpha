@@ -8,7 +8,7 @@ import os
 # 添加项目根目录到路径
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../../../..'))
 
-from skills.industry_trend.scripts.industry_trend_processor.industry_trend_processor import (
+from openclaw_alpha.skills.industry_trend.industry_trend_processor.industry_trend_processor import (
     IndustryTrendProcessor,
     INDUSTRY_WEIGHTS,
     CONCEPT_WEIGHTS,

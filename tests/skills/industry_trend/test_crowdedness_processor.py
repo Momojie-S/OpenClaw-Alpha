@@ -7,7 +7,7 @@ from datetime import datetime
 from pathlib import Path
 from unittest.mock import AsyncMock, patch, MagicMock
 
-from skills.industry_trend.scripts.crowdedness_processor.crowdedness_processor import (
+from openclaw_alpha.skills.industry_trend.crowdedness_processor.crowdedness_processor import (
     CrowdednessProcessor,
     CROWDEDNESS_WEIGHTS,
     CROWDEDNESS_LEVELS,

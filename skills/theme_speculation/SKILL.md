@@ -18,13 +18,13 @@ metadata:
 
 ```bash
 # 情绪周期判断
-uv run --env-file .env python skills/theme_speculation/scripts/sentiment_cycle_processor/sentiment_cycle_processor.py
+uv run --env-file .env python -m openclaw_alpha.skills.theme_speculation.sentiment_cycle_processor.sentiment_cycle_processor
 
 # 龙头识别
-uv run --env-file .env python skills/theme_speculation/scripts/dragon_head_processor/dragon_head_processor.py --board "人工智能"
+uv run --env-file .env python -m openclaw_alpha.skills.theme_speculation.dragon_head_processor.dragon_head_processor --board "人工智能"
 
 # 炒作风险提示
-uv run --env-file .env python skills/theme_speculation/scripts/speculation_risk_processor/speculation_risk_processor.py --symbol "000001"
+uv run --env-file .env python -m openclaw_alpha.skills.theme_speculation.speculation_risk_processor.speculation_risk_processor --symbol "000001"
 ```
 
 ### 运行记录
@@ -42,7 +42,7 @@ uv run --env-file .env python skills/theme_speculation/scripts/speculation_risk_
 
 **动作**：运行情绪周期 Processor
 ```bash
-uv run --env-file .env python skills/theme_speculation/scripts/sentiment_cycle_processor/sentiment_cycle_processor.py --date "2026-03-10"
+uv run --env-file .env python -m openclaw_alpha.skills.theme_speculation.sentiment_cycle_processor.sentiment_cycle_processor --date "2026-03-10"
 ```
 
 **输出**：
@@ -58,7 +58,7 @@ uv run --env-file .env python skills/theme_speculation/scripts/sentiment_cycle_p
 
 **动作**：运行龙头识别 Processor
 ```bash
-uv run --env-file .env python skills/theme_speculation/scripts/dragon_head_processor/dragon_head_processor.py --board "人工智能"
+uv run --env-file .env python -m openclaw_alpha.skills.theme_speculation.dragon_head_processor.dragon_head_processor --board "人工智能"
 ```
 
 **输出**：
@@ -74,7 +74,7 @@ uv run --env-file .env python skills/theme_speculation/scripts/dragon_head_proce
 
 **动作**：运行风险提示 Processor
 ```bash
-uv run --env-file .env python skills/theme_speculation/scripts/speculation_risk_processor/speculation_risk_processor.py --symbol "000001"
+uv run --env-file .env python -m openclaw_alpha.skills.theme_speculation.speculation_risk_processor.speculation_risk_processor --symbol "000001"
 ```
 
 **输出**：

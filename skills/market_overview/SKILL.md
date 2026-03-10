@@ -20,13 +20,13 @@ metadata:
 
 ```bash
 # 获取当前时间的交易日历上下文
-uv run --env-file .env python skills/market_overview/scripts/trading_calendar_processor/trading_calendar_processor.py
+uv run --env-file .env python -m openclaw_alpha.skills.market_overview.trading_calendar_processor
 
 # 获取指定日期的交易日历上下文
-uv run --env-file .env python skills/market_overview/scripts/trading_calendar_processor/trading_calendar_processor.py --date 2026-03-10
+uv run --env-file .env python -m openclaw_alpha.skills.market_overview.trading_calendar_processor --date 2026-03-10
 
 # 获取指定日期时间的交易日历上下文
-uv run --env-file .env python skills/market_overview/scripts/trading_calendar_processor/trading_calendar_processor.py --datetime "2026-03-10 10:30:00"
+uv run --env-file .env python -m openclaw_alpha.skills.market_overview.trading_calendar_processor --datetime "2026-03-10 10:30:00"
 ```
 
 **输出示例**：
@@ -51,19 +51,19 @@ uv run --env-file .env python skills/market_overview/scripts/trading_calendar_pr
 
 ```bash
 # 查看今日完整报告（默认）
-uv run --env-file .env python skills/market_overview/scripts/overview_processor/overview_processor.py
+uv run --env-file .env python -m openclaw_alpha.skills.market_overview.overview_processor
 
 # 一键生成（自动获取依赖数据）
-uv run --env-file .env python skills/market_overview/scripts/overview_processor/overview_processor.py --auto-fetch
+uv run --env-file .env python -m openclaw_alpha.skills.market_overview.overview_processor --auto-fetch
 
 # 快速版（仅宏观+情绪）
-uv run --env-file .env python skills/market_overview/scripts/overview_processor/overview_processor.py --mode quick
+uv run --env-file .env python -m openclaw_alpha.skills.market_overview.overview_processor --mode quick
 
 # 指定日期
-uv run --env-file .env python skills/market_overview/scripts/overview_processor/overview_processor.py --date 2026-03-07
+uv run --env-file .env python -m openclaw_alpha.skills.market_overview.overview_processor --date 2026-03-07
 
 # JSON 输出
-uv run --env-file .env python skills/market_overview/scripts/overview_processor/overview_processor.py --output json
+uv run --env-file .env python -m openclaw_alpha.skills.market_overview.overview_processor --output json
 ```
 
 ### 参数说明
@@ -83,7 +83,7 @@ uv run --env-file .env python skills/market_overview/scripts/overview_processor/
 
 **方式一：一键生成（推荐）**
 ```bash
-uv run --env-file .env python skills/market_overview/scripts/overview_processor/overview_processor.py --auto-fetch
+uv run --env-file .env python -m openclaw_alpha.skills.market_overview.overview_processor --auto-fetch
 ```
 - 自动获取所有依赖数据
 - 适合快速查看市场情况
@@ -96,7 +96,7 @@ uv run --env-file .env python skills/market_sentiment/scripts/sentiment_processo
 # ///.py 其他 skill
 
 # 再生成报告
-uv run --env-file .env python skills/market_overview/scripts/overview_processor/overview_processor.py
+uv run --env-file .env python -m openclaw_alpha.skills.market_overview.overview_processor
 ```
 - 适合需要精确控制数据获取的场景
 - 可以单独更新某个 skill 的数据
@@ -145,7 +145,7 @@ uv run --env-file .env python skills/northbound_flow/scripts/northbound_processo
 
 **动作**：
 ```bash
-uv run --env-file .env python skills/market_overview/scripts/overview_processor/overview_processor.py --date 2026-03-07
+uv run --env-file .env python -m openclaw_alpha.skills.market_overview.overview_processor --date 2026-03-07
 ```
 
 **输出**：

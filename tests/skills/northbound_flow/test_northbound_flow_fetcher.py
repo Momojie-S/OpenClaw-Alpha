@@ -5,7 +5,7 @@ import json
 import pytest
 from pathlib import Path
 
-from skills.northbound_flow.scripts.flow_fetcher.akshare_flow import FlowFetcherAkshare
+from openclaw_alpha.skills.northbound_flow.flow_fetcher.akshare_flow import FlowFetcherAkshare
 
 
 # 加载 fixture 数据

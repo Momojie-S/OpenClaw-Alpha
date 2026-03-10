@@ -3,7 +3,7 @@
 
 import pytest
 
-from skills.fundamental_analysis.scripts.fundamental_processor.fundamental_processor import (
+from openclaw_alpha.skills.fundamental_analysis.fundamental_processor.fundamental_processor import (
     _calc_overall_score,
 )
 

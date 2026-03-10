@@ -5,7 +5,7 @@ import pytest
 from unittest.mock import AsyncMock, patch
 import pandas as pd
 
-from skills.news_driven_investment.scripts.news_fetcher.news_fetcher import (
+from openclaw_alpha.skills.news_driven_investment.news_fetcher.news_fetcher import (
     NewsFetcherCls,
     NewsFetcherAkshare,
     NewsItem,

@@ -3,7 +3,7 @@
 
 import pytest
 
-from skills.stock_compare.scripts.compare_processor import (
+from openclaw_alpha.skills.stock_compare.compare_processor import (
     StockMetrics,
     StockScore,
     CompareResult,

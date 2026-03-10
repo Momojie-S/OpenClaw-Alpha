@@ -3,7 +3,7 @@
 
 import pytest
 
-from skills.market_sentiment.scripts.sentiment_processor.sentiment_processor import (
+from openclaw_alpha.skills.market_sentiment.sentiment_processor.sentiment_processor import (
     MarketSentimentProcessor,
 )
 
