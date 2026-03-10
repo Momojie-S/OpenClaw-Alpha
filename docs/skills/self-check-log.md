@@ -8,31 +8,31 @@
 
 | Skill ID | 上次自检时间 | 后续待办 |
 |----------|--------------|----------|
-| openclaw_alpha_alert_monitor | - | - |
+| openclaw_alpha_alert_monitor | 2026-03-10 | ✅ 已完成 |
 | openclaw_alpha_announcement_analysis | - | - |
-| openclaw_alpha_backtest | - | - |
-| openclaw_alpha_etf_analysis | - | - |
+| openclaw_alpha_backtest | 2026-03-10 | ✅ 已完成（已修复导入问题） |
+| openclaw_alpha_etf_analysis | 2026-03-10 | ✅ 已完成（已修复 Tushare fallback 和返回格式问题） |
 | openclaw_alpha_fund_flow_analysis | - | - |
-| openclaw_alpha_fundamental_analysis | - | - |
-| openclaw_alpha_index_analysis | - | - |
-| openclaw_alpha_industry_trend | - | - |
+| openclaw_alpha_fundamental_analysis | 2026-03-10 | ✅ 已完成 |
+| openclaw_alpha_index_analysis | 2026-03-10 | ✅ 已完成（已修复导入问题） |
+| openclaw_alpha_industry_trend | 2026-03-10 | ✅ 已完成（已修复导入和测试问题） |
 | openclaw_alpha_lhb_tracker | - | - |
 | openclaw_alpha_limit_up_tracker | - | - |
 | openclaw_alpha_margin_trading | - | - |
-| openclaw_alpha_market_overview | - | - |
-| openclaw_alpha_market_sentiment | - | - |
+| openclaw_alpha_market_overview | 2026-03-10 | ✅ 已完成（已修复字段名问题） |
+| openclaw_alpha_market_sentiment | 2026-03-10 | ✅ 已完成（已修复字段名问题） |
 | openclaw_alpha_news_driven_investment | - | - |
-| openclaw_alpha_northbound_flow | - | - |
-| openclaw_alpha_option_analysis | - | - |
-| openclaw_alpha_portfolio_analysis | - | - |
+| openclaw_alpha_northbound_flow | 2026-03-10 | ✅ 已完成 |
+| openclaw_alpha_option_analysis | 2026-03-10 | ✅ 已完成（已修复 PCR 值计算错误） |
+| openclaw_alpha_portfolio_analysis | 2026-03-10 | ✅ 已完成（已修复 5 个 bug + 1 个文档问题） |
 | openclaw_alpha_restricted_release | - | - |
-| openclaw_alpha_risk_alert | - | - |
+| openclaw_alpha_risk_alert | 2026-03-10 | ✅ 已完成（已修复 mock 路径） |
 | openclaw_alpha_smart_dip | - | - |
-| openclaw_alpha_stock_analysis | - | - |
+| openclaw_alpha_stock_analysis | 2026-03-10 | ✅ 已完成 |
 | openclaw_alpha_stock_compare | - | - |
 | openclaw_alpha_stock_fund_flow | - | - |
 | openclaw_alpha_stock_screener | 2026-03-10 | ✅ 数据源注册问题已修复，性能优化待办（P3） |
-| openclaw_alpha_technical_indicators | - | - |
+| openclaw_alpha_technical_indicators | 2026-03-10 | ✅ 已完成 |
 | openclaw_alpha_theme_speculation | - | - |
 | openclaw_alpha_watchlist_monitor | - | - |
 
@@ -319,14 +319,16 @@ uv run --env-file .env python -m openclaw_alpha.skills.portfolio_analysis.risk_c
 3. 在 stock_spot_fetcher/__init__.py 中导入 akshare 模块
 4. 在 portfolio_processor/__main__.py 中导入 registry
 5. 修改 akshare.py 使用 get_fetcher() 获取单例
+6. **2026-03-10 修复文档问题**：更新 SKILL.md 中的命令格式，从错误的 `python skills/xxx.scripts.xxx` 改为正确的 `python -m openclaw_alpha.skills.xxx.xxx`
 
 **测试结果**：
 - ✅ portfolio_processor 运行正常，输出持仓分析报告
 - ✅ correlation_processor 运行正常，输出相关性分析
 - ✅ risk_contribution_processor 运行正常，输出风险贡献分析
 - ✅ 所有功能均符合预期
+- ✅ 文档命令格式已修复
 
-**结论**：已修复 5 个 bug，功能正常。
+**结论**：已修复 5 个 bug + 1 个文档问题，功能正常。
 
 ---
 
@@ -384,6 +386,67 @@ uv run --env-file .env pytest tests/skills/risk_alert/ -v
 **结论**：数据源注册问题已修复，功能正常，性能优化待办。
 
 **进度文件**：`progress/2026-03-10-skill-self-check-stock-screener.md`
+
+---
+
+### 2026-03-10: etf_analysis
+
+**测试内容**：
+1. ✅ ETF 行情排行（--top-n 10）
+2. ✅ 筛选 ETF（--change-min 2 --amount-min 5）
+3. ✅ 历史数据（--action history --symbol sz159915 --days 5）
+
+**发现问题**：
+1. **Tushare 实现不支持获取全部 ETF 行情**
+   - Tushare `fund_daily` API 要求至少填写 `ts_code` 或 `trade_date` 参数
+   - 导致获取全部 ETF 行情时报错
+2. **返回格式不一致**
+   - Tushare 实现返回列表，AKShare 实现返回字典
+   - 导致 `fetch_spot()` 无法正确处理 Tushare 返回值
+
+**修复内容**：
+1. 在 Tushare 实现中增加参数检查，不满足时抛出 `DataSourceUnavailableError`
+2. 在 EtfFetcher 中重写 `fetch` 方法，增加 fallback 机制
+3. 统一返回格式（字典），确保两种实现返回格式一致
+
+**测试结果**：
+- ✅ 行情排行正常运行（自动 fallback 到 AKShare）
+- ✅ 筛选功能正常
+- ✅ 历史数据正常
+
+**结论**：已修复 2 个 bug，功能正常。
+
+**进度文件**：`progress/2026-03-10-self-check-etf-analysis.md`
+
+---
+
+### 2026-03-10: option_analysis
+
+**测试内容**：
+1. ✅ sentiment_processor（情绪分析）
+2. ✅ market_overview_processor（市场概况）
+
+**发现问题**：
+1. **PCR 值计算错误**：AKShare 返回的 "认沽/认购" 字段单位是百分比（85.91 = 85.91%），代码未做转换
+   - 现象：输出 avg_pcr=99.23，实际应为 0.99
+   - 修复：在 `_process_exchange_stats()` 中将 pcr 值除以 100
+
+**测试命令**：
+```bash
+# 情绪分析
+uv run --env-file .env python -m openclaw_alpha.skills.option_analysis.sentiment_processor.sentiment_processor --underlying 510050
+
+# 市场概况
+uv run --env-file .env python -m openclaw_alpha.skills.option_analysis.market_overview_processor.market_overview_processor
+```
+
+**测试结果**：
+- ✅ sentiment_processor 运行正常，输出 PCR 0.86，情绪"中性"
+- ✅ market_overview_processor 运行正常（修复后），avg_pcr=0.99
+
+**结论**：已修复 PCR 计算错误，功能正常。
+
+**进度文件**：`progress/2026-03-10-skill-self-check-option-analysis.md`
 
 ---
 

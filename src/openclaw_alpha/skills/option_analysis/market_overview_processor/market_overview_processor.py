@@ -76,17 +76,20 @@ def _process_exchange_stats(stats: list, exchange: str) -> dict:
 
         name = stat.get("名称", stat.get("期权名称", "未知"))
 
+        # AKShare 返回的 PCR 值单位是百分比，需要除以 100
+        pcr_decimal = pcr / 100 if pcr > 1 else pcr
+
         etf_options.append({
             "name": name,
             "volume": int(call_vol + put_vol),
             "oi": int(call_oi + put_oi),
-            "pcr": round(pcr, 2)
+            "pcr": round(pcr_decimal, 2)
         })
 
         total_volume += call_vol + put_vol
         total_oi += call_oi + put_oi
-        if pcr > 0:
-            pcr_values.append(pcr)
+        if pcr_decimal > 0:
+            pcr_values.append(pcr_decimal)
 
     return {
         "etf_options": etf_options,
