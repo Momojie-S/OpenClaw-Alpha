@@ -4,6 +4,15 @@
 
 ---
 
+## 技术约束
+
+**算力有限，不涉及机器学习**：
+- 量化模型、ML 预测、深度学习等均不考虑
+- 优先采用规则驱动、统计指标等轻量方案
+- 知识体系中的 ML 相关注释仅供了解原理，不进行 API 调研或开发
+
+---
+
 ## 分析层次
 
 | 层次 | 核心问题 | 已有 Skill | 待补充 |
@@ -67,6 +76,7 @@
 | **limit_up_tracker** | 涨停板追踪（连板/炸板） | AKShare |
 | **announcement_analysis** | 上市公司公告解读 | AKShare |
 | **restricted_release** | 限售解禁风险监控 | AKShare |
+| **theme_speculation** | 题材炒作分析（情绪周期/龙头识别/风险提示） | AKShare（复用 limit_up_tracker） |
 
 ### 组合层
 
@@ -179,6 +189,7 @@ uv run --env-file .env python skills/industry_trend/scripts/crowdedness_processo
 
 | 能力 | 完成日期 | Skill |
 |------|----------|-------|
+| 题材炒作分析 | 2026-03-10 | theme_speculation（情绪周期 + 龙头识别 + 风险提示） |
 | 智能定投策略 | 2026-03-08 | smart_dip（dip_advice_processor） |
 | 股债性价比 | 2026-03-08 | market_sentiment（equity_bond_ratio_processor） |
 | 市场择时 | 2026-03-08 | market_sentiment（timing_processor） |
