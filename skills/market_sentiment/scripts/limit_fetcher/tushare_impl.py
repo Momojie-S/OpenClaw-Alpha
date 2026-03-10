@@ -62,14 +62,14 @@ class LimitFetcherTushare(FetchMethod):
         date: str,
     ) -> dict:
         """转换数据格式"""
-        up_count = len(df_up) if df_up is not None and not df_up.empty else 0
-        down_count = len(df_down) if df_down is not None and not df_down.empty else 0
+        limit_up = len(df_up) if df_up is not None and not df_up.empty else 0
+        limit_down = len(df_down) if df_down is not None and not df_down.empty else 0
 
         return {
             "date": date,
-            "up_count": up_count,
-            "down_count": down_count,
-            "up_down_ratio": up_count / down_count if down_count > 0 else 0,
+            "limit_up": limit_up,
+            "limit_down": limit_down,
+            "break_board": 0,  # Tushare 接口不提供炸板数据
         }
 
     async def fetch(self, date: str) -> dict:
