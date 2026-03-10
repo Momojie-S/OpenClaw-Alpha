@@ -36,8 +36,15 @@ class NewsResult:
 
 # RSSHub 路由映射
 RSSHUB_ROUTES = {
+    # 财经快讯
     "cls_telegraph": "/cls/telegraph",  # 财联社电报
-    "xueqiu_today": "/xueqiu/today",    # 雪球今日话题
+    "jin10": "/jin10",  # 金十数据快讯
+    
+    # 财经媒体
+    "yicai_brief": "/yicai/brief",  # 第一财经简报
+    
+    # 社区（已失效）
+    # "xueqiu_today": "/xueqiu/today",  # 雪球今日话题
 }
 
 # 默认 RSSHub 实例（按优先级）
@@ -116,36 +123,48 @@ class NewsFetcherRsshub(FetchMethod):
         )
     
     async def _fetch_from_rsshub(self, route: str, limit: int) -> list[dict]:
-        """从 RSSHub 获取 JSON 数据
-        
+        """从 RSSHub 获取 JSON 数据（多实例自动重试）
+
+        遍历所有实例，直到成功或全部失败。
+
         Args:
             route: RSSHub 路由路径（如 /cls/telegraph）
             limit: 获取数量
-        
+
         Returns:
             新闻列表（JSON 格式）
         """
-        url = f"https://{self.rsshub_instance}{route}?format=json"
-        
+        errors = []
+
         async with httpx.AsyncClient(timeout=30.0) as client:
-            try:
-                response = await client.get(url)
-                response.raise_for_status()
-                data = response.json()
-                
-                # RSSHub JSON 返回格式：{"items": [...]}
-                items = data.get("items", [])
-                return items[:limit]
-                
-            except httpx.HTTPStatusError as e:
-                raise RuntimeError(
-                    f"连接 RSSHub API 失败（HTTP {e.response.status_code}）。"
-                    f"请检查网络连接或尝试其他 RSSHub 实例。"
-                ) from e
-            except httpx.RequestError as e:
-                raise RuntimeError(
-                    f"连接 RSSHub API 超时。请检查网络连接后重试。"
-                ) from e
+            for instance in DEFAULT_RSSHUB_INSTANCES:
+                url = f"https://{instance}{route}?format=json"
+
+                try:
+                    response = await client.get(url)
+                    response.raise_for_status()
+                    data = response.json()
+
+                    # RSSHub JSON 返回格式：{"items": [...]}
+                    items = data.get("items", [])
+                    return items[:limit]
+
+                except httpx.HTTPStatusError as e:
+                    errors.append(f"{instance}: HTTP {e.response.status_code}")
+                except httpx.RequestError as e:
+                    errors.append(f"{instance}: 网络错误")
+                except Exception as e:
+                    errors.append(f"{instance}: {str(e)}")
+
+        # 全部实例都失败
+        tried_instances = ", ".join(DEFAULT_RSSHUB_INSTANCES)
+        error_details = "; ".join(errors)
+        raise RuntimeError(
+            f"所有 RSSHub 实例均不可用。\n"
+            f"已尝试：{tried_instances}\n"
+            f"错误详情：{error_details}\n"
+            f"请检查网络连接或稍后重试。"
+        )
     
     def _convert_to_news_items(self, raw_news: list[dict], source: str) -> list[NewsItem]:
         """将 RSSHub JSON 转换为 NewsItem

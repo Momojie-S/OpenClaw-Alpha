@@ -23,8 +23,11 @@ uv run --env-file .env python skills/news_driven_investment/scripts/news_fetcher
 # 获取财联社电报快讯（RSSHub 接口）
 uv run --env-file .env python skills/news_driven_investment/scripts/news_fetcher/news_fetcher.py --source cls_telegraph --limit 10
 
-# 获取雪球今日话题（RSSHub 接口）
-uv run --env-file .env python skills/news_driven_investment/scripts/news_fetcher/news_fetcher.py --source xueqiu_today --limit 10
+# 获取金十数据快讯（RSSHub 接口）
+uv run --env-file .env python skills/news_driven_investment/scripts/news_fetcher/news_fetcher.py --source jin10 --limit 10
+
+# 获取第一财经简报（RSSHub 接口）
+uv run --env-file .env python skills/news_driven_investment/scripts/news_fetcher/news_fetcher.py --source yicai_brief --limit 10
 
 # 获取财联社重点资讯
 uv run --env-file .env python skills/news_driven_investment/scripts/news_fetcher/news_fetcher.py --source cls_important --limit 5
@@ -54,7 +57,10 @@ uv run --env-file .env python skills/news_driven_investment/scripts/news_fetcher
 | 数据源 | 来源 | 特点 | 推荐度 |
 |--------|------|------|:------:|
 | `cls_telegraph` | 财联社电报 | 实时快讯，响应快 | ⭐⭐⭐ |
-| `xueqiu_today` | 雪球 | 今日热门话题 | ⭐⭐ |
+| `jin10` | 金十数据 | 专业金融资讯，更新频繁 | ⭐⭐⭐ |
+| `yicai_brief` | 第一财经 | 权威财经媒体，覆盖广 | ⭐⭐ |
+
+完整路由列表：[RSSHub 投资相关路由](docs/references/rsshub/routes.md)
 
 ### 筛选参数
 
