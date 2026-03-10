@@ -5,6 +5,7 @@ from datetime import datetime, timedelta
 
 import pandas as pd
 from openclaw_alpha.core.fetcher import FetchMethod
+from openclaw_alpha.core.code_converter import convert_code
 from openclaw_alpha.data_sources import registry
 
 
@@ -44,7 +45,7 @@ class HistoryFetcherTushare(FetchMethod):
             start_date = (datetime.now() - timedelta(days=days * 2)).strftime("%Y%m%d")
 
         # 转换股票代码格式：000001 -> 000001.SZ
-        ts_code = self._convert_code(symbol)
+        ts_code = convert_code(symbol, "tushare", "stock")
 
         # 获取数据
         df = pro.daily(
@@ -77,26 +78,3 @@ class HistoryFetcherTushare(FetchMethod):
             df = df.tail(days)
 
         return df.reset_index(drop=True)
-
-    def _convert_code(self, symbol: str) -> str:
-        """转换股票代码格式
-
-        Args:
-            symbol: 6 位股票代码（如 "000001"）
-
-        Returns:
-            Tushare 格式代码（如 "000001.SZ"）
-        """
-        if "." in symbol:
-            return symbol
-
-        # 根据代码前缀判断市场
-        if symbol.startswith(("60", "68")):
-            return f"{symbol}.SH"
-        elif symbol.startswith(("00", "30")):
-            return f"{symbol}.SZ"
-        elif symbol.startswith(("688", "689")):
-            return f"{symbol}.SH"
-        else:
-            # 默认深圳
-            return f"{symbol}.SZ"
