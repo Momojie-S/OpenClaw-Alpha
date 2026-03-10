@@ -26,7 +26,7 @@
 | openclaw_alpha_option_analysis | - | - |
 | openclaw_alpha_portfolio_analysis | 2026-03-10 | ✅ 已修复 5 个 bug，功能正常 |
 | openclaw_alpha_restricted_release | - | - |
-| openclaw_alpha_risk_alert | - | - |
+| openclaw_alpha_risk_alert | 2026-03-10 | ✅ 已修复 mock 路径问题，功能正常 |
 | openclaw_alpha_smart_dip | - | - |
 | openclaw_alpha_stock_analysis | 2026-03-10 | ✅ 功能正常 |
 | openclaw_alpha_stock_compare | - | - |
@@ -327,6 +327,38 @@ uv run --env-file .env python -m openclaw_alpha.skills.portfolio_analysis.risk_c
 - ✅ 所有功能均符合预期
 
 **结论**：已修复 5 个 bug，功能正常。
+
+---
+
+### 2026-03-10: risk_alert
+
+**测试内容**：
+1. ✅ risk_processor（单股风险检查）
+2. ✅ risk_processor --batch（批量风险扫描）
+3. ✅ 单元测试（16 个测试用例）
+
+**测试命令**：
+```bash
+# 单股风险检查
+uv run --env-file .env python -m openclaw_alpha.skills.risk_alert.risk_processor.risk_processor 000001 --date 2026-03-10 --days 5
+
+# 批量风险扫描
+uv run --env-file .env python -m openclaw_alpha.skills.risk_alert.risk_processor.risk_processor --batch "000001,600000,002475" --date 2026-03-10 --days 5
+
+# 单元测试
+uv run --env-file .env pytest tests/skills/risk_alert/ -v
+```
+
+**发现问题**：
+- test_risk_processor.py 中的 mock 路径使用了旧格式 `skills.risk_alert.scripts.forecast_fetcher.fetch`
+- 修复：更新为 `openclaw_alpha.skills.risk_alert.forecast_fetcher.fetch`
+
+**测试结果**：
+- ✅ risk_processor 运行正常，输出格式正确
+- ✅ 批量扫描正常运行
+- ✅ 所有单元测试通过（16 passed in 0.45s）
+
+**结论**：已修复 mock 路径问题，功能正常。
 
 ---
 

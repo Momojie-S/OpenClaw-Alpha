@@ -104,7 +104,7 @@ class TestRiskProcessor:
         processor = RiskProcessor("000002")
 
         with patch(
-            "skills.risk_alert.scripts.forecast_fetcher.fetch",
+            "openclaw_alpha.skills.risk_alert.forecast_fetcher.fetch",
             new_callable=AsyncMock,
         ) as mock_fetch:
             # 模拟 fetch 返回数据
@@ -127,7 +127,7 @@ class TestRiskProcessor:
         processor = RiskProcessor("000003")
 
         with patch(
-            "skills.risk_alert.scripts.forecast_fetcher.fetch",
+            "openclaw_alpha.skills.risk_alert.forecast_fetcher.fetch",
             new_callable=AsyncMock,
         ) as mock_fetch:
             from openclaw_alpha.skills.risk_alert.forecast_fetcher.akshare import ForecastFetcherAkshare
@@ -149,7 +149,7 @@ class TestRiskProcessor:
         processor = RiskProcessor("000001")
 
         with patch(
-            "skills.risk_alert.scripts.forecast_fetcher.fetch",
+            "openclaw_alpha.skills.risk_alert.forecast_fetcher.fetch",
             new_callable=AsyncMock,
         ) as mock_fetch:
             from openclaw_alpha.skills.risk_alert.forecast_fetcher.akshare import ForecastFetcherAkshare
