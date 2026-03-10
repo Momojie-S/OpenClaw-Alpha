@@ -56,16 +56,15 @@ async def scan_northbound_flow(
 
     try:
         # 导入 northbound_flow skill
-        from skills.northbound_flow.scripts.northbound_processor.northbound_processor import (
-            fetch_northbound_data,
-        )
+        from skills.northbound_flow.scripts.flow_fetcher import fetch_daily
 
-        data = await fetch_northbound_data(date)
+        data = await fetch_daily(date)
 
         if not data:
             return []
 
-        net_amount = data.get("net_amount", 0)  # 亿
+        # fetch_daily 返回的 total_flow 是净流入（亿）
+        net_amount = data.get("total_flow", 0)  # 亿
 
         # 检查大额流入
         if net_amount >= config.northbound_flow.inflow_threshold:
@@ -115,18 +114,25 @@ async def scan_industry_trend(
 
     try:
         # 导入 industry_trend skill
-        from skills.industry_trend.scripts.heat_processor.heat_processor import (
-            fetch_industry_heat,
+        from skills.industry_trend.scripts.industry_trend_processor.industry_trend_processor import (
+            IndustryTrendProcessor,
         )
 
-        boards = await fetch_industry_heat("L1", date)
+        processor = IndustryTrendProcessor()
+        result = await processor.process(category="L1", date=date, top_n=20)
 
+        boards = result.get("boards", [])
+        
         if not boards:
             return []
 
         # 检查热度大幅变化
-        for board in boards[:20]:  # 只检查前 20 个
-            change = board.get("heat_change", 0)
+        for board in boards:
+            change = board.get("heat_change")
+            
+            # 跳过无历史数据的板块
+            if change is None:
+                continue
 
             if change >= config.industry_trend.hot_threshold:
                 signals.append(MarketSignal(
