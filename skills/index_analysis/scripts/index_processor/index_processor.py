@@ -10,7 +10,7 @@ from typing import Any
 
 from openclaw_alpha.core.processor_utils import get_output_path
 
-from ..index_fetcher import fetch
+from skills.index_analysis.scripts.index_fetcher import fetch
 
 logger = logging.getLogger(__name__)
 
