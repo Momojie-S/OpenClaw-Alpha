@@ -25,8 +25,9 @@ class StockSpotFetcherAkshare(FetchMethod):
     def __init__(self):
         """初始化"""
         super().__init__()
-        # 注册到 Fetcher
-        fetcher = StockSpotFetcher()
+        # 注册到 Fetcher 单例
+        from .stock_spot_fetcher import get_fetcher
+        fetcher = get_fetcher()
         fetcher.register(self, self.priority)
 
     @retry(

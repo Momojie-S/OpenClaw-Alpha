@@ -24,7 +24,7 @@
 | openclaw_alpha_news_driven_investment | - | - |
 | openclaw_alpha_northbound_flow | 2026-03-10 | ✅ 功能正常 |
 | openclaw_alpha_option_analysis | - | - |
-| openclaw_alpha_portfolio_analysis | - | - |
+| openclaw_alpha_portfolio_analysis | 2026-03-10 | ✅ 已修复 5 个 bug，功能正常 |
 | openclaw_alpha_restricted_release | - | - |
 | openclaw_alpha_risk_alert | - | - |
 | openclaw_alpha_smart_dip | - | - |
@@ -281,6 +281,52 @@ uv run --env-file .env pytest tests/skills/industry_trend/ -v
 - ✅ 文档清晰完整（包含详细的权重和指标说明）
 
 **结论**：功能正常，已修复导入问题和测试错误。
+
+---
+
+### 2026-03-10: portfolio_analysis
+
+**测试内容**：
+1. ✅ portfolio_processor（持仓结构分析）
+2. ✅ correlation_processor（相关性分析）
+3. ✅ risk_contribution_processor（风险贡献分解）
+
+**测试命令**：
+```bash
+# 持仓分析
+uv run --env-file .env python -m openclaw_alpha.skills.portfolio_analysis.portfolio_processor \
+    --holdings "000001:1000:12.5,600000:500:8.2,002475:200:25.0,600519:50:1800,000858:100:150"
+
+# 相关性分析
+uv run --env-file .env python -m openclaw_alpha.skills.portfolio_analysis.correlation_processor.correlation_processor \
+    "000001,600000,002475" --days 60
+
+# 风险贡献分析
+uv run --env-file .env python -m openclaw_alpha.skills.portfolio_analysis.risk_contribution_processor.risk_contribution_processor \
+    "000001:0.5,600000:0.3,002475:0.2" --days 60
+```
+
+**发现问题**：
+1. **portfolio_processor/__main__.py 导入路径错误** - 使用错误的相对路径
+2. **stock_spot_fetcher 未正确处理 _select_available() 返回值** - 返回 tuple 而非 FetchMethod
+3. **stock_spot_fetcher 未导入 akshare 实现模块** - 自动注册未触发
+4. **portfolio_processor 未注册数据源** - 缺少 registry 导入
+5. **akshare 实现注册到错误的 Fetcher 实例** - 注册到新实例而非单例
+
+**修复内容**：
+1. 修改 portfolio_processor/__main__.py 的导入路径为正确的绝对路径
+2. 修改 stock_spot_fetcher.py 正确解包 _select_available() 返回值
+3. 在 stock_spot_fetcher/__init__.py 中导入 akshare 模块
+4. 在 portfolio_processor/__main__.py 中导入 registry
+5. 修改 akshare.py 使用 get_fetcher() 获取单例
+
+**测试结果**：
+- ✅ portfolio_processor 运行正常，输出持仓分析报告
+- ✅ correlation_processor 运行正常，输出相关性分析
+- ✅ risk_contribution_processor 运行正常，输出风险贡献分析
+- ✅ 所有功能均符合预期
+
+**结论**：已修复 5 个 bug，功能正常。
 
 ---
 

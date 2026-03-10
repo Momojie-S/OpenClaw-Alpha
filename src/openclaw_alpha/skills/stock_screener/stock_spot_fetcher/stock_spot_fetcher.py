@@ -31,7 +31,10 @@ class StockSpotFetcher(Fetcher):
         Returns:
             股票行情列表
         """
-        method = self._select_available()
+        method, errors = self._select_available()
+        if not method:
+            from openclaw_alpha.core.exceptions import NoAvailableMethodError
+            raise NoAvailableMethodError(self.name, [], errors)
         return await method.fetch()
 
 

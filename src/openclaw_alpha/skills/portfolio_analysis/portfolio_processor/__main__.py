@@ -20,17 +20,18 @@ if __name__ == "__main__":
         sys.path.insert(0, str(skills_dir))
 
     # 注册数据源
+    from openclaw_alpha.data_sources import registry  # noqa: F401
 
 from openclaw_alpha.core.processor_utils import get_output_path
 
-from portfolio_analysis.scripts.industry_fetcher import fetch as fetch_industry
-from portfolio_analysis.scripts.portfolio_processor.portfolio_processor import (
+from openclaw_alpha.skills.portfolio_analysis.industry_fetcher import fetch as fetch_industry
+from openclaw_alpha.skills.portfolio_analysis.portfolio_processor.portfolio_processor import (
     PortfolioProcessor,
     PortfolioResult,
 )
 
 # 复用 stock_screener 的 StockSpotFetcher
-from stock_screener.scripts.stock_spot_fetcher import fetch as fetch_spot
+from openclaw_alpha.skills.stock_screener.stock_spot_fetcher import fetch as fetch_spot
 
 logger = logging.getLogger(__name__)
 
