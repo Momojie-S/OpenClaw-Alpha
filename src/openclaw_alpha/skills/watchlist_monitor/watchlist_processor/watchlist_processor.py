@@ -191,12 +191,19 @@ class WatchlistProcessor:
         if not codes:
             return []
 
-        # 获取全市场行情
-        all_stocks = await fetch_spot()
+        # 根据自选股数量选择获取方式
+        if len(codes) <= 50:
+            # 少量股票：使用个股行情 API，速度快
+            from openclaw_alpha.skills.watchlist_monitor.stock_individual_spot_fetcher import (
+                fetch as fetch_individual,
+            )
 
-        # 筛选自选股
-        code_set = set(codes)
-        watchlist_stocks = [s for s in all_stocks if s.code in code_set]
+            watchlist_stocks = await fetch_individual(codes)
+        else:
+            # 大量股票：使用全市场行情，避免过多请求
+            all_stocks = await fetch_spot()
+            code_set = set(codes)
+            watchlist_stocks = [s for s in all_stocks if s.code in code_set]
 
         # 按涨跌幅排序
         watchlist_stocks.sort(key=lambda s: s.change_pct, reverse=True)

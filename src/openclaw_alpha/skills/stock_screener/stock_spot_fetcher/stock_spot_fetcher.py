@@ -24,18 +24,12 @@ class StockSpotFetcher(Fetcher):
 
     name = "stock_spot"
 
-    async def fetch(self) -> list[StockSpot]:
-        """
-        获取全市场股票行情
-
-        Returns:
-            股票行情列表
-        """
-        method, errors = self._select_available()
-        if not method:
-            from openclaw_alpha.core.exceptions import NoAvailableMethodError
-            raise NoAvailableMethodError(self.name, [], errors)
-        return await method.fetch()
+    def __init__(self) -> None:
+        """初始化 Fetcher"""
+        super().__init__()
+        # 注册实现（按优先级）
+        from .akshare import StockSpotFetcherAkshare
+        self.register(StockSpotFetcherAkshare(), priority=10)
 
 
 # 单例实例

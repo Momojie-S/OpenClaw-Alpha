@@ -23,14 +23,6 @@ class StockSpotFetcherAkshare(FetchMethod):
     required_data_source = "akshare"
     priority = 10
 
-    def __init__(self):
-        """初始化"""
-        super().__init__()
-        # 注册到 Fetcher 单例
-        from .stock_spot_fetcher import get_fetcher
-        fetcher = get_fetcher()
-        fetcher.register(self, self.priority)
-
     @retry(
         stop=stop_after_attempt(3),
         wait=wait_exponential(multiplier=1, min=1, max=30),
@@ -123,10 +115,6 @@ class StockSpotFetcherAkshare(FetchMethod):
         """
         df = await self._call_api()
         return self._transform(df)
-
-
-# 自动注册
-_instance = StockSpotFetcherAkshare()
 
 
 # 调试入口
