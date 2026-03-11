@@ -225,6 +225,69 @@ class TestSentimentCycleProcessor:
         assert cycle == "启动"
         assert any("暂无明显信号" in r for r in reasons)
 
+    def test_detect_anomalies_broken_rate_zero(self, processor):
+        """测试数据异常检测：炸板率为 0% 但有涨停"""
+        processor.indicators = SentimentIndicators(
+            limit_up_count=177,
+            broken_count=0,
+            broken_rate=0.0,
+            max_continuous=13,
+            prev_avg_change=0.0,
+            prev_profit_rate=0.0,
+        )
+
+        warnings = processor._detect_anomalies()
+
+        assert len(warnings) >= 1
+        assert any("炸板率为 0%" in w for w in warnings)
+
+    def test_detect_anomalies_prev_performance_zero(self, processor):
+        """测试数据异常检测：昨日涨停盈利比例和平均涨跌均为 0%"""
+        processor.indicators = SentimentIndicators(
+            limit_up_count=100,
+            broken_count=20,
+            broken_rate=16.67,
+            max_continuous=5,
+            prev_avg_change=0.0,
+            prev_profit_rate=0.0,
+        )
+
+        warnings = processor._detect_anomalies()
+
+        assert len(warnings) >= 1
+        assert any("昨日涨停盈利比例和平均涨跌均为 0%" in w for w in warnings)
+
+    def test_detect_anomalies_limit_up_zero(self, processor):
+        """测试数据异常检测：无涨停数据"""
+        processor.indicators = SentimentIndicators(
+            limit_up_count=0,
+            broken_count=0,
+            broken_rate=0.0,
+            max_continuous=0,
+            prev_avg_change=0.0,
+            prev_profit_rate=0.0,
+        )
+
+        warnings = processor._detect_anomalies()
+
+        assert len(warnings) >= 1
+        assert any("无涨停数据" in w for w in warnings)
+
+    def test_detect_anomalies_no_anomaly(self, processor):
+        """测试数据异常检测：正常数据无异常"""
+        processor.indicators = SentimentIndicators(
+            limit_up_count=73,
+            broken_count=18,
+            broken_rate=19.78,
+            max_continuous=7,
+            prev_avg_change=2.51,
+            prev_profit_rate=64.29,
+        )
+
+        warnings = processor._detect_anomalies()
+
+        assert len(warnings) == 0
+
     @pytest.mark.asyncio
     @pytest.mark.timeout(10)
     @patch("openclaw_alpha.skills.theme_speculation.sentiment_cycle_processor.sentiment_cycle_processor.fetch_limit_up")

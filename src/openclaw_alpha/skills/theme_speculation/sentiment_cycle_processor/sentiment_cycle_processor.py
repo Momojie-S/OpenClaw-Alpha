@@ -60,6 +60,8 @@ class SentimentCycleResult:
     indicators: SentimentIndicators
     # 判断理由
     reasons: list[str] = field(default_factory=list)
+    # 数据异常警告
+    warnings: list[str] = field(default_factory=list)
 
     def to_dict(self) -> dict:
         return {
@@ -67,6 +69,7 @@ class SentimentCycleResult:
             "cycle": self.cycle,
             "indicators": self.indicators.to_dict(),
             "reasons": self.reasons,
+            "warnings": self.warnings,
         }
 
 
@@ -82,7 +85,10 @@ class SentimentCycleProcessor:
         # 1. 获取数据
         await self._fetch_data()
 
-        # 2. 判断情绪周期
+        # 2. 检测数据异常
+        warnings = self._detect_anomalies()
+
+        # 3. 判断情绪周期
         cycle, reasons = self._determine_cycle()
 
         return SentimentCycleResult(
@@ -90,6 +96,7 @@ class SentimentCycleProcessor:
             cycle=cycle,
             indicators=self.indicators,
             reasons=reasons,
+            warnings=warnings,
         )
 
     async def _fetch_data(self):
@@ -133,6 +140,45 @@ class SentimentCycleProcessor:
         except Exception:
             # 如果获取昨日涨停数据失败，保持默认值
             pass
+
+    def _detect_anomalies(self) -> list[str]:
+        """检测数据异常
+
+        检测以下异常情况：
+        1. 炸板率 = 0% 但有涨停（数据源可能缺失炸板数据）
+        2. 昨日涨停盈利比例 = 0% 且平均涨跌 = 0%（数据源可能缺失昨日表现数据）
+        3. 涨停数 = 0（非交易日或数据异常）
+
+        Returns:
+            警告信息列表
+        """
+        warnings = []
+        ind = self.indicators
+
+        # 1. 检测炸板率异常
+        # 如果有涨停但炸板率为 0%，可能是数据源缺失炸板数据
+        if ind.limit_up_count > 0 and ind.broken_rate == 0:
+            warnings.append(
+                f"数据异常：炸板率为 0%（涨停 {ind.limit_up_count} 只），"
+                f"数据源可能缺失炸板数据，情绪周期判断可能不准确"
+            )
+
+        # 2. 检测昨日涨停表现异常
+        # 如果盈利比例和平均涨跌都是 0%，可能是数据源缺失昨日表现数据
+        if ind.prev_profit_rate == 0 and ind.prev_avg_change == 0:
+            warnings.append(
+                "数据异常：昨日涨停盈利比例和平均涨跌均为 0%，"
+                "数据源可能缺失昨日涨停表现数据，情绪周期判断可能不准确"
+            )
+
+        # 3. 检测涨停数异常
+        # 如果涨停数为 0，可能是非交易日或数据异常
+        if ind.limit_up_count == 0:
+            warnings.append(
+                "数据异常：无涨停数据，可能是非交易日或数据源异常"
+            )
+
+        return warnings
 
     def _determine_cycle(self) -> tuple[str, list[str]]:
         """判断情绪周期"""
@@ -225,9 +271,21 @@ def format_output(result: SentimentCycleResult) -> str:
         f"  最高连板: {result.indicators.max_continuous} 板",
         f"  昨日涨停平均涨跌: {result.indicators.prev_avg_change:.2f}%",
         f"  昨日涨停盈利比例: {result.indicators.prev_profit_rate:.2f}%",
+    ]
+
+    # 如果有警告，显示警告信息
+    if result.warnings:
+        lines.extend([
+            "",
+            "⚠️  数据异常警告:",
+        ])
+        for warning in result.warnings:
+            lines.append(f"  - {warning}")
+
+    lines.extend([
         "",
         "判断理由:",
-    ]
+    ])
 
     for reason in result.reasons:
         lines.append(f"  - {reason}")
