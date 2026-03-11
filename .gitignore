@@ -28,6 +28,9 @@ htmlcov/
 # Runtime data
 .openclaw_alpha/
 
+# Workspace (agent working directory)
+workspace/
+
 # Task tracking (may contain sensitive info)
 progress/
 feedback/

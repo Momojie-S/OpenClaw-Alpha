@@ -91,6 +91,30 @@
 - **特殊情况**: 如果 `uv add` 无法正常工作，再使用 `uv pip install <package>`
 - **禁止**: 不要直接手动修改 `pyproject.toml` 的 dependencies 字段
 
+### 路径管理
+
+- **统一使用 path_utils**: 所有路径通过 `openclaw_alpha.core.path_utils` 获取
+- **禁止硬编码路径**: 不要在代码中硬编码路径（如 `"/home/user/.openclaw_alpha"`）
+- **使用 Path 对象**: 使用 `pathlib.Path` 进行路径操作，不要使用字符串拼接
+- **创建目录**: 使用 `ensure_dir()` 而非 `os.makedirs()`
+
+**示例**：
+```python
+# ✅ 正确
+from openclaw_alpha.core.path_utils import get_cache_dir, ensure_dir
+
+cache_dir = get_cache_dir()
+workspace = cache_dir / "my_task" / "2026-03-11"
+ensure_dir(workspace)
+
+# ❌ 错误
+cache_dir = "/home/user/.openclaw_alpha/cache"
+workspace = cache_dir + "/my_task/2026-03-11"
+os.makedirs(workspace, exist_ok=True)
+```
+
+**详细文档**：[核心工具模块 - path_utils](../architecture/core-utilities.md#path_utils---路径管理工具)
+
 ### 测试规范
 
 - **无测试包**: 不得在测试目录中创建 python package

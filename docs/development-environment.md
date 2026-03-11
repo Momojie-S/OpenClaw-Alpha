@@ -88,3 +88,31 @@ claude plugin marketplace add OneDragon-Anything/OneDragon-CC-Plugins
 #### 所需插件列表
 
 - uv-pyright-lsp - 使用uv run运行的LSP server
+
+## 环境变量配置
+
+项目使用 `.env` 文件管理环境变量，位于项目根目录。
+
+### 必需的环境变量
+
+```bash
+# Tushare 配置
+TUSHARE_TOKEN=your_token_here
+TUSHARE_CREDIT=5000
+
+# Python 路径
+PYTHONPATH=/path/to/OpenClaw-Alpha/src:/path/to/OpenClaw-Alpha
+
+# 项目根目录（可选，不配置会自动推断）
+OPENCLAW_ALPHA_ROOT=/path/to/OpenClaw-Alpha
+```
+
+### 使用方式
+
+所有 `uv run` 命令都需要加载 `.env`：
+
+```bash
+uv run --env-file .env python script.py
+```
+
+**详细说明**：[核心工具模块 - path_utils](architecture/core-utilities.md#path_utils---路径管理工具)

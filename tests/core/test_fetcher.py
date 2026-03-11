@@ -192,7 +192,9 @@ class TestFetcher:
 
         assert method.priority == 100
 
-    def test_select_available_by_priority(self, monkeypatch):
+    @pytest.mark.asyncio
+    @pytest.mark.timeout(5)
+    async def test_fetch_select_by_priority(self, monkeypatch):
         """测试按优先级选择可用实现"""
         from openclaw_alpha.core.data_source import DataSource
 
@@ -223,14 +225,15 @@ class TestFetcher:
         fetcher.register(HighPriorityMethod())
         fetcher.register(LowPriorityMethod())
 
-        method, errors = fetcher._select_available()
+        result = await fetcher.fetch()
 
-        assert method is not None
-        assert method.name == "high_priority_method"
-        assert method.priority == 100
+        # 应该选择高优先级的实现
+        assert result == "high_priority_data"
 
-    def test_select_available_skip_unavailable(self, monkeypatch):
-        """测试跳过不可用的实现，选择次优"""
+    @pytest.mark.asyncio
+    @pytest.mark.timeout(5)
+    async def test_fetch_fallback_on_unavailable(self, monkeypatch):
+        """测试高优先级不可用时降级到低优先级"""
         from openclaw_alpha.core.data_source import DataSource
 
         class HighDS(DataSource):
@@ -278,21 +281,72 @@ class TestFetcher:
         # 高优先级数据源不可用
         monkeypatch.delenv("HIGH_TOKEN", raising=False)
 
-        method, errors = fetcher._select_available()
+        result = await fetcher.fetch()
 
-        # 应该选择低优先级但可用的实现
-        assert method is not None
-        assert method.name == "low_method_available"
-        # 错误列表应包含高优先级的失败原因
-        assert len(errors) == 1
-        assert isinstance(errors[0], MissingConfigError)
+        # 应该降级到低优先级实现
+        assert result == "low"
 
-    def test_select_available_no_available(self):
-        """测试所有实现都不可用时返回 None 和错误列表"""
+    @pytest.mark.asyncio
+    @pytest.mark.timeout(5)
+    async def test_fetch_fallback_on_exception(self, monkeypatch):
+        """测试执行失败时降级到下一个实现"""
+        from openclaw_alpha.core.data_source import DataSource
+
+        class HighDS(DataSource):
+            @property
+            def name(self) -> str:
+                return "high_ds_exception"
+
+            @property
+            def required_config(self) -> list[str]:
+                return []
+
+        class LowDS(DataSource):
+            @property
+            def name(self) -> str:
+                return "low_ds_fallback"
+
+            @property
+            def required_config(self) -> list[str]:
+                return []
+
+        registry = DataSourceRegistry.get_instance()
+        registry.register(HighDS)
+        registry.register(LowDS)
+
+        class HighMethod(FetchMethod):
+            name = "high_method_exception"
+            required_data_source = "high_ds_exception"
+            priority = 100
+
+            async def fetch(self, *args, **kwargs):
+                raise RuntimeError("网络超时")
+
+        class LowMethod(FetchMethod):
+            name = "low_method_fallback"
+            required_data_source = "low_ds_fallback"
+            priority = 10
+
+            async def fetch(self, *args, **kwargs):
+                return "fallback_success"
+
+        fetcher = MockFetcher()
+        fetcher.register(HighMethod())
+        fetcher.register(LowMethod())
+
+        result = await fetcher.fetch()
+
+        # 高优先级执行失败，降级到低优先级
+        assert result == "fallback_success"
+
+    @pytest.mark.asyncio
+    @pytest.mark.timeout(5)
+    async def test_fetch_all_failed_raises(self):
+        """测试所有实现都失败时抛出异常"""
         fetcher = MockFetcher()
 
         class UnavailableMethod(FetchMethod):
-            name = "unavailable_method"
+            name = "unavailable_fetch_method"
             required_data_source = "not_exist_ds"
             priority = 10
 
@@ -301,17 +355,54 @@ class TestFetcher:
 
         fetcher.register(UnavailableMethod())
 
-        method, errors = fetcher._select_available()
+        with pytest.raises(NoAvailableMethodError) as exc_info:
+            await fetcher.fetch()
 
-        assert method is None
-        assert len(errors) == 1
-        assert isinstance(errors[0], DataSourceUnavailableError)
-        assert "未注册" in str(errors[0])
+        # 检查异常信息包含失败原因
+        assert "mock_fetcher" in str(exc_info.value)
+        assert "未注册" in str(exc_info.value) or "不可用" in str(exc_info.value)
 
     @pytest.mark.asyncio
     @pytest.mark.timeout(5)
-    async def test_fetch(self, monkeypatch):
-        """测试 fetch 方法调用选中的实现"""
+    async def test_fetch_all_exec_failed_raises(self, monkeypatch):
+        """测试所有实现执行都失败时抛出异常（包含所有错误信息）"""
+        from openclaw_alpha.core.data_source import DataSource
+
+        class TestDS(DataSource):
+            @property
+            def name(self) -> str:
+                return "all_fail_ds"
+
+            @property
+            def required_config(self) -> list[str]:
+                return []
+
+        registry = DataSourceRegistry.get_instance()
+        registry.register(TestDS)
+
+        class FailMethod(FetchMethod):
+            name = "fail_method"
+            required_data_source = "all_fail_ds"
+            priority = 10
+
+            async def fetch(self, *args, **kwargs):
+                raise ValueError("参数错误")
+
+        fetcher = MockFetcher()
+        fetcher.register(FailMethod())
+
+        with pytest.raises(NoAvailableMethodError) as exc_info:
+            await fetcher.fetch()
+
+        # 检查异常信息包含执行错误
+        error_msg = str(exc_info.value)
+        assert "mock_fetcher" in error_msg
+        assert "ValueError" in error_msg or "参数错误" in error_msg
+
+    @pytest.mark.asyncio
+    @pytest.mark.timeout(5)
+    async def test_fetch_with_args(self, monkeypatch):
+        """测试 fetch 方法传递参数"""
         from openclaw_alpha.core.data_source import DataSource
 
         class TestDS(DataSource):
@@ -342,26 +433,3 @@ class TestFetcher:
         assert result["data"] == "test_result"
         assert result["args"] == ("arg1",)
         assert result["kwargs"] == {"key": "value"}
-
-    @pytest.mark.asyncio
-    @pytest.mark.timeout(5)
-    async def test_fetch_no_available_raises(self):
-        """测试 fetch 时无可用实现抛出异常"""
-        fetcher = MockFetcher()
-
-        class UnavailableMethod(FetchMethod):
-            name = "unavailable_fetch_method"
-            required_data_source = "not_exist_ds"
-            priority = 10
-
-            async def fetch(self, *args, **kwargs):
-                return "data"
-
-        fetcher.register(UnavailableMethod())
-
-        with pytest.raises(NoAvailableMethodError) as exc_info:
-            await fetcher.fetch()
-
-        # 检查异常信息包含失败原因
-        assert "mock_fetcher" in str(exc_info.value)
-        assert "未注册" in str(exc_info.value) or "不可用" in str(exc_info.value)

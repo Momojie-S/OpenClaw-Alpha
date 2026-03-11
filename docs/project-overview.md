@@ -43,6 +43,9 @@ OpenClaw-Alpha/
 │
 ├── docs/                           # 项目文档
 │   ├── architecture/               # 架构设计
+│   │   ├── core-utilities.md       # 核心工具模块（路径管理等）
+│   │   ├── strategy-framework.md   # 策略框架设计
+│   │   └── ...
 │   ├── knowledge/                  # 投资知识体系（理论底座）
 │   ├── references/                 # API 参考文档
 │   │   ├── akshare/

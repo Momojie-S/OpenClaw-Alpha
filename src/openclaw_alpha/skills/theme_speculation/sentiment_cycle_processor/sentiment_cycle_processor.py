@@ -153,15 +153,31 @@ class SentimentCycleProcessor:
             return "分歧", reasons
 
         # 高潮：涨停家数达到峰值，炸板率开始上升
-        if ind.limit_up_count > 100 and ind.max_continuous >= 5:
+        # 增加条件：昨日涨停盈利比例 > 40%（排除市场分化情况）
+        if (
+            ind.limit_up_count > 100
+            and ind.max_continuous >= 5
+            and ind.prev_profit_rate > 40
+        ):
             reasons.append(f"涨停家数达到峰值（{ind.limit_up_count} 只）")
             reasons.append(f"最高连板数 {ind.max_continuous} 板")
             if ind.broken_rate > 30:
                 reasons.append(f"炸板率开始上升（{ind.broken_rate:.1f}%）")
             return "高潮", reasons
 
+        # 分歧（涨停数多但昨日表现差）：涨停数 > 50，但昨日涨停盈利比例 < 40%
+        if ind.limit_up_count > 50 and ind.prev_profit_rate < 40:
+            reasons.append(f"涨停家数较多（{ind.limit_up_count} 只）")
+            reasons.append(f"但昨日涨停表现分化（盈利比例 {ind.prev_profit_rate:.1f}%）")
+            return "分歧", reasons
+
         # 加速：涨停家数持续增加，2 板以上股增多
-        if ind.limit_up_count > 50 and ind.max_continuous >= 3:
+        # 增加条件：昨日涨停盈利比例 > 40%（排除市场分化情况）
+        if (
+            ind.limit_up_count > 50
+            and ind.max_continuous >= 3
+            and ind.prev_profit_rate > 40
+        ):
             reasons.append(f"涨停家数增加（{ind.limit_up_count} 只）")
             reasons.append(f"最高连板数 {ind.max_continuous} 板")
             return "加速", reasons

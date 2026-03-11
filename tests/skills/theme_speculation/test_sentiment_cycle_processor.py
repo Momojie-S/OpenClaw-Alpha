@@ -108,7 +108,7 @@ class TestSentimentCycleProcessor:
         assert any("炸板率高" in r for r in reasons)
 
     def test_determine_cycle_climax(self, processor):
-        """测试高潮周期：涨停家数 > 100 且 最高连板数 >= 5"""
+        """测试高潮周期：涨停家数 > 100 且 最高连板数 >= 5 且 盈利比例 > 40%"""
         processor.indicators = SentimentIndicators(
             limit_up_count=120,
             broken_count=30,
@@ -124,8 +124,25 @@ class TestSentimentCycleProcessor:
         assert any("涨停家数达到峰值" in r for r in reasons)
         assert any("最高连板数" in r for r in reasons)
 
+    def test_determine_cycle_climax_with_low_profit(self, processor):
+        """测试高潮周期（盈利比例低）：涨停家数 > 100 但 盈利比例 < 40% → 不是高潮"""
+        processor.indicators = SentimentIndicators(
+            limit_up_count=120,
+            broken_count=30,
+            broken_rate=20.0,
+            max_continuous=6,
+            prev_avg_change=-2.0,
+            prev_profit_rate=30.0,
+        )
+
+        cycle, reasons = processor._determine_cycle()
+
+        # 应该判断为"分歧"而不是"高潮"
+        assert cycle == "分歧"
+        assert any("昨日涨停表现分化" in r for r in reasons)
+
     def test_determine_cycle_acceleration(self, processor):
-        """测试加速周期：涨停家数 > 50 且 最高连板数 >= 3"""
+        """测试加速周期：涨停家数 > 50 且 最高连板数 >= 3 且 盈利比例 > 40%"""
         processor.indicators = SentimentIndicators(
             limit_up_count=65,
             broken_count=10,
@@ -139,6 +156,23 @@ class TestSentimentCycleProcessor:
 
         assert cycle == "加速"
         assert any("涨停家数增加" in r for r in reasons)
+
+    def test_determine_cycle_acceleration_with_low_profit(self, processor):
+        """测试加速周期（盈利比例低）：涨停家数 > 50 但 盈利比例 < 40% → 分歧"""
+        processor.indicators = SentimentIndicators(
+            limit_up_count=74,
+            broken_count=19,
+            broken_rate=20.43,
+            max_continuous=7,
+            prev_avg_change=-3.71,
+            prev_profit_rate=26.83,
+        )
+
+        cycle, reasons = processor._determine_cycle()
+
+        # 应该判断为"分歧"而不是"加速"
+        assert cycle == "分歧"
+        assert any("昨日涨停表现分化" in r for r in reasons)
 
     def test_determine_cycle_startup(self, processor):
         """测试启动周期：涨停家数 > 20 且 炸板率 < 30% 且 昨日涨停平均涨跌 > 0"""
