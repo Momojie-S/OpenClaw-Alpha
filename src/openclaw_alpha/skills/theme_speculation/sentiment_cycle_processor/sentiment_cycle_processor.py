@@ -107,6 +107,31 @@ class SentimentCycleResult:
         }
 
 
+@dataclass
+class PredictionResult:
+    """预测结果"""
+
+    # 预测日期
+    date: str
+    # 预测周期
+    predicted_cycle: Literal["启动", "加速", "高潮", "分歧", "退潮"]
+    # 置信度（高/中/低）
+    confidence: Literal["高", "中", "低"]
+    # 预测理由
+    reasons: list[str] = field(default_factory=list)
+    # 预测的指标值
+    predicted_indicators: dict = field(default_factory=dict)
+
+    def to_dict(self) -> dict:
+        return {
+            "date": self.date,
+            "predicted_cycle": self.predicted_cycle,
+            "confidence": self.confidence,
+            "reasons": self.reasons,
+            "predicted_indicators": self.predicted_indicators,
+        }
+
+
 class SentimentCycleProcessor:
     """情绪周期处理器"""
 
@@ -651,7 +676,244 @@ def format_trend_output(results: list[SentimentCycleResult]) -> str:
     for cycle, count in sorted(cycle_counts.items(), key=lambda x: -x[1]):
         lines.append(f"  - {cycle}: {count} 天")
 
+    # 添加预测结果（如果有足够的数据）
+    prediction = predict_next_cycle(results)
+    if prediction:
+        lines.extend([
+            "",
+            "情绪周期预测:",
+            f"  预测日期: {prediction.date}",
+            f"  预测周期: {prediction.predicted_cycle}",
+            f"  置信度: {prediction.confidence}",
+            "  预测理由:",
+        ])
+        for reason in prediction.reasons:
+            lines.append(f"    - {reason}")
+
     return table_output + "\n".join(lines)
+
+
+def predict_next_cycle(results: list[SentimentCycleResult]) -> PredictionResult | None:
+    """预测下一个交易日的情绪周期
+
+    Args:
+        results: 最近 N 天的情绪周期结果（按日期升序）
+
+    Returns:
+        预测结果，如果数据不足则返回 None
+    """
+    if len(results) < 3:
+        return None
+
+    # 过滤掉无数据或数据质量差的日期
+    valid_results = [
+        r
+        for r in results
+        if r.indicators.limit_up_count > 0
+        and r.quality_score.total >= 70  # 只使用高质量数据
+    ]
+
+    if len(valid_results) < 3:
+        return None
+
+    # 获取最近 3 天的数据
+    recent = valid_results[-3:]
+
+    # 预测明天的日期
+    last_date = datetime.strptime(valid_results[-1].date, "%Y-%m-%d")
+    next_date = (last_date + timedelta(days=1)).strftime("%Y-%m-%d")
+
+    # 分析趋势
+    prediction = _analyze_and_predict(recent, next_date)
+
+    return prediction
+
+
+def _analyze_and_predict(
+    recent: list[SentimentCycleResult], next_date: str
+) -> PredictionResult:
+    """分析趋势并预测下一周期
+
+    Args:
+        recent: 最近 3 天的情绪周期结果
+        next_date: 预测日期
+
+    Returns:
+        预测结果
+    """
+    # 提取最近 3 天的周期
+    cycles = [r.cycle for r in recent]
+
+    # 1. 趋势延续判断（高置信度）
+    if len(set(cycles)) == 1:
+        # 最近 3 天周期一致，预测保持不变
+        return PredictionResult(
+            date=next_date,
+            predicted_cycle=cycles[-1],
+            confidence="高",
+            reasons=[
+                f"最近 3 天情绪周期均为 {cycles[-1]}，趋势稳定",
+                f"预计明日继续维持 {cycles[-1]} 状态",
+            ],
+        )
+
+    # 2. 周期演进判断（中置信度）
+    # 分析周期演进方向
+    cycle_evolution = _get_cycle_evolution(cycles)
+
+    if cycle_evolution:
+        return PredictionResult(
+            date=next_date,
+            predicted_cycle=cycle_evolution["next_cycle"],
+            confidence="中",
+            reasons=cycle_evolution["reasons"],
+        )
+
+    # 3. 指标预测判断（中置信度）
+    # 基于涨停数趋势预测
+    limit_up_trend = _predict_limit_up_trend(recent)
+
+    if limit_up_trend["direction"] == "up":
+        # 涨停数上升
+        if limit_up_trend["predicted_count"] > 100:
+            predicted_cycle = "高潮"
+        elif limit_up_trend["predicted_count"] > 50:
+            predicted_cycle = "加速"
+        else:
+            predicted_cycle = "启动"
+
+        return PredictionResult(
+            date=next_date,
+            predicted_cycle=predicted_cycle,
+            confidence="中",
+            reasons=[
+                f"涨停数呈上升趋势（预计明日 {limit_up_trend['predicted_count']:.0f} 只）",
+                f"基于趋势预测为 {predicted_cycle}",
+            ],
+            predicted_indicators={"limit_up_count": limit_up_trend["predicted_count"]},
+        )
+    elif limit_up_trend["direction"] == "down":
+        # 涨停数下降
+        if limit_up_trend["predicted_count"] < 30:
+            predicted_cycle = "退潮"
+        else:
+            predicted_cycle = "分歧"
+
+        return PredictionResult(
+            date=next_date,
+            predicted_cycle=predicted_cycle,
+            confidence="中",
+            reasons=[
+                f"涨停数呈下降趋势（预计明日 {limit_up_trend['predicted_count']:.0f} 只）",
+                f"基于趋势预测为 {predicted_cycle}",
+            ],
+            predicted_indicators={"limit_up_count": limit_up_trend["predicted_count"]},
+        )
+
+    # 4. 默认预测（低置信度）
+    return PredictionResult(
+        date=next_date,
+        predicted_cycle="启动",
+        confidence="低",
+        reasons=["数据趋势不明确，默认预测为启动"],
+    )
+
+
+def _get_cycle_evolution(cycles: list[str]) -> dict | None:
+    """分析周期演进方向
+
+    Args:
+        cycles: 周期列表（最近 3 天）
+
+    Returns:
+        演进信息（下一周期、理由），如果没有明确演进方向则返回 None
+    """
+    if len(cycles) < 2:
+        return None
+
+    # 周期演进规则
+    evolution_rules = {
+        ("启动", "加速"): {
+            "next_cycle": "加速",
+            "reasons": ["市场情绪从启动进入加速阶段", "预计明日继续加速"],
+        },
+        ("加速", "高潮"): {
+            "next_cycle": "高潮",
+            "reasons": ["市场情绪从加速进入高潮阶段", "预计明日达到高潮"],
+        },
+        ("高潮", "分歧"): {
+            "next_cycle": "分歧",
+            "reasons": ["市场情绪从高潮进入分歧阶段", "预计明日继续分歧"],
+        },
+        ("分歧", "退潮"): {
+            "next_cycle": "退潮",
+            "reasons": ["市场情绪从分歧进入退潮阶段", "预计明日继续退潮"],
+        },
+        ("退潮", "启动"): {
+            "next_cycle": "启动",
+            "reasons": ["市场情绪从退潮恢复启动", "预计明日进入启动阶段"],
+        },
+    }
+
+    # 检查最近 2 天是否符合演进规则
+    recent_pair = (cycles[-2], cycles[-1])
+    if recent_pair in evolution_rules:
+        return evolution_rules[recent_pair]
+
+    # 检查是否有明确的演进趋势（如：启动 → 加速 → 加速）
+    if len(cycles) == 3:
+        if cycles[0] == "启动" and cycles[1] == cycles[2] == "加速":
+            return {
+                "next_cycle": "高潮",
+                "reasons": ["连续 2 天加速，预计进入高潮"],
+            }
+        elif cycles[0] == cycles[1] == "加速" and cycles[2] == "高潮":
+            return {
+                "next_cycle": "分歧",
+                "reasons": ["达到高潮后，预计进入分歧"],
+            }
+
+    return None
+
+
+def _predict_limit_up_trend(recent: list[SentimentCycleResult]) -> dict:
+    """预测涨停数趋势
+
+    Args:
+        recent: 最近 3 天的情绪周期结果
+
+    Returns:
+        趋势信息（方向、预测值）
+    """
+    counts = [r.indicators.limit_up_count for r in recent]
+
+    # 计算平均增长率
+    if counts[0] > 0:
+        growth_rates = []
+        for i in range(1, len(counts)):
+            rate = (counts[i] - counts[i - 1]) / counts[0]
+            growth_rates.append(rate)
+
+        avg_growth_rate = sum(growth_rates) / len(growth_rates)
+    else:
+        avg_growth_rate = 0
+
+    # 预测明日涨停数
+    predicted_count = counts[-1] * (1 + avg_growth_rate)
+
+    # 判断趋势方向
+    if avg_growth_rate > 0.1:  # 增长率 > 10%
+        direction = "up"
+    elif avg_growth_rate < -0.1:  # 增长率 < -10%
+        direction = "down"
+    else:
+        direction = "stable"
+
+    return {
+        "direction": direction,
+        "predicted_count": max(0, predicted_count),  # 确保不为负数
+        "avg_growth_rate": avg_growth_rate,
+    }
 
 
 def _generate_ascii_chart(values: list[float], width: int = 20) -> str:
