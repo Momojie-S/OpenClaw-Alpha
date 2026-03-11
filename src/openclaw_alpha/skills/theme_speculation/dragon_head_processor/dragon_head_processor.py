@@ -163,16 +163,28 @@ class DragonHeadProcessor:
                 total_limit_up=0,
             )
 
-        # 按连板数、封板时间、市值排序
-        # 连板数越高越好，封板时间越早越好，市值越小越好
-        sorted_items = sorted(
-            items,
-            key=lambda x: (
-                -x.continuous,  # 连板数降序
-                x.first_limit_time,  # 封板时间升序（早封板排前面）
-                x.float_mv,  # 市值升序（小市值排前面）
-            ),
-        )
+        # 检查是否有封板时间数据
+        has_limit_time = any(item.first_limit_time for item in items)
+
+        if has_limit_time:
+            # 有封板时间：按连板数、封板时间、市值排序
+            sorted_items = sorted(
+                items,
+                key=lambda x: (
+                    -x.continuous,  # 连板数降序
+                    x.first_limit_time or "99:99:99",  # 封板时间升序（早封板排前面）
+                    x.float_mv,  # 市值升序（小市值排前面）
+                ),
+            )
+        else:
+            # 无封板时间：按连板数、市值排序
+            sorted_items = sorted(
+                items,
+                key=lambda x: (
+                    -x.continuous,  # 连板数降序
+                    x.float_mv,  # 市值升序（小市值排前面）
+                ),
+            )
 
         # 识别龙头（第一名）
         dragon = None
@@ -181,6 +193,9 @@ class DragonHeadProcessor:
 
         if sorted_items:
             top = sorted_items[0]
+            # 获取龙头连板数作为参考
+            dragon_continuous = top.continuous
+
             dragon = DragonStock(
                 code=top.code,
                 name=top.name,
@@ -189,51 +204,90 @@ class DragonHeadProcessor:
                 first_limit_time=top.first_limit_time,
                 float_mv=top.float_mv,
                 change_pct=top.change_pct,
-                reason=f"{top.continuous}板，{top.first_limit_time}封板，流通市值{top.float_mv:.2f}亿",
+                reason=f"{top.continuous}板，封板，流通市值{top.float_mv:.2f}亿",
             )
 
-            # 识别跟风股（封板时间晚于 10:30）
+            # 分类跟风股和补涨股
             for item in sorted_items[1:]:
-                # 判断封板时间（格式如 "09:32:00"）
-                limit_time = item.first_limit_time
-                is_late = False
+                if has_limit_time and item.first_limit_time:
+                    # 有封板时间：根据封板时间判断
+                    limit_time = item.first_limit_time
+                    is_late = False
 
-                if limit_time:
                     try:
-                        hour = int(limit_time.split(":")[0])
-                        minute = int(limit_time.split(":")[1])
+                        # 处理多种时间格式（"09:32:00" 或 "093200"）
+                        if ":" in limit_time:
+                            parts = limit_time.split(":")
+                            hour = int(parts[0])
+                            minute = int(parts[1])
+                        else:
+                            # 格式如 "093200"
+                            hour = int(limit_time[:2])
+                            minute = int(limit_time[2:4])
+
                         # 10:30 之后封板算跟风
                         if hour > 10 or (hour == 10 and minute >= 30):
                             is_late = True
                     except (ValueError, IndexError):
-                        pass
+                        # 解析失败，根据连板数判断
+                        is_late = item.continuous < dragon_continuous
 
-                if is_late:
-                    followers.append(
-                        DragonStock(
-                            code=item.code,
-                            name=item.name,
-                            stock_type="跟风",
-                            continuous=item.continuous,
-                            first_limit_time=item.first_limit_time,
-                            float_mv=item.float_mv,
-                            change_pct=item.change_pct,
-                            reason=f"{item.continuous}板，{item.first_limit_time}封板",
+                    if is_late:
+                        followers.append(
+                            DragonStock(
+                                code=item.code,
+                                name=item.name,
+                                stock_type="跟风",
+                                continuous=item.continuous,
+                                first_limit_time=item.first_limit_time,
+                                float_mv=item.float_mv,
+                                change_pct=item.change_pct,
+                                reason=f"{item.continuous}板，{item.first_limit_time}封板",
+                            )
                         )
-                    )
+                    else:
+                        laggards.append(
+                            DragonStock(
+                                code=item.code,
+                                name=item.name,
+                                stock_type="补涨",
+                                continuous=item.continuous,
+                                first_limit_time=item.first_limit_time,
+                                float_mv=item.float_mv,
+                                change_pct=item.change_pct,
+                                reason=f"{item.continuous}板，{item.first_limit_time}封板",
+                            )
+                        )
                 else:
-                    laggards.append(
-                        DragonStock(
-                            code=item.code,
-                            name=item.name,
-                            stock_type="补涨",
-                            continuous=item.continuous,
-                            first_limit_time=item.first_limit_time,
-                            float_mv=item.float_mv,
-                            change_pct=item.change_pct,
-                            reason=f"{item.continuous}板，{item.first_limit_time}封板",
+                    # 无封板时间：根据连板数与龙头的差距判断
+                    # 连板数接近龙头（差距 <= 2）且 >= 2板 为跟风，否则为补涨
+                    gap = dragon_continuous - item.continuous
+                    if gap <= 2 and item.continuous >= 2:
+                        followers.append(
+                            DragonStock(
+                                code=item.code,
+                                name=item.name,
+                                stock_type="跟风",
+                                continuous=item.continuous,
+                                first_limit_time=item.first_limit_time,
+                                float_mv=item.float_mv,
+                                change_pct=item.change_pct,
+                                reason=f"{item.continuous}板，封板",
+                            )
                         )
-                    )
+                    else:
+                        laggards.append(
+                            DragonStock(
+                                code=item.code,
+                                name=item.name,
+                                stock_type="补涨",
+                                continuous=item.continuous,
+                                first_limit_time=item.first_limit_time,
+                                float_mv=item.float_mv,
+                                change_pct=item.change_pct,
+                                reason=f"{item.continuous}板，封板",
+                            )
+                        )
 
         return DragonHeadResult(
             date=self.date,

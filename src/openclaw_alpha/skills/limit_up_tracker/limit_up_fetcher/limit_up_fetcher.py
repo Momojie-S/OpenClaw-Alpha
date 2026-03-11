@@ -64,8 +64,15 @@ class LimitUpFetcher(Fetcher):
                     if error:
                         errors.append(error)
         else:
-            # 按优先级选择
-            method, errors = self._select_available()
+            # 按优先级选择可用实现
+            sorted_methods = sorted(self._methods, key=lambda m: m.priority, reverse=True)
+            for m in sorted_methods:
+                available, error = m.is_available()
+                if available:
+                    method = m
+                    break
+                if error:
+                    errors.append(error)
 
         if method is None:
             from openclaw_alpha.core.exceptions import NoAvailableMethodError
