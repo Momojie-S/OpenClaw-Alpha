@@ -19,6 +19,7 @@ if str(project_root) not in sys.path:
 from openclaw_alpha.skills.limit_up_tracker.limit_up_fetcher import fetch as fetch_limit_up
 from openclaw_alpha.skills.limit_up_tracker.limit_up_fetcher.models import LimitUpType, LimitUpItem
 from openclaw_alpha.skills.industry_trend.concept_fetcher import fetch as fetch_concept
+from openclaw_alpha.skills.industry_trend.concept_cons_fetcher import fetch as fetch_concept_cons
 
 
 @dataclass
@@ -105,31 +106,31 @@ class DragonHeadProcessor:
         return result
 
     async def _fetch_concept_cons(self) -> set[str]:
-        """获取概念板块成分股"""
+        """获取概念板块成分股
+
+        使用 concept_cons_fetcher 获取板块成分股，
+        包含自动重试机制（3次重试，指数退避）。
+
+        Returns:
+            股票代码集合（6位数字字符串）
+        """
         try:
-            # 获取所有概念板块
-            concepts = await fetch_concept()
+            # 使用新的 concept_cons_fetcher 获取成分股
+            cons_items = await fetch_concept_cons(self.board_name)
 
-            # 查找匹配的板块
-            board_code = None
-            for concept in concepts:
-                # concept 是 dict，不是对象
-                if isinstance(concept, dict) and concept.get("name") == self.board_name:
-                    board_code = concept.get("code")
-                    break
+            # 提取股票代码
+            codes = {item.code for item in cons_items}
 
-            if not board_code:
-                raise ValueError(
-                    f"概念板块 '{self.board_name}' 不存在。"
-                    f"请检查板块名称是否正确"
-                )
+            print(f"成功获取板块 '{self.board_name}' 成分股 {len(codes)} 只")
+            return codes
 
-            # 获取成分股（这里需要实现成分股获取）
-            # 暂时返回空集合，待后续完善
+        except ValueError as e:
+            # 板块不存在
+            print(f"警告：{e}")
             return set()
 
         except Exception as e:
-            # 如果获取失败，返回空集合
+            # 网络错误或其他异常
             print(f"警告：获取板块成分股失败: {e}")
             return set()
 
