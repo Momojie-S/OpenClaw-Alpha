@@ -45,6 +45,9 @@ RSSHUB_ROUTES = {
     "36kr_news": "/36kr/news",  # 36氪最新资讯频道
     "wallstreetcn_news": "/wallstreetcn/news",  # 华尔街见闻资讯
     
+    # 热榜（2026-03-11 调研可用）
+    "wallstreetcn_hot": "/wallstreetcn/hot",  # 华尔街见闻最热文章
+    
     # 社区（已失效）
     # "xueqiu_today": "/xueqiu/today",  # 雪球今日话题
 }

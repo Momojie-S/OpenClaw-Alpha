@@ -412,9 +412,9 @@ def _main():
     parser = argparse.ArgumentParser(description="获取财经新闻")
     parser.add_argument(
         "--source",
-        choices=["cls_global", "cls_important", "stock", "cls_telegraph", "jin10", "yicai_brief", "36kr_news", "wallstreetcn_news"],
+        choices=["cls_global", "cls_important", "stock", "cls_telegraph", "jin10", "yicai_brief", "36kr_news", "wallstreetcn_news", "wallstreetcn_hot"],
         default="cls_global",
-        help="新闻源（AKShare: cls_global, cls_important, stock; RSSHub: cls_telegraph, jin10, yicai_brief, 36kr_news, wallstreetcn_news）"
+        help="新闻源（AKShare: cls_global, cls_important, stock; RSSHub: cls_telegraph, jin10, yicai_brief, 36kr_news, wallstreetcn_news, wallstreetcn_hot）"
     )
     parser.add_argument(
         "--symbol",
