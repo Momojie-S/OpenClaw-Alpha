@@ -186,6 +186,7 @@ class SentimentCycleProcessor:
         1. 炸板率 = 0% 但有涨停（数据源可能缺失炸板数据）
         2. 昨日涨停盈利比例 = 0% 且平均涨跌 = 0%（数据源可能缺失昨日表现数据）
         3. 涨停数 = 0（非交易日或数据异常）
+        4. 数据延迟（收盘后数据未更新）
 
         Returns:
             警告信息列表
@@ -216,7 +217,72 @@ class SentimentCycleProcessor:
                 "数据异常：无涨停数据，可能是非交易日或数据源异常"
             )
 
+        # 4. 检测数据延迟
+        delay_info = self._detect_data_delay()
+        if delay_info["is_delayed"]:
+            warnings.append(
+                f"数据延迟：{delay_info['reason']}（已延迟 {delay_info['delay_hours']} 小时）"
+            )
+
         return warnings
+
+    def _detect_data_delay(self) -> dict:
+        """检测数据延迟
+
+        Returns:
+            延迟信息字典，包含：
+            - is_delayed: 是否延迟
+            - delay_hours: 延迟小时数（如果延迟）
+            - reason: 延迟原因
+            - is_trading_day: 是否是交易日
+            - is_after_close: 是否收盘后
+        """
+        now = datetime.now()
+        today = now.strftime("%Y-%m-%d")
+
+        # 判断是否是交易日（简单判断：排除周末）
+        weekday = now.weekday()  # 0=周一, 6=周日
+        is_trading_day = weekday < 5  # 周一到周五
+
+        # 判断是否收盘后（15:00以后）
+        is_after_close = now.hour >= 15
+
+        # 判断是否延迟
+        is_delayed = False
+        delay_hours = 0
+        reason = ""
+
+        # 只有当查询的是今天的数据时，才检测延迟
+        if self.date == today and is_trading_day:
+            if is_after_close:
+                # 收盘后，如果涨停数为0或数据不完整，判断为延迟
+                if self.indicators.limit_up_count == 0:
+                    is_delayed = True
+                    # 计算延迟小时数（从收盘时间15:00开始计算）
+                    delay_hours = now.hour - 15
+                    reason = "收盘后数据未更新（涨停数为0）"
+                elif (
+                    self.indicators.broken_count == 0
+                    and self.indicators.prev_profit_rate == 0
+                ):
+                    is_delayed = True
+                    delay_hours = now.hour - 15
+                    reason = "收盘后数据不完整（缺少炸板数据或昨日涨停表现数据）"
+            else:
+                # 盘中，数据不完整是正常的
+                reason = "盘中数据（数据可能不完整）"
+        elif not is_trading_day:
+            reason = "非交易日（周末或假期）"
+        else:
+            reason = "历史数据"
+
+        return {
+            "is_delayed": is_delayed,
+            "delay_hours": delay_hours,
+            "reason": reason,
+            "is_trading_day": is_trading_day,
+            "is_after_close": is_after_close,
+        }
 
     def _calculate_data_quality(self) -> DataQualityScore:
         """计算数据质量评分
@@ -299,9 +365,21 @@ class SentimentCycleProcessor:
         today = datetime.now().strftime("%Y-%m-%d")
         yesterday = (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d")
 
+        # 检测数据延迟
+        delay_info = self._detect_data_delay()
+
         if self.date == today or self.date == yesterday:
-            timeliness += 20
-            details.append(f"数据是最近的（{self.date}，+20分）")
+            # 如果是今天或昨天的数据
+            if delay_info["is_delayed"]:
+                # 数据延迟，时效性评分降低
+                timeliness += 10
+                details.append(f"数据是最近的（{self.date}，+10分）")
+                details.append(f"⚠️ 数据延迟：{delay_info['reason']}（-10分）")
+            else:
+                timeliness += 20
+                details.append(f"数据是最近的（{self.date}，+20分）")
+                if delay_info["reason"]:
+                    details.append(f"备注：{delay_info['reason']}")
         else:
             details.append(f"数据是历史数据（{self.date}，+0分）")
 
