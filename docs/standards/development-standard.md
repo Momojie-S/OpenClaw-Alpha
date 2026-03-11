@@ -42,9 +42,10 @@
   - 跨 Skill：`from openclaw_alpha.skills.other_skill.xxx_fetcher import fetch`
   - 类型注解导入：仅用于类型注解的导入应使用 `TYPE_CHECKING`
 - **脚本运行方式**:
-  - 使用 `python -m` 模块运行，如 `python -m openclaw_alpha.skills.xxx.xxx_processor.xxx_processor`
+  - 使用 `python -m` 模块运行，如 `python -m openclaw_alpha.skills.xxx.xxx_processor`
+  - 每个 Processor 目录下需创建 `__main__.py` 作为入口，调用主模块的 `main()` 函数
   - 不使用直接运行方式 `python src/.../xxx_processor.py`
-  - 原因：相对导入在模块运行方式下才能正常工作
+  - 原因：相对导入在模块运行方式下才能正常工作，且避免模块名与包名冲突的 RuntimeWarning
 - **父类构造函数**: 在所有子类的 `__init__` 方法中，调用父类构造函数时必须显式传入所有必需参数
   - 允许使用 `super().__init__(...)`，但必须确保所有参数都显式传递
   - 示例：`super().__init__(arg1=value1, arg2=value2)` 而非依赖默认参数隐式传递

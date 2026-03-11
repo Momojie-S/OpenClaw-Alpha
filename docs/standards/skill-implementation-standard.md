@@ -25,7 +25,8 @@ OpenClaw-Alpha/
 │           │   └── akshare.py
 │           └── {scenario}_processor/
 │               ├── __init__.py
-│               └── {scenario}_processor.py
+│               ├── {scenario}_processor.py
+│               └── __main__.py     # 入口文件，调用主模块的 main() 函数
 │
 ├── tests/
 │   └── skills/{skill_name}/
@@ -125,11 +126,13 @@ Frontmatter
 
 ```bash
 # 运行 processor
-uv run --env-file .env python -m openclaw_alpha.skills.{skill_name}.{processor}.{processor}
+uv run --env-file .env python -m openclaw_alpha.skills.{skill_name}.{processor}
 
 # 示例
-uv run --env-file .env python -m openclaw_alpha.skills.industry_trend.industry_trend_processor.industry_trend_processor
+uv run --env-file .env python -m openclaw_alpha.skills.industry_trend.industry_trend_processor
 ```
+
+**注意**：每个 Processor 目录下需创建 `__main__.py` 作为入口，避免模块名与包名冲突的 RuntimeWarning。
 
 ---
 
