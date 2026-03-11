@@ -60,7 +60,7 @@ uv run --env-file .env python -m openclaw_alpha.skills.margin_trading.stock_marg
 
 **动作**：
 ```bash
-uv run --env-file .env python skills/margin_trading/scripts/market_margin_processor/market_margin_processor.py
+uv run --env-file .env python -m openclaw_alpha.skills.margin_trading.market_margin_processor.market_margin_processor
 ```
 
 **输出**：
@@ -74,7 +74,7 @@ uv run --env-file .env python skills/margin_trading/scripts/market_margin_proces
 
 **动作**：
 ```bash
-uv run --env-file .env python skills/margin_trading/scripts/stock_margin_processor/stock_margin_processor.py
+uv run --env-file .env python -m openclaw_alpha.skills.margin_trading.stock_margin_processor.stock_margin_processor
 ```
 
 **输出**：融资余额 Top 20 个股
@@ -85,7 +85,7 @@ uv run --env-file .env python skills/margin_trading/scripts/stock_margin_process
 
 **动作**：
 ```bash
-uv run --env-file .env python skills/margin_trading/scripts/stock_margin_processor/stock_margin_processor.py --type securities
+uv run --env-file .env python -m openclaw_alpha.skills.margin_trading.stock_margin_processor.stock_margin_processor --type securities
 ```
 
 **输出**：融券余额 Top 20 个股
