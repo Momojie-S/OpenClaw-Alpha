@@ -396,8 +396,8 @@ def _format_text(result: RiskContributionResult) -> str:
     return "\n".join(lines)
 
 
-# 命令行入口
-if __name__ == "__main__":
+def main():
+    """命令行入口"""
     import argparse
 
     parser = argparse.ArgumentParser(description="风险贡献分解")
@@ -416,9 +416,14 @@ if __name__ == "__main__":
         code, weight = item.split(":")
         holdings[code.strip()] = float(weight.strip())
 
-    async def main():
-        output_format = "json" if args.json else "text"
+    output_format = "json" if args.json else "text"
+
+    async def run():
         result = await process(holdings, args.days, output_format)
         print(result)
 
-    asyncio.run(main())
+    asyncio.run(run())
+
+
+if __name__ == "__main__":
+    main()

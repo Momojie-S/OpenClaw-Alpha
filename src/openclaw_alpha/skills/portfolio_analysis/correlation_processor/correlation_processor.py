@@ -370,8 +370,8 @@ def _format_text(result: CorrelationResult) -> str:
     return "\n".join(lines)
 
 
-# 命令行入口
-if __name__ == "__main__":
+def main():
+    """命令行入口"""
     import argparse
 
     parser = argparse.ArgumentParser(description="持仓相关性分析")
@@ -380,12 +380,15 @@ if __name__ == "__main__":
     parser.add_argument("--json", action="store_true", help="输出 JSON 格式")
 
     args = parser.parse_args()
-
     codes = args.codes.split(",")
+    output_format = "json" if args.json else "text"
 
-    async def main():
-        output_format = "json" if args.json else "text"
+    async def run():
         result = await process(codes, args.days, output_format)
         print(result)
 
-    asyncio.run(main())
+    asyncio.run(run())
+
+
+if __name__ == "__main__":
+    main()
