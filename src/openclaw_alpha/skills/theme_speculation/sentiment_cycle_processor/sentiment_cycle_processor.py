@@ -171,12 +171,24 @@ class SentimentCycleProcessor:
             reasons.append(f"但昨日涨停表现分化（盈利比例 {ind.prev_profit_rate:.1f}%）")
             return "分歧", reasons
 
+        # 分歧（盈利比例高但整体亏损）：涨停数 > 50，盈利比例 > 40%，但平均涨跌 < 0
+        if (
+            ind.limit_up_count > 50
+            and ind.prev_profit_rate > 40
+            and ind.prev_avg_change < 0
+        ):
+            reasons.append(f"涨停家数较多（{ind.limit_up_count} 只）")
+            reasons.append(f"但昨日涨停整体亏损（平均涨跌 {ind.prev_avg_change:.2f}%）")
+            return "分歧", reasons
+
         # 加速：涨停家数持续增加，2 板以上股增多
         # 增加条件：昨日涨停盈利比例 > 40%（排除市场分化情况）
+        # 增加条件：昨日涨停平均涨跌 > 0（排除整体亏损情况）
         if (
             ind.limit_up_count > 50
             and ind.max_continuous >= 3
             and ind.prev_profit_rate > 40
+            and ind.prev_avg_change > 0
         ):
             reasons.append(f"涨停家数增加（{ind.limit_up_count} 只）")
             reasons.append(f"最高连板数 {ind.max_continuous} 板")

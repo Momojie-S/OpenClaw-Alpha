@@ -174,6 +174,23 @@ class TestSentimentCycleProcessor:
         assert cycle == "分歧"
         assert any("昨日涨停表现分化" in r for r in reasons)
 
+    def test_determine_cycle_acceleration_with_negative_change(self, processor):
+        """测试加速周期（平均涨跌为负）：盈利比例 > 40% 但 平均涨跌 < 0 → 分歧"""
+        processor.indicators = SentimentIndicators(
+            limit_up_count=73,
+            broken_count=17,
+            broken_rate=18.89,
+            max_continuous=8,
+            prev_avg_change=-0.22,  # 平均涨跌为负
+            prev_profit_rate=41.67,  # 盈利比例 > 40%
+        )
+
+        cycle, reasons = processor._determine_cycle()
+
+        # 应该判断为"分歧"而不是"加速"（因为虽然盈利比例 > 40%，但整体亏损）
+        assert cycle == "分歧"
+        assert any("昨日涨停整体亏损" in r for r in reasons)
+
     def test_determine_cycle_startup(self, processor):
         """测试启动周期：涨停家数 > 20 且 炸板率 < 30% 且 昨日涨停平均涨跌 > 0"""
         processor.indicators = SentimentIndicators(
