@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """数据获取器基类"""
 
+import logging
 from abc import ABC, abstractmethod
 from typing import Any
 
@@ -12,6 +13,8 @@ from openclaw_alpha.core.exceptions import (
     UnregisteredDataSourceError,
 )
 from openclaw_alpha.core.registry import DataSourceRegistry
+
+logger = logging.getLogger(__name__)
 
 
 class FetchMethod(ABC):
@@ -106,7 +109,8 @@ class FetchMethod(ABC):
 class Fetcher:
     """Fetcher 入口基类
 
-    负责注册和调度，选择可用的 FetchMethod 执行。
+    负责注册和调度，按优先级尝试每个可用的 FetchMethod，
+    执行失败时自动降级到下一个。
 
     子类需要：
     1. 定义 name 属性
@@ -129,29 +133,11 @@ class Fetcher:
             method.priority = priority
         self._methods.append(method)
 
-    def _select_available(
-        self,
-    ) -> tuple[FetchMethod | None, list[DataSourceUnavailableError]]:
-        """按优先级选择数据源可用的实现
-
-        Returns:
-            (可用的 FetchMethod 或 None, 所有失败原因列表)
-        """
-        # 按优先级排序（降序）
-        sorted_methods = sorted(self._methods, key=lambda m: m.priority, reverse=True)
-
-        errors: list[DataSourceUnavailableError] = []
-        for method in sorted_methods:
-            available, error = method.is_available()
-            if available:
-                return (method, errors)
-            if error:
-                errors.append(error)
-
-        return (None, errors)
-
     async def fetch(self, *args: Any, **kwargs: Any) -> Any:
-        """选择可用实现并执行数据获取
+        """选择可用实现并执行数据获取（支持自动降级）
+
+        按优先级尝试每个可用的 method，如果执行失败（抛出任何异常），
+        则降级到下一个可用的 method。
 
         Args:
             *args: 位置参数
@@ -161,15 +147,41 @@ class Fetcher:
             获取的数据
 
         Raises:
-            NoAvailableMethodError: 如果所有实现都不可用
+            NoAvailableMethodError: 如果所有实现都不可用或全部执行失败
         """
-        method, errors = self._select_available()
+        # 按优先级排序（降序）
+        sorted_methods = sorted(self._methods, key=lambda m: m.priority, reverse=True)
 
-        if method is None:
-            checked_methods = [
-                f"{m.name}(ds={m.required_data_source}, credit={m.required_credit})"
-                for m in self._methods
-            ]
-            raise NoAvailableMethodError(self.name, checked_methods, errors)
+        # 收集所有错误（检查阶段 + 执行阶段）
+        check_errors: list[DataSourceUnavailableError] = []
+        exec_errors: list[Exception] = []
 
-        return await method.fetch(*args, **kwargs)
+        for method in sorted_methods:
+            # 检查可用性
+            available, error = method.is_available()
+            if not available:
+                if error:
+                    logger.info(f"FetchMethod {method.name} 检查失败: {error.reason}")
+                    check_errors.append(error)
+                continue
+
+            # 尝试执行（任何异常都降级）
+            try:
+                logger.debug(f"FetchMethod {method.name} 开始执行")
+                result = await method.fetch(*args, **kwargs)
+                logger.info(f"FetchMethod {method.name} 执行成功")
+                return result
+            except Exception as e:
+                logger.warning(
+                    f"FetchMethod {method.name} 执行失败，尝试降级: {type(e).__name__}: {e}"
+                )
+                exec_errors.append(e)
+                continue
+
+        # 所有 method 都不可用或执行失败
+        checked_methods = [
+            f"{m.name}(ds={m.required_data_source}, credit={m.required_credit})"
+            for m in self._methods
+        ]
+        all_errors = check_errors + exec_errors
+        raise NoAvailableMethodError(self.name, checked_methods, all_errors)

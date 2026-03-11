@@ -5,39 +5,57 @@
 class NoAvailableMethodError(Exception):
     """无可用实现异常
 
-    当 Fetcher 的所有 FetchMethod 对应的数据源都不可用时抛出。
+    当 Fetcher 的所有 FetchMethod 都不可用或执行失败时抛出。
 
     Args:
         fetcher_name: Fetcher 名称
         checked_methods: 已检查的 Method 列表
-        errors: 所有失败原因
+        check_errors: 检查阶段的错误（如 token 缺失、积分不足）
+        exec_errors: 执行阶段的错误（如 API 超时、网络错误）
     """
 
     def __init__(
         self,
         fetcher_name: str,
         checked_methods: list[str],
-        errors: list["DataSourceUnavailableError"] | None = None,
+        check_errors: list[Exception] | None = None,
+        exec_errors: list[Exception] | None = None,
     ) -> None:
         self.fetcher_name = fetcher_name
         self.checked_methods = checked_methods
-        self.errors = errors or []
+        self.check_errors = check_errors or []
+        self.exec_errors = exec_errors or []
 
         # 整合错误信息
-        if self.errors:
-            error_msgs = []
-            for err in self.errors:
+        parts = []
+
+        # 检查错误（配置缺失、积分不足等）
+        if self.check_errors:
+            check_msgs = []
+            for err in self.check_errors:
                 if isinstance(err, MissingConfigError):
                     keys_str = ", ".join(err.missing_keys)
-                    error_msgs.append(f"{err.data_source_name}: 缺少配置 [{keys_str}]")
+                    check_msgs.append(f"{err.data_source_name}: 缺少配置 [{keys_str}]")
                 elif isinstance(err, InsufficientCreditError):
-                    error_msgs.append(
+                    check_msgs.append(
                         f"{err.data_source_name}: 积分不足（需要 {err.required}，实际 {err.actual}）"
                     )
+                elif isinstance(err, DataSourceUnavailableError):
+                    check_msgs.append(f"{err.data_source_name}: {err.reason}")
                 else:
-                    error_msgs.append(f"{err.data_source_name}: {err.reason}")
-            detail = "\n".join(f"  - {msg}" for msg in error_msgs)
-            message = f"Fetcher '{fetcher_name}' 所有数据源均不可用:\n{detail}"
+                    check_msgs.append(f"{type(err).__name__}: {err}")
+            parts.append("检查失败:\n" + "\n".join(f"  - {msg}" for msg in check_msgs))
+
+        # 执行错误（API 超时、网络错误等）
+        if self.exec_errors:
+            exec_msgs = []
+            for err in self.exec_errors:
+                exec_msgs.append(f"{type(err).__name__}: {err}")
+            parts.append("执行失败:\n" + "\n".join(f"  - {msg}" for msg in exec_msgs))
+
+        if parts:
+            detail = "\n\n".join(parts)
+            message = f"Fetcher '{fetcher_name}' 所有数据源均失败:\n\n{detail}"
         else:
             methods_str = ", ".join(checked_methods) if checked_methods else "无"
             message = f"Fetcher '{fetcher_name}' 没有可用的实现。已检查: [{methods_str}]"

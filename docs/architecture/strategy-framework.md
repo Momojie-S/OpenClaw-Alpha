@@ -193,8 +193,34 @@ uv run --env-file .env python -m openclaw_alpha.skills.{skill_name}.{processor}.
 ### Fetcher（入口基类）
 
 - `register(method, priority)` - 注册实现
-- `fetch(params)` - 选择可用实现并执行
+- `fetch(params)` - 选择可用实现并执行（支持自动降级）
 - `_select_available()` - 按优先级选择数据源可用的实现
+
+**自动降级机制**：
+
+`fetch()` 方法按优先级（降序）尝试每个可用的 FetchMethod：
+
+1. 检查 `is_available()`（token、积分等）
+2. 执行 `method.fetch()`
+3. 如果抛出**任何异常**，记录错误并尝试下一个
+4. 如果全部失败，抛出 `NoAvailableMethodError`，包含所有错误信息
+
+**设计原因**：
+- 数据源可能在运行时才发现不可用（如网络错误、API 异常）
+- 优先级高的数据源不一定总是可用
+- 自动降级提供更好的容错能力
+
+**示例**：
+```
+LimitFetcher
+├── LimitFetcherAkshare (priority=10)  ← 优先尝试
+│   └── fetch() → 网络超时，降级
+│
+├── LimitFetcherTushare (priority=5)   ← 降级尝试
+│   └── fetch() → 成功，返回数据 ✓
+│
+└── 返回成功结果
+```
 
 ### FetchMethod（实现基类）
 

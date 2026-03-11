@@ -19,12 +19,15 @@ class LimitFetcherTushare(FetchMethod):
     使用 Tushare 的 limit_list_d 接口获取涨跌停统计数据。
 
     积分要求：5000
+
+    注意：limit_list_d 是盘后数据，盘中时间（交易日 9:30-15:00）当天数据未更新。
+    优先级设为 5（低于 AKShare 的 10），确保实时数据优先使用 AKShare。
     """
 
     name = "limit_tushare"
     required_data_source = "tushare"
     required_credit = 5000
-    priority = 20
+    priority = 5  # 低于 AKShare，因为 limit_list_d 是盘后数据
 
     @retry(
         stop=stop_after_attempt(3),
