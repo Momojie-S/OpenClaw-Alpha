@@ -12,7 +12,17 @@ from openclaw_alpha.skills.industry_trend.concept_cons_fetcher import (
 from openclaw_alpha.skills.industry_trend.concept_cons_fetcher.models import (
     ConceptConsItem,
 )
+from openclaw_alpha.skills.industry_trend.concept_cons_fetcher.cache import get_cache
 from openclaw_alpha.core.exceptions import NoAvailableMethodError
+
+
+@pytest.fixture(autouse=True)
+def clear_cache():
+    """每个测试前清除缓存"""
+    cache = get_cache()
+    cache.clear()
+    yield
+    cache.clear()
 
 
 @pytest.fixture

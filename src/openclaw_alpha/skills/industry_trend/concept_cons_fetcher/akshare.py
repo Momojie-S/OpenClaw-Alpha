@@ -16,6 +16,7 @@ from openclaw_alpha.core.fetcher import FetchMethod
 from openclaw_alpha.core.exceptions import DataSourceUnavailableError
 from openclaw_alpha.data_sources import AkshareDataSource  # noqa: F401
 from .models import ConceptConsItem
+from .cache import get_cache
 
 logger = logging.getLogger(__name__)
 
@@ -47,6 +48,8 @@ class ConceptConsFetcherAkshare(FetchMethod):
     async def fetch(self, board_name: str) -> list[ConceptConsItem]:
         """获取概念板块成分股
 
+        优先从缓存读取，缓存未命中时从 API 获取并缓存结果。
+
         Args:
             board_name: 概念板块名称
 
@@ -57,6 +60,22 @@ class ConceptConsFetcherAkshare(FetchMethod):
             ValueError: 板块名称不存在
             ConnectionError: 网络连接失败（重试3次后）
         """
+        # 1. 尝试从缓存读取
+        cache = get_cache()
+        cached_items = cache.get(board_name)
+        if cached_items is not None:
+            # 从缓存数据构建 ConceptConsItem 对象
+            items = []
+            for item_dict in cached_items:
+                try:
+                    item = ConceptConsItem(**item_dict)
+                    items.append(item)
+                except Exception as e:
+                    logger.warning(f"构建缓存数据失败: {item_dict}, 错误: {e}")
+                    continue
+            return items
+
+        # 2. 缓存未命中，从 API 获取
         logger.info(f"开始获取概念板块 '{board_name}' 成分股")
 
         try:
@@ -90,6 +109,11 @@ class ConceptConsFetcherAkshare(FetchMethod):
                     continue
 
             logger.info(f"成功获取概念板块 '{board_name}' 成分股 {len(items)} 只")
+
+            # 3. 保存到缓存
+            if items:
+                cache.set(board_name, [item.to_dict() for item in items])
+
             return items
 
         except Exception as e:
