@@ -141,3 +141,97 @@ class TestConceptConsFetcher:
 
             assert items[0].code == "000001"
             assert items[1].code == "000002"
+
+    @pytest.mark.asyncio
+    @pytest.mark.timeout(10)
+    async def test_cache_hit(self, sample_df):
+        """测试缓存命中（第二次调用不会请求 API）"""
+        call_count = 0
+
+        def mock_api(*args, **kwargs):
+            nonlocal call_count
+            call_count += 1
+            return sample_df
+
+        with patch(
+            "openclaw_alpha.skills.industry_trend.concept_cons_fetcher.akshare.ak.stock_board_concept_cons_em",
+            side_effect=mock_api,
+        ):
+            # 第一次调用（会请求 API）
+            items1 = await fetch("人工智能")
+            assert len(items1) == 2
+            assert call_count == 1
+
+            # 第二次调用（应该从缓存读取，不会请求 API）
+            items2 = await fetch("人工智能")
+            assert len(items2) == 2
+            assert call_count == 1  # API 调用次数仍然是 1
+
+    @pytest.mark.asyncio
+    @pytest.mark.timeout(10)
+    async def test_cache_expired(self, sample_df):
+        """测试缓存过期（超过1小时后会重新请求 API）"""
+        from datetime import datetime, timedelta
+        from openclaw_alpha.skills.industry_trend.concept_cons_fetcher.cache import get_cache
+
+        call_count = 0
+
+        def mock_api(*args, **kwargs):
+            nonlocal call_count
+            call_count += 1
+            return sample_df
+
+        with patch(
+            "openclaw_alpha.skills.industry_trend.concept_cons_fetcher.akshare.ak.stock_board_concept_cons_em",
+            side_effect=mock_api,
+        ):
+            # 第一次调用（会请求 API 并缓存）
+            items1 = await fetch("人工智能")
+            assert len(items1) == 2
+            assert call_count == 1
+
+            # 修改缓存时间为2小时前（模拟缓存过期）
+            cache = get_cache()
+            cache_path = cache._get_cache_path("人工智能")
+            import json
+            with open(cache_path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            data["cached_at"] = (datetime.now() - timedelta(hours=2)).isoformat()
+            with open(cache_path, "w", encoding="utf-8") as f:
+                json.dump(data, f)
+
+            # 第二次调用（缓存已过期，会重新请求 API）
+            items2 = await fetch("人工智能")
+            assert len(items2) == 2
+            assert call_count == 2  # API 调用次数增加到 2
+
+    @pytest.mark.asyncio
+    @pytest.mark.timeout(10)
+    async def test_cache_clear(self, sample_df):
+        """测试缓存清除"""
+        from openclaw_alpha.skills.industry_trend.concept_cons_fetcher.cache import get_cache
+
+        call_count = 0
+
+        def mock_api(*args, **kwargs):
+            nonlocal call_count
+            call_count += 1
+            return sample_df
+
+        with patch(
+            "openclaw_alpha.skills.industry_trend.concept_cons_fetcher.akshare.ak.stock_board_concept_cons_em",
+            side_effect=mock_api,
+        ):
+            # 第一次调用（会请求 API 并缓存）
+            items1 = await fetch("人工智能")
+            assert len(items1) == 2
+            assert call_count == 1
+
+            # 清除缓存
+            cache = get_cache()
+            cache.clear("人工智能")
+
+            # 第二次调用（缓存已清除，会重新请求 API）
+            items2 = await fetch("人工智能")
+            assert len(items2) == 2
+            assert call_count == 2  # API 调用次数增加到 2
