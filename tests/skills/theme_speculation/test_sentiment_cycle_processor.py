@@ -332,3 +332,122 @@ class TestSentimentCycleProcessor:
         assert result.cycle in ["启动", "加速", "高潮", "分歧", "退潮"]
         assert result.indicators.limit_up_count == 50
         assert len(result.reasons) > 0
+
+
+class TestDataQualityScore:
+    """测试数据质量评分功能"""
+
+    @pytest.fixture
+    def processor(self):
+        """创建处理器实例"""
+        return SentimentCycleProcessor("2026-03-11")
+
+    def test_calculate_data_quality_high_quality(self, processor):
+        """测试高质量数据（所有数据完整、合理、时效）"""
+        # 设置完整的指标
+        processor.indicators.limit_up_count = 73
+        processor.indicators.broken_count = 18
+        processor.indicators.broken_rate = 19.78
+        processor.indicators.max_continuous = 7
+        processor.indicators.prev_avg_change = 2.51
+        processor.indicators.prev_profit_rate = 64.29
+
+        # 计算评分
+        quality = processor._calculate_data_quality()
+
+        # 验证评分
+        assert quality.total == 100
+        assert quality.completeness == 40  # 有涨停、炸板、昨日表现
+        assert quality.reasonableness == 40  # 炸板率、盈利比例、平均涨跌都合理
+        assert quality.timeliness == 20  # 数据是最近的
+        assert quality.grade == "A"
+        assert len(quality.details) > 0
+
+    def test_calculate_data_quality_missing_broken_data(self, processor):
+        """测试缺失炸板数据（完整性降低）"""
+        # 修改日期为历史日期
+        processor.date = "2026-01-13"
+
+        # 设置指标（无炸板数据）
+        processor.indicators.limit_up_count = 177
+        processor.indicators.broken_count = 0
+        processor.indicators.broken_rate = 0.0
+        processor.indicators.max_continuous = 13
+        processor.indicators.prev_avg_change = 0.0
+        processor.indicators.prev_profit_rate = 0.0
+
+        # 计算评分
+        quality = processor._calculate_data_quality()
+
+        # 验证评分
+        assert quality.total == 30
+        assert quality.completeness == 10  # 只有涨停数据
+        assert quality.reasonableness == 20  # 炸板率合理，但盈利比例和平均涨跌为0（数据缺失）
+        assert quality.timeliness == 0  # 历史数据
+        assert quality.grade == "D"
+
+    def test_calculate_data_quality_historical_data(self, processor):
+        """测试历史数据（时效性降低）"""
+        # 修改日期为历史日期
+        processor.date = "2026-01-13"
+
+        # 设置完整的指标
+        processor.indicators.limit_up_count = 73
+        processor.indicators.broken_count = 18
+        processor.indicators.broken_rate = 19.78
+        processor.indicators.max_continuous = 7
+        processor.indicators.prev_avg_change = 2.51
+        processor.indicators.prev_profit_rate = 64.29
+
+        # 计算评分
+        quality = processor._calculate_data_quality()
+
+        # 验证评分
+        assert quality.total == 80
+        assert quality.completeness == 40  # 有涨停、炸板、昨日表现
+        assert quality.reasonableness == 40  # 数据都合理
+        assert quality.timeliness == 0  # 历史数据
+        assert quality.grade == "B"
+
+    def test_calculate_data_quality_unreasonable_data(self, processor):
+        """测试不合理数据（合理性降低）"""
+        # 设置不合理的指标
+        processor.indicators.limit_up_count = 73
+        processor.indicators.broken_count = 18
+        processor.indicators.broken_rate = 60.0  # 超过50%，不合理
+        processor.indicators.max_continuous = 7
+        processor.indicators.prev_avg_change = 25.0  # 超过20%，不合理
+        processor.indicators.prev_profit_rate = 120.0  # 超过100%，不合理
+
+        # 计算评分
+        quality = processor._calculate_data_quality()
+
+        # 验证评分
+        assert quality.total == 60
+        assert quality.completeness == 40  # 有涨停、炸板、昨日表现
+        assert quality.reasonableness == 0  # 所有数据都不合理
+        assert quality.timeliness == 20  # 数据是最近的
+        assert quality.grade == "C"
+
+    def test_calculate_data_quality_no_data(self, processor):
+        """测试无数据（最低质量）"""
+        # 保持默认值（所有指标为0）
+        processor.indicators.limit_up_count = 0
+        processor.indicators.broken_count = 0
+        processor.indicators.broken_rate = 0.0
+        processor.indicators.max_continuous = 0
+        processor.indicators.prev_avg_change = 0.0
+        processor.indicators.prev_profit_rate = 0.0
+
+        # 修改日期为历史日期
+        processor.date = "2026-01-01"
+
+        # 计算评分
+        quality = processor._calculate_data_quality()
+
+        # 验证评分
+        assert quality.total == 40
+        assert quality.completeness == 0  # 无涨停、炸板、昨日表现
+        assert quality.reasonableness == 40  # 炸板率（0）合理、盈利比例（0）合理、平均涨跌（0）合理
+        assert quality.timeliness == 0  # 历史数据
+        assert quality.grade == "D"

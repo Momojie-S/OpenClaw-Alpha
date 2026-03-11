@@ -24,6 +24,34 @@ from openclaw_alpha.skills.limit_up_tracker.limit_up_fetcher.models import Limit
 
 
 @dataclass
+class DataQualityScore:
+    """数据质量评分"""
+
+    # 总分（0-100）
+    total: int = 0
+    # 完整性评分（0-40）
+    completeness: int = 0
+    # 合理性评分（0-40）
+    reasonableness: int = 0
+    # 时效性评分（0-20）
+    timeliness: int = 0
+    # 等级（A/B/C/D）
+    grade: str = "D"
+    # 评分详情
+    details: list[str] = field(default_factory=list)
+
+    def to_dict(self) -> dict:
+        return {
+            "total": self.total,
+            "completeness": self.completeness,
+            "reasonableness": self.reasonableness,
+            "timeliness": self.timeliness,
+            "grade": self.grade,
+            "details": self.details,
+        }
+
+
+@dataclass
 class SentimentIndicators:
     """情绪指标"""
 
@@ -65,6 +93,8 @@ class SentimentCycleResult:
     reasons: list[str] = field(default_factory=list)
     # 数据异常警告
     warnings: list[str] = field(default_factory=list)
+    # 数据质量评分
+    quality_score: DataQualityScore = field(default_factory=DataQualityScore)
 
     def to_dict(self) -> dict:
         return {
@@ -73,6 +103,7 @@ class SentimentCycleResult:
             "indicators": self.indicators.to_dict(),
             "reasons": self.reasons,
             "warnings": self.warnings,
+            "quality_score": self.quality_score.to_dict(),
         }
 
 
@@ -91,7 +122,10 @@ class SentimentCycleProcessor:
         # 2. 检测数据异常
         warnings = self._detect_anomalies()
 
-        # 3. 判断情绪周期
+        # 3. 计算数据质量评分
+        quality_score = self._calculate_data_quality()
+
+        # 4. 判断情绪周期
         cycle, reasons = self._determine_cycle()
 
         return SentimentCycleResult(
@@ -100,6 +134,7 @@ class SentimentCycleProcessor:
             indicators=self.indicators,
             reasons=reasons,
             warnings=warnings,
+            quality_score=quality_score,
         )
 
     async def _fetch_data(self):
@@ -182,6 +217,115 @@ class SentimentCycleProcessor:
             )
 
         return warnings
+
+    def _calculate_data_quality(self) -> DataQualityScore:
+        """计算数据质量评分
+
+        评分维度：
+        1. 完整性（0-40分）：涨停数据、炸板数据、昨日涨停表现数据
+        2. 合理性（0-40分）：炸板率、盈利比例、平均涨跌是否在合理范围
+        3. 时效性（0-20分）：数据是否是最近的
+
+        Returns:
+            数据质量评分
+        """
+        ind = self.indicators
+        details = []
+
+        # 1. 完整性评分（0-40分）
+        completeness = 0
+
+        # 有涨停数据（10分）
+        if ind.limit_up_count > 0:
+            completeness += 10
+            details.append("有涨停数据（+10分）")
+        else:
+            details.append("无涨停数据（+0分）")
+
+        # 有炸板数据（10分）
+        if ind.broken_count > 0:
+            completeness += 10
+            details.append("有炸板数据（+10分）")
+        else:
+            details.append("无炸板数据（+0分）")
+
+        # 有昨日涨停表现数据（20分）
+        if ind.prev_profit_rate > 0 or ind.prev_avg_change != 0:
+            completeness += 20
+            details.append("有昨日涨停表现数据（+20分）")
+        else:
+            details.append("无昨日涨停表现数据（+0分）")
+
+        # 2. 合理性评分（0-40分）
+        reasonableness = 0
+
+        # 特殊情况：如果炸板率、盈利比例、平均涨跌都是 0，但涨停数 > 0
+        # 说明数据源缺失部分数据，不应该认为完全合理
+        if (
+            ind.broken_rate == 0
+            and ind.prev_profit_rate == 0
+            and ind.prev_avg_change == 0
+            and ind.limit_up_count > 0
+        ):
+            # 只给基础分（炸板率合理）
+            reasonableness += 20
+            details.append(f"炸板率合理（{ind.broken_rate:.1f}%，+20分）")
+            details.append("盈利比例和平均涨跌均为 0%（数据可能缺失，+0分）")
+        else:
+            # 正常评分
+            # 炸板率在合理范围 0-50%（20分）
+            if 0 <= ind.broken_rate <= 50:
+                reasonableness += 20
+                details.append(f"炸板率合理（{ind.broken_rate:.1f}%，+20分）")
+            else:
+                details.append(f"炸板率异常（{ind.broken_rate:.1f}%，+0分）")
+
+            # 昨日涨停盈利比例在合理范围 0-100%（10分）
+            if 0 <= ind.prev_profit_rate <= 100:
+                reasonableness += 10
+                details.append(f"盈利比例合理（{ind.prev_profit_rate:.1f}%，+10分）")
+            else:
+                details.append(f"盈利比例异常（{ind.prev_profit_rate:.1f}%，+0分）")
+
+            # 昨日涨停平均涨跌在合理范围 -20%~20%（10分）
+            if -20 <= ind.prev_avg_change <= 20:
+                reasonableness += 10
+                details.append(f"平均涨跌合理（{ind.prev_avg_change:.2f}%，+10分）")
+            else:
+                details.append(f"平均涨跌异常（{ind.prev_avg_change:.2f}%，+0分）")
+
+        # 3. 时效性评分（0-20分）
+        timeliness = 0
+        today = datetime.now().strftime("%Y-%m-%d")
+        yesterday = (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d")
+
+        if self.date == today or self.date == yesterday:
+            timeliness += 20
+            details.append(f"数据是最近的（{self.date}，+20分）")
+        else:
+            details.append(f"数据是历史数据（{self.date}，+0分）")
+
+        # 计算总分
+        total = completeness + reasonableness + timeliness
+
+        # 确定等级
+        if total >= 90:
+            grade = "A"
+        elif total >= 70:
+            grade = "B"
+        elif total >= 50:
+            grade = "C"
+        else:
+            grade = "D"
+
+        return DataQualityScore(
+            total=total,
+            completeness=completeness,
+            reasonableness=reasonableness,
+            timeliness=timeliness,
+            grade=grade,
+            details=details,
+        )
 
     def _determine_cycle(self) -> tuple[str, list[str]]:
         """判断情绪周期"""
@@ -284,6 +428,16 @@ def format_output(result: SentimentCycleResult) -> str:
         ])
         for warning in result.warnings:
             lines.append(f"  - {warning}")
+
+    # 显示数据质量评分
+    quality = result.quality_score
+    lines.extend([
+        "",
+        f"📊 数据质量评分: {quality.total} 分（{quality.grade} 级）",
+        f"  - 完整性: {quality.completeness} 分",
+        f"  - 合理性: {quality.reasonableness} 分",
+        f"  - 时效性: {quality.timeliness} 分",
+    ])
 
     lines.extend([
         "",
