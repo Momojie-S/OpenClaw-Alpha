@@ -41,14 +41,29 @@ uv run --env-file .env python -m openclaw_alpha.skills.theme_speculation.specula
 **输入**：交易日期
 
 **动作**：运行情绪周期 Processor
+
+**单日分析**：
 ```bash
 uv run --env-file .env python -m openclaw_alpha.skills.theme_speculation.sentiment_cycle_processor.sentiment_cycle_processor --date "2026-03-10"
 ```
 
+**趋势分析**（推荐）：
+```bash
+uv run --env-file .env python -m openclaw_alpha.skills.theme_speculation.sentiment_cycle_processor.sentiment_cycle_processor --date "2026-03-10" --days 7
+```
+
 **输出**：
+
+单日分析：
 - 情绪周期（启动/加速/高潮/分歧/退潮）
 - 情绪指标（涨停家数、炸板率、连板高度、昨日涨停表现）
 - 周期判断理由
+
+趋势分析：
+- 趋势表格（最近 N 天的情绪周期变化）
+- ASCII 趋势图（涨停数、炸板率变化）
+- 周期统计（各周期出现次数）
+- 数据异常警告
 
 ---
 
@@ -92,6 +107,16 @@ uv run --env-file .env python -m openclaw_alpha.skills.theme_speculation.specula
 | 参数 | 说明 | 默认值 |
 |------|------|--------|
 | `--date` | 交易日期 (YYYY-MM-DD) | 今天 |
+| `--days` | 回溯天数（用于趋势分析） | 1 |
+
+**示例**：
+```bash
+# 单日分析
+uv run --env-file .env python -m openclaw_alpha.skills.theme_speculation.sentiment_cycle_processor.sentiment_cycle_processor --date "2026-03-10"
+
+# 趋势分析（最近 7 天）
+uv run --env-file .env python -m openclaw_alpha.skills.theme_speculation.sentiment_cycle_processor.sentiment_cycle_processor --date "2026-03-10" --days 7
+```
 
 ### dragon_head_processor
 

@@ -10,6 +10,9 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Literal
 
+from rich.console import Console
+from rich.table import Table
+
 # 添加项目根目录到 sys.path
 project_root = Path(__file__).parent.parent.parent.parent.parent
 if str(project_root) not in sys.path:
@@ -308,10 +311,161 @@ def format_output(result: SentimentCycleResult) -> str:
     return "\n".join(lines)
 
 
+async def fetch_historical_data(end_date: str, days: int) -> list[SentimentCycleResult]:
+    """批量获取历史情绪周期数据
+
+    Args:
+        end_date: 结束日期
+        days: 回溯天数
+
+    Returns:
+        情绪周期结果列表（按日期升序）
+    """
+    results = []
+    end_dt = datetime.strptime(end_date, "%Y-%m-%d")
+
+    # 从结束日期往前推算
+    for i in range(days):
+        date_dt = end_dt - timedelta(days=i)
+        date_str = date_dt.strftime("%Y-%m-%d")
+
+        try:
+            processor = SentimentCycleProcessor(date_str)
+            result = await processor.analyze()
+            results.append(result)
+        except Exception as e:
+            # 跳过异常数据（如周末、假期）
+            print(f"跳过 {date_str}: {e}", file=sys.stderr)
+            continue
+
+    # 按日期升序排列
+    results.reverse()
+    return results
+
+
+def format_trend_output(results: list[SentimentCycleResult]) -> str:
+    """格式化趋势输出
+
+    Args:
+        results: 情绪周期结果列表
+
+    Returns:
+        格式化的输出字符串
+    """
+    if not results:
+        return "无数据"
+
+    # 使用 StringIO 捕获 rich 输出
+    from io import StringIO
+    string_io = StringIO()
+    console = Console(file=string_io, force_terminal=True)
+
+    # 创建表格
+    table = Table(title="情绪周期趋势分析")
+    table.add_column("日期", style="cyan")
+    table.add_column("周期", style="magenta")
+    table.add_column("涨停数", justify="right", style="green")
+    table.add_column("炸板率", justify="right", style="yellow")
+    table.add_column("最高连板", justify="right", style="red")
+    table.add_column("昨日表现", justify="right", style="blue")
+
+    # 添加数据行
+    for result in results:
+        ind = result.indicators
+        table.add_row(
+            result.date,
+            result.cycle,
+            str(ind.limit_up_count),
+            f"{ind.broken_rate:.1f}%",
+            f"{ind.max_continuous}板",
+            f"{ind.prev_avg_change:+.2f}%",
+        )
+
+    # 输出表格
+    console.print(table)
+
+    # 获取表格输出
+    table_output = string_io.getvalue()
+
+    # 生成 ASCII 趋势图
+    lines = [
+        "",
+        "涨停数趋势:",
+        _generate_ascii_chart([r.indicators.limit_up_count for r in results], 20),
+        "",
+        "炸板率趋势 (%):",
+        _generate_ascii_chart([r.indicators.broken_rate for r in results], 20),
+        "",
+    ]
+
+    # 添加数据异常警告（如果有）
+    warnings_dates = [r.date for r in results if r.warnings]
+    if warnings_dates:
+        lines.extend([
+            "⚠️  数据异常日期:",
+        ])
+        for date in warnings_dates:
+            lines.append(f"  - {date}")
+
+    # 添加周期统计
+    cycle_counts = {}
+    for r in results:
+        cycle_counts[r.cycle] = cycle_counts.get(r.cycle, 0) + 1
+
+    lines.extend([
+        "",
+        "周期统计:",
+    ])
+    for cycle, count in sorted(cycle_counts.items(), key=lambda x: -x[1]):
+        lines.append(f"  - {cycle}: {count} 天")
+
+    return table_output + "\n".join(lines)
+
+
+def _generate_ascii_chart(values: list[float], width: int = 20) -> str:
+    """生成 ASCII 趋势图
+
+    Args:
+        values: 数值列表
+        width: 图表宽度（字符数）
+
+    Returns:
+        ASCII 图表字符串
+    """
+    if not values or all(v == 0 for v in values):
+        return "无数据"
+
+    # 归一化到 0-1 范围
+    min_val = min(values)
+    max_val = max(values)
+
+    if max_val == min_val:
+        # 所有值相同
+        normalized = [0.5] * len(values)
+    else:
+        normalized = [(v - min_val) / (max_val - min_val) for v in values]
+
+    # 生成图表
+    lines = []
+    bar_chars = ["▁", "▂", "▃", "▄", "▅", "▆", "▇", "█"]
+
+    # 分成多行显示（每行显示一部分数据）
+    chunk_size = width
+    for i in range(0, len(normalized), chunk_size):
+        chunk = normalized[i:i + chunk_size]
+        row = "".join(bar_chars[int(v * 7)] for v in chunk)
+        lines.append(row)
+
+    return "\n".join(lines)
+
+
 def parse_args():
     parser = argparse.ArgumentParser(description="情绪周期分析")
     parser.add_argument(
         "--date", default=datetime.now().strftime("%Y-%m-%d"), help="交易日期"
+    )
+    parser.add_argument(
+        "--days", type=int, default=1, help="回溯天数（用于趋势分析）"
     )
     return parser.parse_args()
 
@@ -319,22 +473,44 @@ def parse_args():
 async def main():
     args = parse_args()
 
-    # 分析情绪周期
-    processor = SentimentCycleProcessor(args.date)
-    result = await processor.analyze()
+    if args.days > 1:
+        # 趋势分析模式
+        results = await fetch_historical_data(args.date, args.days)
 
-    # 输出格式化结果
-    print(format_output(result))
+        # 输出趋势表格和图表
+        print(format_trend_output(results))
 
-    # 保存完整数据到文件
-    output_dir = Path.cwd() / ".openclaw_alpha" / "theme_speculation" / args.date
-    output_dir.mkdir(parents=True, exist_ok=True)
+        # 保存完整数据到文件
+        output_dir = Path.cwd() / ".openclaw_alpha" / "theme_speculation" / args.date
+        output_dir.mkdir(parents=True, exist_ok=True)
 
-    output_file = output_dir / "sentiment_cycle.json"
-    with open(output_file, "w", encoding="utf-8") as f:
-        json.dump(result.to_dict(), f, ensure_ascii=False, indent=2)
+        output_file = output_dir / "sentiment_cycle_trend.json"
+        with open(output_file, "w", encoding="utf-8") as f:
+            json.dump(
+                [r.to_dict() for r in results],
+                f,
+                ensure_ascii=False,
+                indent=2
+            )
 
-    print(f"\n完整数据已保存到: {output_file}")
+        print(f"\n完整数据已保存到: {output_file}")
+    else:
+        # 单日分析模式（保持向后兼容）
+        processor = SentimentCycleProcessor(args.date)
+        result = await processor.analyze()
+
+        # 输出格式化结果
+        print(format_output(result))
+
+        # 保存完整数据到文件
+        output_dir = Path.cwd() / ".openclaw_alpha" / "theme_speculation" / args.date
+        output_dir.mkdir(parents=True, exist_ok=True)
+
+        output_file = output_dir / "sentiment_cycle.json"
+        with open(output_file, "w", encoding="utf-8") as f:
+            json.dump(result.to_dict(), f, ensure_ascii=False, indent=2)
+
+        print(f"\n完整数据已保存到: {output_file}")
 
 
 if __name__ == "__main__":
