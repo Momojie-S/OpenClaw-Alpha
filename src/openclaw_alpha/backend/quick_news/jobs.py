@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""新闻模块定时任务"""
+"""新闻快速分析模块定时任务"""
 
 import asyncio
 import logging
@@ -7,7 +7,7 @@ import logging
 from openclaw_alpha.rsshub import INVESTMENT_ROUTES
 
 from ..scheduler import Scheduler
-from .config import NewsConfig, load_news_config
+from .config import QuickNewsConfig, load_quick_news_config
 from .rss_fetcher import fetch_with_instance
 from .state_manager import (
     add_pending,
@@ -89,14 +89,14 @@ async def fetch_and_process(route: str) -> list:
     return new_items
 
 
-async def fetch_all_sources(limit: int = 1) -> None:
+async def fetch_all_quick_news(limit: int = 1) -> None:
     """
     拉取所有 RSS 路由并触发分析任务
 
     Args:
         limit: 全局最多处理多少条新闻，默认 1（调试用），0 表示全部
     """
-    config = load_news_config()
+    config = load_quick_news_config()
 
     if not config.enabled:
         logger.info("新闻模块已禁用")
@@ -161,7 +161,7 @@ async def fetch_all_sources(limit: int = 1) -> None:
     logger.info("新闻处理完成")
 
 
-def setup_news_jobs(scheduler: Scheduler) -> None:
+def setup_quick_news_jobs(scheduler: Scheduler) -> None:
     """
     注册新闻模块定时任务
 
@@ -170,7 +170,7 @@ def setup_news_jobs(scheduler: Scheduler) -> None:
     """
     from functools import partial
 
-    config = load_news_config()
+    config = load_quick_news_config()
 
     if not config.enabled:
         logger.info("新闻模块已禁用，跳过任务注册")

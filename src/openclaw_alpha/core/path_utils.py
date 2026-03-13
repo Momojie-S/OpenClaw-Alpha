@@ -96,18 +96,18 @@ def get_task_template_path(skill_name: str, task_name: str) -> Path:
     return get_skills_dir() / skill_name / "tasks" / f"{task_name}.md"
 
 
-def get_news_analysis_task_dir(date: str, news_id: str) -> Path:
+def get_quick_news_analysis_task_dir(date: str, news_id: str) -> Path:
     """
-    获取新闻分析任务目录
+    获取新闻快速分析任务目录
 
     Args:
         date: 日期（YYYY-MM-DD）
         news_id: 新闻 ID
 
     Returns:
-        任务目录路径（{workspace_dir}/news_analysis/{date}/{news_id}）
+        任务目录路径（{workspace_dir}/quick_news_analysis/{date}/{news_id}）
     """
-    return get_workspace_dir() / "news_analysis" / date / news_id
+    return get_workspace_dir() / "quick_news_analysis" / date / news_id
 
 
 def ensure_dir(path: Path) -> Path:

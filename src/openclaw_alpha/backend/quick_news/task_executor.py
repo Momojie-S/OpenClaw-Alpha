@@ -15,10 +15,10 @@ import time
 from datetime import datetime
 from pathlib import Path
 
-from openclaw_alpha.backend.news.config import load_news_config
+from openclaw_alpha.backend.quick_news.config import load_news_config
 from openclaw_alpha.core.path_utils import (
     ensure_dir,
-    get_news_analysis_task_dir,
+    get_quick_news_analysis_task_dir,
     get_task_template_path,
 )
 from openclaw_alpha.openclaw.cron_utils import submit_cron_task
@@ -132,7 +132,7 @@ async def submit_analysis(
 
     date_str = datetime.now().strftime("%Y-%m-%d")
     news_id = generate_news_id(link)
-    task_dir = get_news_analysis_task_dir(date_str, news_id)
+    task_dir = get_quick_news_analysis_task_dir(date_str, news_id)
 
     try:
         ensure_dir(task_dir)
@@ -150,7 +150,7 @@ async def submit_analysis(
 
     logger.info(f"提交分析任务: {title}")
 
-    config = load_news_config()
+    config = load_quick_news_config()
 
     cron_result = await submit_cron_task(
         message=message,

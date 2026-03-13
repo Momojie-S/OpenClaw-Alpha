@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""新闻模块配置"""
+"""新闻快速分析模块配置"""
 
 from pathlib import Path
 
@@ -26,8 +26,8 @@ class CronConfig(BaseModel):
     report_wait_timeout_seconds: int = 300
 
 
-class NewsConfig(BaseModel):
-    """新闻模块配置"""
+class QuickNewsConfig(BaseModel):
+    """新闻快速分析模块配置"""
 
     enabled: bool = True
     interval_minutes: int = 30
@@ -37,30 +37,30 @@ class NewsConfig(BaseModel):
     cron: CronConfig = CronConfig()
 
 
-def get_news_config_path() -> Path:
-    """获取新闻配置文件路径"""
-    return get_workspace_dir() / "news" / "config.yaml"
+def get_quick_news_config_path() -> Path:
+    """获取新闻快速分析配置文件路径"""
+    return get_workspace_dir() / "quick_news" / "config.yaml"
 
 
-def load_news_config(config_path: Path | None = None) -> NewsConfig:
+def load_quick_news_config(config_path: Path | None = None) -> QuickNewsConfig:
     """
-    加载新闻模块配置
+    加载新闻快速分析模块配置
 
     Args:
         config_path: 配置文件路径（None 则使用默认路径）
 
     Returns:
-        新闻模块配置对象
+        新闻快速分析模块配置对象
     """
-    config_path = config_path or get_news_config_path()
+    config_path = config_path or get_quick_news_config_path()
 
     if not config_path.exists():
-        return NewsConfig()
+        return QuickNewsConfig()
 
     with open(config_path, encoding="utf-8") as f:
         data = yaml.safe_load(f) or {}
 
-    return NewsConfig(**data)
+    return QuickNewsConfig(**data)
 
 
 def extract_route_id(url: str) -> str:

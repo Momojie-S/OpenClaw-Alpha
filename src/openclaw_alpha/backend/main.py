@@ -33,10 +33,10 @@ async def lifespan(app: FastAPI):
     scheduler.start()
 
     # 注册模块任务
-    if config.modules.get("news", {}).get("enabled"):
-        from .news.jobs import setup_news_jobs
+    if config.modules.get("quick_news", {}).get("enabled"):
+        from .quick_news.jobs import setup_quick_news_jobs
 
-        setup_news_jobs(scheduler)
+        setup_quick_news_jobs(scheduler)
 
     logger.info(f"服务已启动，监听 {config.host}:{config.port}")
 
@@ -65,8 +65,8 @@ def get_scheduler() -> Scheduler | None:
 # ============ API Models ============
 
 
-class TriggerNewsResponse(BaseModel):
-    """触发新闻拉取响应"""
+class TriggerQuickNewsResponse(BaseModel):
+    """触发新闻快速分析响应"""
 
     success: bool
     message: str
@@ -83,35 +83,35 @@ async def root():
     return {"status": "ok", "service": "OpenClaw-Alpha Backend"}
 
 
-@app.post("/api/news/trigger", response_model=TriggerNewsResponse)
-async def trigger_news_fetch(limit: int = 1):
+@app.post("/api/quick-news/trigger", response_model=TriggerQuickNewsResponse)
+async def trigger_quick_news_fetch(limit: int = 1):
     """
-    手动触发新闻拉取任务
+    手动触发新闻快速分析任务
 
-    立即执行一次所有配置的 RSS 路由拉取任务
+    立即执行一次所有配置的 RSS 路由拉取和分析任务
 
     主要用途：调试
 
     Query Parameters:
-        limit: 每个路由最多处理多少条新闻，默认 1（调试用）
+        limit: 全局最多处理多少条新闻，默认 1（调试用）
     """
     try:
-        from .news.jobs import fetch_all_sources
-        from .news.config import load_news_config
+        from .quick_news.jobs import fetch_all_sources
+        from .quick_news.config import load_quick_news_config
         from openclaw_alpha.rsshub import INVESTMENT_ROUTES
 
         # 检查是否启用
-        config = load_news_config()
+        config = load_quick_news_config()
         if not config.enabled:
-            raise HTTPException(status_code=400, detail="新闻模块已禁用")
+            raise HTTPException(status_code=400, detail="新闻快速分析模块已禁用")
 
         # 执行拉取任务
-        logger.info(f"手动触发新闻拉取任务 (limit: {limit})")
+        logger.info(f"手动触发新闻快速分析任务 (limit: {limit})")
         await fetch_all_sources(limit)
 
-        return TriggerNewsResponse(
+        return TriggerQuickNewsResponse(
             success=True,
-            message="新闻拉取任务已执行",
+            message="新闻快速分析任务已执行",
             routes_processed=len(INVESTMENT_ROUTES),
             limit=limit,
         )
@@ -119,5 +119,5 @@ async def trigger_news_fetch(limit: int = 1):
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"手动触发新闻拉取失败: {e}", exc_info=True)
+        logger.error(f"手动触发新闻快速分析失败: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"执行失败: {str(e)}")
