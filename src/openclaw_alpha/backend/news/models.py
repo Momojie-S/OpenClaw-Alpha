@@ -13,6 +13,7 @@ class NewsItem(BaseModel):
     link: str
     published: datetime | None = None
     summary: str | None = None
+    route_id: str | None = None  # 所属路由 ID
 
 
 class NewsItemState(BaseModel):

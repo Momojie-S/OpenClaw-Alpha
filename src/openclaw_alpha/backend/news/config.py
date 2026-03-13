@@ -6,10 +6,24 @@ from pathlib import Path
 import yaml
 from pydantic import BaseModel
 
-from openclaw_alpha.rsshub import INVESTMENT_ROUTES
+from openclaw_alpha.core.path_utils import get_workspace_dir
 
-# 默认配置目录
-DEFAULT_CONFIG_DIR = Path.home() / ".openclaw_alpha" / "config"
+
+class DeliveryConfig(BaseModel):
+    """消息推送配置"""
+
+    channel: str = "wecom"
+    to: str = ""
+
+
+class CronConfig(BaseModel):
+    """Cron 任务配置"""
+
+    # 轮询 session store 的超时时间（秒）
+    session_poll_timeout_seconds: int = 300
+
+    # 等待 report.md 创建的超时时间（秒）
+    report_wait_timeout_seconds: int = 300
 
 
 class NewsConfig(BaseModel):
@@ -17,6 +31,15 @@ class NewsConfig(BaseModel):
 
     enabled: bool = True
     interval_minutes: int = 30
+    agent_id: str = "alpha"
+    model: str | None = None
+    delivery: DeliveryConfig = DeliveryConfig()
+    cron: CronConfig = CronConfig()
+
+
+def get_news_config_path() -> Path:
+    """获取新闻配置文件路径"""
+    return get_workspace_dir() / "news" / "config.yaml"
 
 
 def load_news_config(config_path: Path | None = None) -> NewsConfig:
@@ -29,10 +52,9 @@ def load_news_config(config_path: Path | None = None) -> NewsConfig:
     Returns:
         新闻模块配置对象
     """
-    config_path = config_path or DEFAULT_CONFIG_DIR / "news.yaml"
+    config_path = config_path or get_news_config_path()
 
     if not config_path.exists():
-        # 返回默认配置
         return NewsConfig()
 
     with open(config_path, encoding="utf-8") as f:

@@ -29,6 +29,10 @@ OpenClaw-Alpha/
 ├── src/openclaw_alpha/
 │   ├── core/                       # 框架核心（Fetcher, FetchMethod 等）
 │   ├── data_sources/               # 数据源实现（Tushare, AKShare）
+│   ├── openclaw/                   # 🔧 OpenClaw 框架工具（路径、cron 等）
+│   │   ├── __init__.py
+│   │   ├── path_utils.py           # OpenClaw 路径工具
+│   │   └── cron_utils.py           # OpenClaw cron 工具
 │   └── skills/                     # Skill 代码目录
 │       └── {skill_name}/
 │           ├── __init__.py
@@ -47,6 +51,7 @@ OpenClaw-Alpha/
 │   │   ├── strategy-framework.md   # 策略框架设计
 │   │   └── ...
 │   ├── knowledge/                  # 投资知识体系（理论底座）
+│   ├── openclaw/                   # 🔧 OpenClaw 高级用法调研（见下方说明）
 │   ├── references/                 # API 参考文档
 │   │   ├── akshare/
 │   │   ├── rsshub/
@@ -70,6 +75,11 @@ OpenClaw-Alpha/
 **知识 vs 框架**：
 - `docs/knowledge/` - 投资知识体系，理论底座（概念、定义、公式）
 - `docs/skills/` - 投资分析框架，实践方法（流程、决策逻辑）
+
+**OpenClaw 高级用法**：
+- `docs/openclaw/` - OpenClaw 框架高级用法的调研结果
+- 包含 cron、sessions 等功能的深入研究和使用技巧
+- 用于指导项目中使用 OpenClaw 框架的最佳实践
 
 ## 核心概念
 

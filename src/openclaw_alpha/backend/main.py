@@ -71,6 +71,7 @@ class TriggerNewsResponse(BaseModel):
     success: bool
     message: str
     routes_processed: int
+    limit: int | None = None
 
 
 # ============ API Endpoints ============
@@ -83,11 +84,16 @@ async def root():
 
 
 @app.post("/api/news/trigger", response_model=TriggerNewsResponse)
-async def trigger_news_fetch():
+async def trigger_news_fetch(limit: int = 1):
     """
     手动触发新闻拉取任务
 
     立即执行一次所有配置的 RSS 路由拉取任务
+
+    主要用途：调试
+
+    Query Parameters:
+        limit: 每个路由最多处理多少条新闻，默认 1（调试用）
     """
     try:
         from .news.jobs import fetch_all_sources
@@ -100,13 +106,14 @@ async def trigger_news_fetch():
             raise HTTPException(status_code=400, detail="新闻模块已禁用")
 
         # 执行拉取任务
-        logger.info("手动触发新闻拉取任务")
-        await fetch_all_sources()
+        logger.info(f"手动触发新闻拉取任务 (limit: {limit})")
+        await fetch_all_sources(limit)
 
         return TriggerNewsResponse(
             success=True,
             message="新闻拉取任务已执行",
             routes_processed=len(INVESTMENT_ROUTES),
+            limit=limit,
         )
 
     except HTTPException:

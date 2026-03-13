@@ -20,23 +20,28 @@ from .state_manager import (
 logger = logging.getLogger(__name__)
 
 
-async def fetch_and_process(route: str) -> None:
+async def fetch_and_process(route: str) -> list:
     """
-    拉取单个路由并处理新新闻（自动尝试多个实例）
+    拉取单个路由并返回未处理的新闻（不触发分析）
 
     Args:
         route: RSS 路由（如 /cls/telegraph）
+
+    Returns:
+        未处理的新新闻列表（携带 route_id）
     """
+    from datetime import date
+
     # 从路由提取 route_id
     route_id = route.strip("/").split("/")[0]
-    logger.info(f"处理路由: {route} (route_id: {route_id})")
+    logger.info(f"拉取路由: {route} (route_id: {route_id})")
 
     # 1. 拉取 RSS（自动尝试多个实例）
     instance, items = await fetch_with_instance(route)
 
     if not items:
         logger.info(f"路由无新内容: {route}")
-        return
+        return []
 
     logger.info(f"成功从 {instance} 获取 {len(items)} 条新闻")
 
@@ -53,47 +58,107 @@ async def fetch_and_process(route: str) -> None:
             link=item["link"],
             published=item.get("published"),
             summary=item.get("summary"),
+            route_id=route_id,  # 携带 route_id
         )
         for item in items
     ]
-    new_items = [item for item in news_items if not is_processed(state, item.id)]
+
+    # 4. 只处理今天发布的新闻
+    today = date.today()
+    today_items = [item for item in news_items if item.published and item.published.date() == today]
+
+    if len(today_items) < len(news_items):
+        logger.info(f"过滤出今天发布的新闻: {len(today_items)} / {len(news_items)}")
+
+    # 5. 过滤未处理的
+    new_items = [item for item in today_items if not is_processed(state, item.id)]
 
     if not new_items:
         logger.info(f"无新新闻: {route_id}")
-        return
+        return []
 
     logger.info(f"发现 {len(new_items)} 条新新闻: {route_id}")
 
-    # 4. 处理新新闻（暂时只记录，不触发分析）
+    # 只添加到待处理列表，不保存状态
     for item in new_items:
         add_pending(state, item)
-        logger.info(f"新新闻: {item.title}")
 
-        # TODO: 触发分析任务
-        # job_id = await submit_analysis(item)
-        # mark_processed(state, item, job_id)
-
-    # 5. 保存状态
+    # 保存状态（记录待处理）
     save_state(state)
 
+    return new_items
 
-async def fetch_all_sources() -> None:
-    """拉取所有 RSS 路由"""
+
+async def fetch_all_sources(limit: int = 1) -> None:
+    """
+    拉取所有 RSS 路由并触发分析任务
+
+    Args:
+        limit: 全局最多处理多少条新闻，默认 1（调试用），0 表示全部
+    """
     config = load_news_config()
 
     if not config.enabled:
         logger.info("新闻模块已禁用")
         return
 
-    logger.info(f"开始拉取 {len(INVESTMENT_ROUTES)} 个路由")
+    logger.info(f"开始拉取 {len(INVESTMENT_ROUTES)} 个路由 (全局 limit: {limit})")
 
+    # 1. 收集所有路由的新新闻
+    all_new_items = []
     for route in INVESTMENT_ROUTES:
         try:
-            await fetch_and_process(route)
+            items = await fetch_and_process(route)
+            all_new_items.extend(items)
         except Exception as e:
-            logger.error(f"处理路由失败: {route}, 错误: {e}")
+            logger.error(f"拉取路由失败: {route}, 错误: {e}")
 
-    logger.info("RSS 拉取完成")
+    if not all_new_items:
+        logger.info("无新新闻需要处理")
+        return
+
+    logger.info(f"总共发现 {len(all_new_items)} 条新新闻")
+
+    # 2. 应用全局 limit 限制（limit=0 表示全部）
+    if limit > 0:
+        all_new_items = all_new_items[:limit]
+        logger.info(f"应用全局 limit 限制，处理前 {limit} 条")
+
+    logger.info(f"准备处理 {len(all_new_items)} 条新新闻")
+
+    # 3. 逐个处理新新闻（触发分析任务）
+    from .task_executor import submit_analysis
+
+    for item in all_new_items:
+        # 使用 item 携带的 route_id
+        route_id = item.route_id
+        if not route_id:
+            logger.warning(f"item 缺少 route_id: {item.id}")
+            continue
+
+        # 加载对应路由的状态
+        state = load_state(route_id)
+
+        logger.info(f"处理新闻: {item.title} (route: {route_id})")
+
+        # 触发分析任务
+        job_id, task_dir = await submit_analysis(
+            title=item.title,
+            link=item.link,
+            summary=item.summary or "",
+        )
+
+        # 标记已处理
+        if job_id:
+            mark_processed(state, item, job_id, str(task_dir))
+            logger.info(f"分析任务已提交: {job_id}, 目录: {task_dir}")
+        else:
+            logger.warning(f"分析任务提交失败: {item.title}")
+
+        # 保存状态
+        save_state(state)
+
+    logger.info("新闻处理完成")
 
 
 def setup_news_jobs(scheduler: Scheduler) -> None:
@@ -103,14 +168,17 @@ def setup_news_jobs(scheduler: Scheduler) -> None:
     Args:
         scheduler: 调度器实例
     """
+    from functools import partial
+
     config = load_news_config()
 
     if not config.enabled:
         logger.info("新闻模块已禁用，跳过任务注册")
         return
 
+    # 定时任务处理所有新闻（limit=0）
     scheduler.add_interval_job(
-        fetch_all_sources,
+        partial(fetch_all_sources, limit=0),
         job_id="news-fetch-all",
         minutes=config.interval_minutes,
     )

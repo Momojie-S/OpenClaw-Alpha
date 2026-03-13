@@ -436,6 +436,146 @@ openclaw cron runs <job_id> --json
 
 ---
 
+## 任务执行与删除
+
+### 删除正在运行的任务
+
+**重要结论**：删除 cron job **不会影响正在运行的任务**
+
+**原因**：
+1. 任务在独立的 session 中运行（session ID: `{uuid}`）
+2. `cron run` 会立即启动 session
+3. `cron rm` 只删除任务定义，不影响运行中的 session
+
+**示例流程**：
+```bash
+# 1. 创建任务
+job_id=$(openclaw cron add --name "test" --session isolated --message "任务内容" --at "10m" | jq -r '.id')
+
+# 2. 手动触发任务
+openclaw cron run --expect-final --timeout 60000 $job_id &
+
+# 3. 立即删除 cron job
+openclaw cron rm $job_id
+
+# 4. 任务继续运行直到完成
+# ✅ 任务正常完成（退出码 0）
+```
+
+---
+
+### `--delete-after-run` 参数
+
+**行为**：
+- 一次性任务成功后自动删除
+- **仅适用于自动触发的任务**（由调度器触发）
+- **手动触发（`cron run`）不会触发自动删除**
+
+**示例**：
+```bash
+# 创建任务（带自动删除）
+openclaw cron add \
+  --name "test-auto-delete" \
+  --session isolated \
+  --message "任务内容" \
+  --at "1m" \
+  --delete-after-run
+
+# 任务由调度器触发，成功后自动删除 ✅
+```
+
+**手动触发**：
+```bash
+# 创建任务（带自动删除）
+job_id=$(openclaw cron add --name "test-manual" --at "10m" --delete-after-run | jq -r '.id')
+
+# 手动触发（不会自动删除）
+openclaw cron run $job_id
+
+# 任务仍在列表中 ❌
+# 需要手动删除：openclaw cron rm $job_id
+```
+
+---
+
+### 推荐的任务提交流程
+
+对于需要立即执行的一次性任务，推荐使用以下流程：
+
+```bash
+# 1. 创建任务（避免自动触发）
+openclaw cron add \
+  --name "task-$(date +%s)" \
+  --agent alpha \
+  --session isolated \
+  --session-key "agent:alpha:cron:task-$(date +%s)" \
+  --message "任务内容" \
+  --at "10m" \              # 10 分钟后执行，避免自动触发
+  --json
+# 返回: {"id": "job-uuid", ...}
+
+# 2. 手动触发任务
+openclaw cron run \
+  --expect-final \        # 等待任务完成
+  --timeout 60000 \        # 超时 60 秒
+  {job_id}
+
+# 3. 任务完成后，轮询 session store 获取 sessionId
+# 4. 等待 report.md 创建
+# 5. 追加系统运行信息到 report.md
+# 6. 删除 cron job（可选）
+openclaw cron rm {job_id}
+```
+
+**优点**：
+- ✅ 使用 `--expect-final` 确保任务完成
+- ✅ 轮询 session store 可以获取完整的 session 信息
+- ✅ 删除 cron job 不影响正在运行的任务
+- ✅ 可以在任务完成后进行后续处理（如追加系统信息）
+
+---
+
+## Session 上下文存储路径
+
+**发现日期**：2026-03-12
+
+### 存储规则
+
+OpenClaw 框架会自动保存每个 session 的完整对话历史到本地文件：
+
+```
+~/.openclaw/agents/{agent_id}/sessions/{sessionId}.jsonl
+```
+
+**示例**：
+```
+/home/momojie/.openclaw/agents/alpha/sessions/fab6e5fa-d029-4c68-9aa2-28eed6497ab2.jsonl
+```
+
+### 获取方式
+
+1. **从 sessions.json 中查找**：
+   ```
+   ~/.openclaw/agents/{agent_id}/sessions/sessions.json
+   ```
+   每个条目包含 `sessionFile` 字段，指向 `.jsonl` 文件路径
+
+2. **从 sessionKey 构造**：
+   - `sessionKey` 格式：`agent:{agent_id}:{session_label}`
+   - 解析 `agent_id` 后拼接路径
+
+3. **从 cron 返回结果**：
+   - `cron add --expect-final` 返回中包含 `sessionId` 和 `sessionKey`
+   - 可用于构造完整路径
+
+### 用途
+
+- 查询完整的对话历史和分析过程
+- 调试和审计
+- 记录到报告中的"系统运行信息"章节
+
+---
+
 ## 参考链接
 
 - [OpenClaw Cron 文档](https://docs.openclaw.ai/cli/cron)

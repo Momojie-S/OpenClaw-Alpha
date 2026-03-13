@@ -3,21 +3,25 @@
 新闻分析任务执行器
 
 负责创建工作目录、加载任务模板、提交分析任务。
+
+关联文档：
+- 设计文档：docs/architecture/news-subscription.md
 """
 
+import asyncio
 import hashlib
-import json
 import logging
-import subprocess
 import time
 from datetime import datetime
 from pathlib import Path
 
+from openclaw_alpha.backend.news.config import load_news_config
 from openclaw_alpha.core.path_utils import (
     ensure_dir,
     get_news_analysis_task_dir,
     get_task_template_path,
 )
+from openclaw_alpha.openclaw.cron_utils import submit_cron_task
 
 logger = logging.getLogger(__name__)
 
@@ -44,7 +48,10 @@ def load_task_template() -> str:
 
 
 def build_message(
-    task_dir: str, title: str, link: str, content: str | None = None
+    task_dir: str,
+    title: str,
+    link: str,
+    content: str | None = None,
 ) -> str:
     """
     构造分析任务消息
@@ -98,13 +105,13 @@ def generate_news_id(link: str) -> str:
     return hashlib.md5(link.encode()).hexdigest()[:8]
 
 
-def submit_analysis(
+async def submit_analysis(
     title: str,
     link: str,
     summary: str,
-) -> tuple[str | None, str | None]:
+) -> tuple[str | None, Path | None]:
     """
-    提交新闻分析任务
+    提交新闻分析任务（异步等待完成）
 
     Args:
         title: 新闻标题
@@ -118,11 +125,11 @@ def submit_analysis(
     Raises:
         ValueError: summary 为空时
     """
-    # 1. 校验 summary
+    from openclaw_alpha.skills.news_driven_investment.news_helper import append_system_info
+
     if not summary or not summary.strip():
         raise ValueError(f"新闻内容不能为空: {title}")
 
-    # 2. 创建任务目录
     date_str = datetime.now().strftime("%Y-%m-%d")
     news_id = generate_news_id(link)
     task_dir = get_news_analysis_task_dir(date_str, news_id)
@@ -134,7 +141,6 @@ def submit_analysis(
         logger.error(f"创建任务目录失败: {e}")
         return (None, None)
 
-    # 3. 构造任务消息（包含新闻内容，减少 agent 获取新闻的调用）
     try:
         message = build_message(str(task_dir), title, link, summary)
         logger.info(f"消息包含新闻内容（{len(summary)} 字符），agent 无需再获取")
@@ -142,46 +148,49 @@ def submit_analysis(
         logger.error(f"加载任务模板失败: {e}")
         return (None, None)
 
-    # 4. 构造命令
-    cmd = [
-        "openclaw",
-        "cron",
-        "add",
-        "--name",
-        f"news-analysis-{int(time.time())}",
-        "--session",
-        "isolated",
-        "--message",
-        message,
-        "--at",
-        "1m",
-        "--delete-after-run",
-        "--thinking",
-        "low",
-        "--timeout-seconds",
-        "120",
-        "--json",
-    ]
-
     logger.info(f"提交分析任务: {title}")
 
-    # 5. 执行命令
-    try:
-        result = subprocess.run(cmd, capture_output=True, text=True, check=False)
+    config = load_news_config()
 
-        if result.returncode != 0:
-            logger.error(f"添加任务失败: {result.stderr}")
-            return (None, None)
+    cron_result = await submit_cron_task(
+        message=message,
+        name=f"news-analysis-{news_id}",
+        delete_after_run=True,
+        thinking="low",
+        agent_id=config.agent_id,
+        model=config.model,
+        delivery_channel=config.delivery.channel,
+        delivery_to=config.delivery.to,
+        session_poll_timeout_seconds=config.cron.session_poll_timeout_seconds,
+    )
 
-        # 6. 解析返回
-        data = json.loads(result.stdout)
-        job_id = data["id"]
-        logger.info(f"任务已创建: {job_id}, 任务目录: {task_dir}")
-        return (job_id, str(task_dir))
-
-    except json.JSONDecodeError as e:
-        logger.error(f"解析返回结果失败: {e}\n输出: {result.stdout}")
+    if not cron_result.success:
+        logger.error(f"任务执行失败: {cron_result.error}")
         return (None, None)
-    except Exception as e:
-        logger.error(f"执行命令失败: {e}")
-        return (None, None)
+
+    logger.info(f"任务已完成: {cron_result.job_id}, sessionId: {cron_result.session_id}, 任务目录: {task_dir}")
+
+    # 等待 report.md 创建（使用 async 避免阻塞）
+    report_path = Path(task_dir) / "report.md"
+    if cron_result.session_key and cron_result.context_path:
+        try:
+            for i in range(config.cron.report_wait_timeout_seconds):
+                if report_path.exists():
+                    # report.md 已创建，等待 2 秒确保写入完成
+                    await asyncio.sleep(2)
+                    append_system_info(
+                        str(task_dir), cron_result.job_id, cron_result.session_id, cron_result.context_path, cron_result.context_path_deleted
+                    )
+                    logger.info(f"已追加系统运行信息: {report_path}")
+                    break
+                await asyncio.sleep(1)
+            else:
+                logger.warning(
+                    f"report.md 未在 {config.cron.report_wait_timeout_seconds} 秒内创建，跳过追加系统信息"
+                )
+        except FileNotFoundError as e:
+            logger.warning(f"报告文件不存在，跳过追加: {e}")
+        except Exception as e:
+            logger.error(f"追加系统运行信息失败: {e}")
+
+    return (cron_result.job_id, task_dir)

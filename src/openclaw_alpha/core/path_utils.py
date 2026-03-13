@@ -27,7 +27,7 @@ def get_project_root() -> Path:
 
     # Fallback: 从当前文件推断
     # path_utils.py -> core -> openclaw_alpha -> src -> 项目根
-    return Path(__file__).parent.parent.parent
+    return Path(__file__).parent.parent.parent.parent
 
 
 def get_config_dir() -> Path:

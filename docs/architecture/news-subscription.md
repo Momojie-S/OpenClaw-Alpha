@@ -15,18 +15,21 @@ RSSHub → 拉取新闻 → 对比已处理记录 → 新新闻 → 触发分析
 ## 目录结构
 
 ```
-~/.openclaw_alpha/
-├── config/
-│   └── news.yaml              # 新闻模块配置
-├── cache/
-│   └── news/
-│       └── rsshub/
-│           └── {route_id}/
-│               └── {YYYY-MM-DD}.json  # 新闻状态记录
+{project_root}/workspace/
+├── news/                       # 新闻模块工作目录
+│   ├── config.yaml             # 新闻模块配置
+│   ├── cache/
+│   │   └── rsshub/
+│   │       └── {route_id}/
+│   │           └── {YYYY-MM-DD}.json  # 新闻状态记录
+│   └── analysis/               # 新闻分析任务目录
+│       └── {YYYY-MM-DD}/
+│           └── {news_id}/
+│               ├── progress.md
+│               └── report.md
 └── logs/
 
 src/openclaw_alpha/backend/news/
-├── __init__.py
 ├── jobs.py                # 定时任务：拉取 + 触发分析
 ├── rss_fetcher.py         # RSS 拉取逻辑
 ├── state_manager.py       # 状态文件管理
@@ -35,545 +38,297 @@ src/openclaw_alpha/backend/news/
 └── models.py              # 数据模型
 ```
 
-## 配置文件
+## 配置
 
-**路径**：`~/.openclaw_alpha/config/news.yaml`
+**路径**：`workspace/news/config.yaml`
 
 ```yaml
 enabled: true
-interval_minutes: 30  # 拉取间隔（分钟）
+interval_minutes: 30
+
+# Agent 配置
+agent_id: alpha
+model: zai/glm-4.7
+
+# 消息推送
+delivery:
+  channel: wecom
+  to: Momojie
+
+# Cron 任务配置
+cron:
+  # 轮询 session store 的超时时间（秒）
+  # 用于等待任务 session 创建
+  session_poll_timeout_seconds: 300
+
+  # 等待 report.md 创建的超时时间（秒）
+  # 用于追加系统运行信息到报告
+  report_wait_timeout_seconds: 300
 ```
 
-**RSS 源**：硬编码在代码中（`src/openclaw_alpha/backend/news/config.py`）
-
-**RSSHub 实例**：
-- 自动尝试多个实例
-- 按优先级排序
-- 失败自动切换
-
-**RSS 路由**（按优先级）：
+**RSS 源**（硬编码，按优先级）：
 1. `/cls/telegraph` - 财联社电报快讯
 2. `/jin10` - 金十数据快讯
 3. `/wallstreetcn/news` - 华尔街见闻资讯
 4. `/yicai/brief` - 第一财经简报
 
+**RSSHub 实例**：自动尝试多个实例，失败自动切换
+
 ## 状态文件
 
-**路径**：`~/.openclaw_alpha/cache/news/rsshub/{route_id}/{YYYY-MM-DD}.json`
+**路径**：`workspace/news/cache/rsshub/{route_id}/{YYYY-MM-DD}.json`
 
-**route_id 定义**：从 RSSHub URL 中提取的路径第一段
-
-| URL 示例 | route_id |
-|---------|----------|
-| `https://rsshub.app/36kr/newsflashes` | `36kr` |
-| `https://rsshub.app/cls/telegraph` | `cls` |
-| `https://rsshub.app/eastmoney/report` | `eastmoney` |
-
-**提取规则**：取 URL path 的第一个非空段（去除域名后的第一部分）
+**route_id**：URL path 第一段（如 `/cls/telegraph` → `cls`）
 
 **字段**：
-- `date` - 日期
-- `route` - 路由标识
-- `items` - 新闻列表，每条包含：
-  - `id` - 唯一标识（从 RSS item 提取或 link hash）
-  - `title` - 标题
-  - `link` - 链接
-  - `published` - 发布时间
-  - `processed` - 是否已处理
-  - `processed_at` - 处理时间
-  - `job_id` - 分析任务 ID
-  - `workspace_dir` - 工作目录路径
-
-**按天分文件**，便于管理和清理。
-
-## 任务模板设计
-
-### quick-news-analysis.md 用途
-
-**文件路径**：`skills/news_driven_investment/tasks/quick-news-analysis.md`
-
-**用途**：指示智能体如何分析新闻，是完整任务消息的一部分。
-
-**消息结构**：
-```
-[任务模板 - quick-news-analysis.md]
-    ↓
----
-    ↓
-## 本次任务参数（Python 生成）
-- 任务目录
-- 新闻标题
-- 新闻链接
-    ↓
----
-    ↓
-## 新闻内容（Python 生成）
-[新闻正文/摘要]
-```
-
-### 编写原则
-
-**1. 专注指令，不介绍拼接内容**
-- ❌ 不写："保证消息中包含新闻内容"
-- ❌ 不写："说明：summary 字段取决于数据源"
-- ✅ 只写：智能体要做什么
-
-**2. 讲目标，不给固定步骤**
-- ❌ 不写：详细的检查清单
-- ✅ 写：期望的输出和目标
-
-**3. 不限制发挥**
-- ❌ 不写：固定的分析维度
-- ✅ 写：核心目标，让智能体自主发挥
-
-**4. 必需的输出要求**
-- 创建 `progress.md` 记录进度
-- 创建 `report.md` 输出报告
-
-### 模板结构
-
-```markdown
-# 任务名称
-
-**目标**：一句话描述任务目标
-
----
-
-## 输出要求
-
-- 任务目录：{task_dir}
-- 进度文件：{task_dir}/progress.md
-- 报告文件：{task_dir}/report.md
-
----
-
-## 报告格式
-
-（期望的报告结构，不强制字段）
-```
-
-**注意**：
-- 不需要"输入参数"说明（Python 会生成）
-- 不需要"保证"、"说明"等描述性内容
-- 不需要示例（限制智能体发挥）
+- `id`, `title`, `link`, `published` - 新闻信息
+- `processed` - 是否已处理
+- `processed_at`, `job_id`, `workspace_dir` - 处理记录
 
 ## 定时任务
 
-**调度方式**：APScheduler
+**调度**：APScheduler，间隔可配置
 
-**任务逻辑**：
-1. 遍历 `rss_sources` 列表（按优先级顺序）
-2. 拉取 RSS 内容
-3. 加载今日状态文件
-4. 过滤未处理的新闻
-5. 触发分析（调用 `openclaw cron`）
-6. 更新状态文件
+**逻辑**：
+1. 遍历 RSS 源（按优先级）
+2. 拉取 RSS 内容（所有新闻）
+3. **过滤出今天发布的新闻**（基于 `published` 字段）
+4. 加载今日状态文件
+5. 过滤未处理的新闻
+6. 应用 limit 限制（如果指定）
+7. 逐个触发分析（调用 `submit_analysis`）
+8. 更新状态文件
 
-**任务注册**：
-- 单一定时任务，统一拉取所有源
-- 间隔可配置（`interval_minutes`）
+**处理范围**：**今天发布且未处理的新闻**
+- 定时任务使用 `limit=0`，处理全部
+- 先按 `published` 日期过滤，再检查是否已处理
+- 避免每天重复处理旧新闻
+
+**"今天"的定义**：
+- 使用 `date.today()` 获取当前日期（服务器本地时区）
+- 比较新闻的 `published` 字段：`item.published.date() == today`
+- 状态文件路径：`cache/news/rsshub/{route_id}/{YYYY-MM-DD}.json`
+- 例如：`cache/news/rsshub/cls/2026-03-13.json`
+- 时区：使用服务器本地时区（Asia/Shanghai）
+
+**RSS 拉取说明**：
+- 拉取所有新闻（不按日期过滤）
+- **必须基于 `published` 字段过滤出今天的新闻**
+- 避免每天重复处理历史新闻
+
+**处理方式**：逐个处理（非并发）
+- 确保资源消耗可控
+- 避免并发冲突
+- 等待当前分析完成后才处理下一条
 
 ## 分析任务执行
 
-**触发方式**：`openclaw cron add --session isolated`
+### 触发方式
 
-**执行者**：OpenClaw 智能体（isolated session）
+`openclaw cron add --session isolated`
 
-**实现模块**：`src/openclaw_alpha/backend/news/task_executor.py`
-
-### 触发流程
-
-```
-发现新新闻
-    ↓
-构造分析任务
-    ↓
-调用 openclaw cron add
-    ↓
-返回 job_id
-    ↓
-更新状态文件（标记已处理）
-```
+**cron 命令详解**：参见 [OpenClaw Cron 调研](../openclaw/cron.md)
 
 ### task_executor.py 职责
 
-**主要功能**：
-1. 构造 `openclaw cron add` 命令
-2. 执行命令并捕获输出
-3. 解析返回的 job_id
-4. 提供任务模板
-
-**输入**：
-- `title` - 新闻标题
-- `link` - 新闻链接
-- `summary` - 新闻内容（可选）
-
-**输出**：
-- `job_id` - 任务 ID
-- `command` - 执行的命令（用于调试）
-
-### 命令模板
-
-```bash
-# 1. 添加任务
-openclaw cron add \
-  --name "news-analysis-{timestamp}" \
-  --session isolated \
-  --message "分析以下新闻：
-
-标题：{title}
-链接：{link}
-
-要求：
-1. 判断新闻对市场的影响（利好/利空/中性）
-2. 识别相关的板块和股票
-3. 评估影响程度和时效性" \
-  --at "1m" \
-  --delete-after-run \
-  --thinking "low" \
-  --timeout-seconds 120 \
-  --json
-```
-
-**注意**：`--at` 格式为 `1m`（1 分钟后），不是 `+1m`
-
-### 返回结果解析
-
-**添加任务返回**：
-```json
-{
-  "id": "job-uuid",
-  "name": "news-analysis-1234567890",
-  "status": "scheduled"
-}
-```
-
-**关键字段**：
-- `id` - 任务 ID（用于状态更新）
-
-### task_executor.py 实现
-
-**路径工具**：使用 `openclaw_alpha.core.path_utils` 统一管理路径
-
-**详细文档**：[核心工具模块 - path_utils](core-utilities.md#path_utils---路径管理工具)
-
-**主要功能**：
-1. 使用 `get_news_analysis_task_dir()` 创建工作目录
-2. 使用 `get_task_template_path()` 加载任务模板
-3. 构造完整的任务消息（模板 + 参数）
-4. 调用 `openclaw cron add` 提交任务
-5. 返回 `(job_id, workspace_dir)`
-
-**路径工具函数**：
-```python
-from openclaw_alpha.core.path_utils import (
-    get_project_root,              # 项目根目录
-    get_config_dir,                # ~/.openclaw_alpha
-    get_cache_dir,                 # ~/.openclaw_alpha/cache
-    get_news_analysis_task_dir,   # 新闻分析工作目录
-    get_task_template_path,        # 任务模板路径
-    ensure_dir,                    # 确保目录存在
-)
-
-# 示例
-workspace_dir = get_news_analysis_task_dir("2026-03-11", "abc123")
-# -> ~/workspace/news_analysis/2026-03-11/abc123/
-
-template_path = get_task_template_path("news_driven_investment", "quick-news-analysis")
-# -> {project_root}/skills/news_driven_investment/tasks/quick-news-analysis.md
-```
-
-**输入**：
-- `title` - 新闻标题
-- `link` - 新闻链接
-- `summary` - 新闻内容（可选）
-
-**输出**：
-- `job_id` - 任务 ID（成功时）
-- `workspace_dir` - 工作目录（成功时）
-- `error` - 错误信息（失败时）
-
-**工作目录命名**：`workspace/news_analysis/{date}/{news_id}/`
-- `date` - 当天日期（YYYY-MM-DD）
-- `news_id` - 新闻 ID（MD5(link)[:8]）
-
-**工作目录结构**：
-```
-{workspace_dir}/
-├── progress.md    # 任务进度
-└── report.md      # 分析报告
-```
+**函数**：`async submit_analysis(title, link, summary) -> (job_id, task_dir)`
 
 **流程**：
-```python
-def submit_analysis(title: str, link: str, summary: str | None = None) -> tuple[str | None, str | None]:
-    """
-    提交新闻分析任务
+1. 创建工作目录：`workspace/news/analysis/{date}/{news_id}/`
+2. 构造任务消息（模板 + 参数 + 内容）
+3. 提交 cron 任务（异步）
+4. 轮询 session store 获取 session 信息（异步，超时可配置）
+5. 等待 report.md 创建（异步，超时可配置）
+6. 追加系统运行信息到 report.md
+7. 返回 `(job_id, task_dir)`
 
-    Returns:
-        (job_id, workspace_dir) 成功时
-        (None, None) 失败时
-    """
-    # 1. 创建工作目录
-    date_str = datetime.now().strftime("%Y-%m-%d")
-    news_id = generate_news_id(link)
-    workspace_dir = get_news_analysis_task_dir(date_str, news_id)
-    ensure_dir(workspace_dir)
+**路径工具**：使用 `openclaw_alpha.core.path_utils`
 
-    # 2. 构造任务消息（模板 + 参数）
-    message = build_message(str(workspace_dir), title, link)
-
-    # 3. 提交任务
-    cmd = [
-        "openclaw", "cron", "add",
-        "--name", f"news-analysis-{int(time.time())}",
-        "--session", "isolated",
-        "--message", message,
-        "--at", "1m",
-        "--delete-after-run",
-        "--thinking", "low",
-        "--timeout-seconds", "120",
-        "--json"
-    ]
-
-    result = subprocess.run(cmd, capture_output=True, text=True)
-
-    if result.returncode != 0:
-        logger.error(f"添加任务失败: {result.stderr}")
-        return (None, None)
-
-    # 4. 解析返回
-    data = json.loads(result.stdout)
-    job_id = data["id"]
-    return (job_id, str(workspace_dir))
-```
-
-**build_message() 实现**：
-```python
-def build_message(
-    workspace_dir: str, title: str, link: str, content: str | None = None
-) -> str:
-    """构造分析任务消息（模板 + 参数 + 内容）"""
-    template = load_task_template()
-
-    message = f"""{template}
-
----
-
-## 本次任务参数
-
-- **工作目录**：{workspace_dir}
-- **新闻标题**：{title}
-- **新闻链接**：{link}
-"""
-
-    # 添加新闻内容（如果有）
-    if content:
-        message += f"""
----
-
-## 新闻内容
-
-{content}
-"""
-
-    return message
-```
-
-**submit_analysis() 实现**：
-```python
-def submit_analysis(
-    title: str,
-    link: str,
-    summary: str | None = None,
-) -> tuple[str | None, str | None]:
-    """提交新闻分析任务"""
-    # 1. 创建工作目录
-    date_str = datetime.now().strftime("%Y-%m-%d")
-    news_id = generate_news_id(link)
-    workspace_dir = get_news_analysis_task_dir(date_str, news_id)
-    ensure_dir(workspace_dir)
-
-    # 2. 构造任务消息（包含摘要，减少 agent 获取新闻的调用）
-    message = build_message(str(workspace_dir), title, link, summary)
-
-    # 3. 提交任务
-    cmd = [
-        "openclaw", "cron", "add",
-        "--name", f"news-analysis-{int(time.time())}",
-        "--session", "isolated",
-        "--message", message,
-        "--at", "1m",
-        "--delete-after-run",
-        "--thinking", "low",
-        "--timeout-seconds", "120",
-        "--json"
-    ]
-
-    result = subprocess.run(cmd, capture_output=True, text=True)
-
-    if result.returncode != 0:
-        logger.error(f"添加任务失败: {result.stderr}")
-        return (None, None)
-
-    # 4. 解析返回
-    data = json.loads(result.stdout)
-    job_id = data["id"]
-    return (job_id, str(workspace_dir))
-```
-
-**优点**：
-- ✅ 模板 + 参数 + 内容一次性传入，减少 agent 文件读取和新闻获取
-- ✅ 如果提供了 summary，agent 无需再调用 web_fetch
-- ✅ 消息长度测试：支持至少 100KB，新闻内容通常 < 10KB，完全够用
-- ✅ 统一使用路径工具，避免硬编码
-
-**错误处理**：
-- 命令执行失败：记录日志，返回 `None`，**不标记已处理**
-- JSON 解析失败：记录日志，返回 `None`，**不标记已处理**
-- 返回 `None` 时，下次拉取会重试
-
-### 参数说明
+### cron 参数
 
 | 参数 | 值 | 说明 |
-|------|---|------|
-| `--name` | `news-analysis-{timestamp}` | 任务名称（包含时间戳） |
+|------|---|---|
 | `--session` | `isolated` | 使用隔离 session |
-| `--message` | 分析任务描述 | 包含新闻标题、链接、要求 |
-| `--at` | `1m` | 1 分钟后执行（避免立即执行） |
-| `--delete-after-run` | - | 成功后自动删除 |
-| `--thinking` | `low` | 低思考级别（节省成本） |
-| `--timeout-seconds` | `120` | 2 分钟超时 |
-| `--json` | - | JSON 格式输出（便于解析） |
+| `--at` | `now` | 立即触发 |
+| `--delete-after-run` | - | **不使用此选项**（见下方说明） |
+| `--thinking` | `low` | 降低推理消耗 |
+| `--timeout-seconds` | `300`（5 分钟） | 任务超时时间 |
+| `--announce` | 启用推送 | 推送结果到配置的渠道 |
+| `--channel` | 从配置读取 | 推送渠道 |
+| `--to` | 从配置读取 | 推送目标 |
+
+### Session 生命周期调研
+
+**问题**：OpenClaw 的 cron session 清理机制
+
+**`deleteAfterRun` 参数的作用**：
+- **直接作用**：控制 Cron Job 记录是否在执行后删除
+- **连带影响**：影响 Session 文件的清理时机
+
+| 配置 | Cron Job | Session 删除时机 |
+|------|----------|---------------|
+| `deleteAfterRun: true` | 从 jobs.json 删除 | **~0.5 秒**内删除 |
+| `deleteAfterRun: false` (`--keep-after-run`) | 保留 (disabled) | **不删除**（由其他机制清理） |
+
+**实测案例**：
+```
+test-lifecycle (deleteAfterRun: true):
+  07:55:27.092 - 最后一条消息
+  07:55:27.650 - Session 删除 (仅差 0.558 秒)
+
+test-keep (deleteAfterRun: false):
+  16:10:00 - 任务完成
+  16:15+  - Session 仍然存在
+```
+
+**清理机制**：
+- Session 删除后会重命名为 `.deleted.{timestamp}` 备份
+- 例如：`7d28cad7-9e7e-4def-bef1-9b9a1d4b794a.jsonl.deleted.2026-03-13T07-55-27.650Z`
+
+**本方案的处理**：
+- 不使用 `--delete-after-run`
+- 在 `append_system_info` 中，当 session 文件不存在时，自动查找并使用最新的 `.deleted` 备份
+- 这样既能保留当天 session 用于追溯，又能在自然清理后仍有备份可用
+
+### Async 说明
+
+为了避免阻塞主线程，所有 `submit_cron_task` 和 `submit_analysis` 都改为 async 函数：
+
+- 使用 `asyncio.to_thread` 执行阻塞的 subprocess 调用
+- 使用 `asyncio.sleep` 进行异步等待
+- 轮询 session store 时使用异步等待
+
+**配置的超时时间**：
+- `session_poll_timeout_seconds`：轮询 session store 的超时（默认 300 秒）
+- `report_wait_timeout_seconds`：等待 report.md 创建的超时（默认 300 秒）
 
 ### jobs.py 集成
 
-在发现新新闻后调用 `submit_analysis()`：
-
 ```python
-# jobs.py
+job_id, workspace_dir = submit_analysis(
+    title=item.title,
+    link=item.link,
+    summary=item.summary
+)
 
-from .task_executor import submit_analysis
-
-async def fetch_and_process(route: str) -> None:
-    # ... 拉取 RSS + 过滤新新闻 ...
-
-    # 处理新新闻
-    for item in new_items:
-        # 提交分析任务
-        job_id, workspace_dir = submit_analysis(
-            title=item.title,
-            link=item.link,
-            summary=item.summary
-        )
-
-        if job_id:
-            # 标记已处理，记录 job_id 和 workspace_dir
-            mark_processed(state, item, job_id, workspace_dir)
-            logger.info(f"新新闻已提交分析: {item.title} -> {workspace_dir}")
-        else:
-            # 失败，不标记已处理，下次重试
-            logger.error(f"提交分析失败: {item.title}")
+if job_id:
+    mark_processed(state, item, job_id, workspace_dir)
 ```
 
-**状态文件更新**：
-```json
-{
-  "id": "news-abc123",
-  "title": "...",
-  "processed": true,
-  "processed_at": "2026-03-11T18:30:00",
-  "job_id": "job-uuid",
-  "workspace_dir": ".openclaw_alpha/news_analysis/2026-03-11/news-abc123/"
-}
-```
-
-**详细文档**：[OpenClaw Cron 调研](../openclaw/cron.md)
+**失败处理**：返回 `None` 时不标记已处理，下次重试
 
 ## 错误处理
 
 | 错误类型 | 处理方式 |
 |---------|---------|
-| RSS 拉取失败 | 记录日志，跳过该源，继续下一个 |
-| 状态文件损坏 | 备份后重建，可能重复处理 |
-| 分析任务失败 | 标记未处理，下次重试 |
+| RSS 拉取失败 | 跳过该源，继续下一个 |
+| 状态文件损坏 | 备份后重建 |
+| 分析任务失败 | 不标记，下次重试 |
 
 ## 清理策略
 
-- **状态文件**：保留最近 7 天
-- **清理任务**：每日凌晨自动清理过期文件
+**状态文件**：
+- 保留 7 天
+- 每日凌晨自动清理
+- 清理函数：`cleanup_old_states(keep_days=7)`
 
-## 日志
+**清理逻辑**：
+- 遍历 `cache/news/rsshub/{route_id}/` 下的所有状态文件
+- 从文件名解析日期（`{YYYY-MM-DD}.json`）
+- 删除超过 7 天的文件
+- 例如：今天是 2026-03-13，则删除 2026-03-06 及更早的文件
 
-使用统一日志模块，输出到 `~/.openclaw_alpha/logs/news.log`
+**时区说明**：
+- "今天"和清理日期都使用服务器本地时区（Asia/Shanghai）
+- 如果服务器时区变更，需要手动调整或等待自然清理
+
+## 任务模板
+
+**文件**：`skills/news_driven_investment/tasks/quick-news-analysis.md`
+
+**作用**：指导智能体如何分析新闻，是任务消息的核心部分。
+
+**消息结构**：
+```
+[任务模板 - quick-news-analysis.md]
+
+---
+
+## 本次任务参数
+
+- **任务目录**：{task_dir}
+- **新闻标题**：{title}
+- **新闻链接**：{link}
+
+---
+
+## 新闻内容
+
+{content}
+```
+
+**设计原则**：
+1. 专注指令，不介绍拼接内容
+2. 讲目标，不给固定步骤
+3. 不限制智能体发挥
+4. 必需输出：`progress.md` + `report.md`
 
 ## 待办
 
 - [ ] 实现核心模块
 - [ ] 添加单元测试
 
-## 新闻分析任务流程
+## API 接口
 
-**任务流程文档**：`skills/news_driven_investment/tasks/quick-news-analysis.md`
+### POST /api/news/trigger
 
-### 分析目标
+**功能**：手动触发新闻拉取和分析任务
 
-从投资角度快速评估新闻价值：
-- 识别相关股票和板块
-- 判断影响方向（利好/利空）
-- 评估重要程度
+**主要用途**：调试
 
-### 触发方式
+**说明**：
+- API 调用的逻辑与定时任务完全相同，都是调用 `fetch_all_sources(limit)`
+- 默认 limit=1，适合调试观察单条新闻的处理流程
+- 生产环境不建议使用此接口，应依赖定时任务自动拉取
 
-通过 `openclaw cron add` 创建 isolated session，传递任务描述：
+**请求参数**：
+| 参数 | 类型 | 必需 | 默认值 | 说明 |
+|------|------|------|--------|------|
+| limit | int | 否 | 1 | 全局最多处理多少条新闻，默认 1 用于调试 |
 
+**请求示例**：
 ```bash
-openclaw cron add \
-  --name "news-analysis-{timestamp}" \
-  --session isolated \
-  --message "阅读 skills/news_driven_investment/tasks/quick-news-analysis.md，按文档执行分析任务。
+# 调试：只处理 1 条新闻（默认）
+curl -X POST http://localhost:8000/api/news/trigger
 
-工作目录：{workspace_dir}
-新闻标题：{title}
-新闻链接：{link}" \
-  --at "1m" \
-  --delete-after-run \
-  --thinking "low" \
-  --timeout-seconds 120 \
-  --json
+# 调试：处理 3 条新闻
+curl -X POST "http://localhost:8000/api/news/trigger?limit=3"
+
+# 全量：处理所有新新闻
+curl -X POST "http://localhost:8000/api/news/trigger?limit=0"
 ```
 
-**输入参数**：
-- `工作目录` - 本次任务的专用目录（如 `.openclaw_alpha/news_analysis/2026-03-11/news-abc123/`）
-- `新闻标题` - 新闻标题
-- `新闻链接` - 新闻链接
-
-### 执行流程
-
-| Step | 内容 | 输出 |
-|------|------|------|
-| 1. 获取新闻内容 | web_fetch 获取正文 | 新闻正文 |
-| 2. 分析新闻 | 提取股票、板块、影响 | 分析结论 |
-| 3. 生成报告 | Markdown 格式 | 报告文件 |
-
-### 输出路径
-
-`.openclaw_alpha/news_analysis/{date}/{news_id}.md`
-
-### 报告结构
-
-```markdown
-# {新闻标题}
-
-## 基本信息
-- 事件类型、影响方向、重要程度等
-
-## 相关标的
-- 股票代码、板块名称
-
-## 核心内容
-- 新闻要点
-
-## 投资视角
-- 从投资角度的简要分析
+**响应示例**：
+```json
+{
+  "success": true,
+  "message": "新闻拉取任务已执行",
+  "routes_processed": 4,
+  "limit": 1
+}
 ```
+
+**处理流程**：
+1. 拉取所有 RSS 路由（共 4 个），收集所有未处理新闻
+2. 应用全局 limit 限制（默认 1，limit=0 表示全部）
+3. **逐个**触发分析任务（等待当前完成再处理下一条）
+4. 更新每个路由的状态文件
+
+**注意事项**：
+- **主要用途是调试**，观察单条新闻的完整处理流程
+- 处理是逐个进行的，不是并发
+- limit 是**全局限制**，不是每个路由的限制
+  - 例如：limit=3 → 最多处理总共 3 条新闻（所有路由合并后）
+  - 例如：limit=0 → 处理所有新新闻
+- 即使分析失败也会标记为已处理，避免重复
+- 生产环境应依赖定时任务（`config.enabled: true`），而非手动触发
