@@ -83,7 +83,7 @@ async def root():
     return {"status": "ok", "service": "OpenClaw-Alpha Backend"}
 
 
-@app.post("/api/quick-news/trigger", response_model=TriggerQuickNewsResponse)
+@app.post("/api/news/quick-analyse", response_model=TriggerQuickNewsResponse)
 async def trigger_quick_news_fetch(limit: int = 1):
     """
     手动触发新闻快速分析任务
@@ -96,7 +96,7 @@ async def trigger_quick_news_fetch(limit: int = 1):
         limit: 全局最多处理多少条新闻，默认 1（调试用）
     """
     try:
-        from .quick_news.jobs import fetch_all_sources
+        from .quick_news.jobs import fetch_all_quick_news
         from .quick_news.config import load_quick_news_config
         from openclaw_alpha.rsshub import INVESTMENT_ROUTES
 
@@ -107,7 +107,7 @@ async def trigger_quick_news_fetch(limit: int = 1):
 
         # 执行拉取任务
         logger.info(f"手动触发新闻快速分析任务 (limit: {limit})")
-        await fetch_all_sources(limit)
+        await fetch_all_quick_news(limit)
 
         return TriggerQuickNewsResponse(
             success=True,
