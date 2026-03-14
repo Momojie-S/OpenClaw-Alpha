@@ -181,12 +181,23 @@ async def submit_analysis(
                 # analysis.json 已创建，等待 1 秒确保写入完成
                 await asyncio.sleep(1)
 
-                # 读取 worth_deep_analysis 字段
+                # 读取并更新 analysis.json
                 with open(analysis_json_path, 'r', encoding='utf-8') as f:
                     analysis = json.load(f)
                     worth_deep_analysis = analysis.get("worth_deep_analysis", False)
 
-                logger.info(f"已读取分析结果: {analysis_json_path}, worth_deep_analysis={worth_deep_analysis}")
+                # 追加 session 字段
+                analysis["session"] = {
+                    "job_id": cron_result.job_id,
+                    "session_id": cron_result.session_id,
+                    "context_path": cron_result.context_path,
+                }
+
+                # 写回 analysis.json
+                with open(analysis_json_path, 'w', encoding='utf-8') as f:
+                    json.dump(analysis, f, ensure_ascii=False, indent=2)
+
+                logger.info(f"已读取分析结果并追加 session 字段: {analysis_json_path}")
                 break
             await asyncio.sleep(1)
         else:
