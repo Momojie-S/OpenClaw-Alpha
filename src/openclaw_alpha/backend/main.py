@@ -10,6 +10,10 @@ from pydantic import BaseModel
 from .config import load_config
 from .logger import setup_logging
 from .scheduler import Scheduler
+from openclaw_alpha.openclaw.gateway_client import (
+    get_gateway_client,
+    close_gateway_client,
+)
 
 
 logger = logging.getLogger(__name__)
@@ -26,6 +30,13 @@ async def lifespan(app: FastAPI):
     setup_logging(log_level=config.log_level)
 
     logger.info("服务启动中...")
+
+    # 连接 Gateway 客户端
+    try:
+        client = await get_gateway_client()
+        logger.info(f"Gateway 客户端已连接: {client.config.url}")
+    except Exception as e:
+        logger.warning(f"Gateway 客户端连接失败: {e}（将在需要时重连）")
 
     # 启动调度器
     global scheduler
@@ -46,6 +57,10 @@ async def lifespan(app: FastAPI):
     logger.info("服务关闭中...")
     if scheduler:
         scheduler.shutdown()
+
+    # 关闭 Gateway 客户端
+    await close_gateway_client()
+
     logger.info("服务已关闭")
 
 

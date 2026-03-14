@@ -1,21 +1,22 @@
 # -*- coding: utf-8 -*-
 """
-新闻分析任务执行器
+新闻快速分析任务执行器
 
 负责创建工作目录、加载任务模板、提交分析任务。
 
 关联文档：
-- 设计文档：docs/architecture/news-subscription.md
+- 设计文档：docs/design/news/quick-analysis.md
 """
 
 import asyncio
 import hashlib
+import json
 import logging
 import time
 from datetime import datetime
 from pathlib import Path
 
-from openclaw_alpha.backend.quick_news.config import load_news_config
+from openclaw_alpha.backend.quick_news.config import load_quick_news_config
 from openclaw_alpha.core.path_utils import (
     ensure_dir,
     get_quick_news_analysis_task_dir,
@@ -109,9 +110,9 @@ async def submit_analysis(
     title: str,
     link: str,
     summary: str,
-) -> tuple[str | None, Path | None]:
+) -> tuple[str | None, Path | None, bool]:
     """
-    提交新闻分析任务（异步等待完成）
+    提交新闻快速分析任务（异步等待完成）
 
     Args:
         title: 新闻标题
@@ -119,8 +120,8 @@ async def submit_analysis(
         summary: 新闻内容（必需，来自 RSS feed 的 summary 字段，将拼接到消息中减少 agent 获取新闻的调用）
 
     Returns:
-        (job_id, workspace_dir) 成功时
-        (None, None) 失败时
+        (job_id, task_dir, worth_deep_analysis) 成功时
+        (None, None, False) 失败时
 
     Raises:
         ValueError: summary 为空时
@@ -139,16 +140,16 @@ async def submit_analysis(
         logger.info(f"创建任务目录: {task_dir}")
     except Exception as e:
         logger.error(f"创建任务目录失败: {e}")
-        return (None, None)
+        return (None, None, False)
 
     try:
         message = build_message(str(task_dir), title, link, summary)
         logger.info(f"消息包含新闻内容（{len(summary)} 字符），agent 无需再获取")
     except FileNotFoundError as e:
         logger.error(f"加载任务模板失败: {e}")
-        return (None, None)
+        return (None, None, False)
 
-    logger.info(f"提交分析任务: {title}")
+    logger.info(f"提交快速分析任务: {title}")
 
     config = load_quick_news_config()
 
@@ -166,31 +167,53 @@ async def submit_analysis(
 
     if not cron_result.success:
         logger.error(f"任务执行失败: {cron_result.error}")
-        return (None, None)
+        return (None, None, False)
 
     logger.info(f"任务已完成: {cron_result.job_id}, sessionId: {cron_result.session_id}, 任务目录: {task_dir}")
 
-    # 等待 report.md 创建（使用 async 避免阻塞）
-    report_path = Path(task_dir) / "report.md"
-    if cron_result.session_key and cron_result.context_path:
-        try:
-            for i in range(config.cron.report_wait_timeout_seconds):
-                if report_path.exists():
-                    # report.md 已创建，等待 2 秒确保写入完成
-                    await asyncio.sleep(2)
-                    append_system_info(
-                        str(task_dir), cron_result.job_id, cron_result.session_id, cron_result.context_path, cron_result.context_path_deleted
-                    )
-                    logger.info(f"已追加系统运行信息: {report_path}")
-                    break
+    # 等待 analysis.json 创建（新版设计要求输出结构化 JSON）
+    analysis_json_path = Path(task_dir) / "analysis.json"
+    worth_deep_analysis = False
+
+    try:
+        for i in range(config.cron.report_wait_timeout_seconds):
+            if analysis_json_path.exists():
+                # analysis.json 已创建，等待 1 秒确保写入完成
                 await asyncio.sleep(1)
-            else:
-                logger.warning(
-                    f"report.md 未在 {config.cron.report_wait_timeout_seconds} 秒内创建，跳过追加系统信息"
-                )
-        except FileNotFoundError as e:
-            logger.warning(f"报告文件不存在，跳过追加: {e}")
+
+                # 读取 worth_deep_analysis 字段
+                with open(analysis_json_path, 'r', encoding='utf-8') as f:
+                    analysis = json.load(f)
+                    worth_deep_analysis = analysis.get("worth_deep_analysis", False)
+
+                logger.info(f"已读取分析结果: {analysis_json_path}, worth_deep_analysis={worth_deep_analysis}")
+                break
+            await asyncio.sleep(1)
+        else:
+            logger.warning(
+                f"analysis.json 未在 {config.cron.report_wait_timeout_seconds} 秒内创建"
+            )
+    except json.JSONDecodeError as e:
+        logger.error(f"解析 analysis.json 失败: {e}")
+    except Exception as e:
+        logger.error(f"读取 analysis.json 失败: {e}")
+
+    # 如果存在 report.md，追加系统运行信息（可选）
+    report_path = Path(task_dir) / "report.md"
+    if cron_result.session_key and cron_result.context_path and report_path.exists():
+        try:
+            # 等待 1 秒确保 report.md 写入完成
+            await asyncio.sleep(1)
+            append_system_info(
+                str(task_dir), cron_result.job_id, cron_result.session_id,
+                cron_result.context_path, cron_result.context_path_deleted
+            )
+            logger.info(f"已追加系统运行信息到 report.md")
         except Exception as e:
             logger.error(f"追加系统运行信息失败: {e}")
 
-    return (cron_result.job_id, task_dir)
+    # TODO: 触发深度分析
+    # if worth_deep_analysis:
+    #     trigger_deep_analysis(analysis, task_dir)
+
+    return (cron_result.job_id, task_dir, worth_deep_analysis)

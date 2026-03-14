@@ -46,10 +46,11 @@ OpenClaw-Alpha/
 │               └── {scenario}_processor.py
 │
 ├── docs/                           # 项目文档
-│   ├── architecture/               # 架构设计
+│   ├── architecture/               # 架构设计（技术实现）
 │   │   ├── core-utilities.md       # 核心工具模块（路径管理等）
 │   │   ├── strategy-framework.md   # 策略框架设计
 │   │   └── ...
+│   ├── design/                     # 业务设计（公式、权重、规则）
 │   ├── knowledge/                  # 投资知识体系（理论底座）
 │   ├── openclaw/                   # 🔧 OpenClaw 高级用法调研（见下方说明）
 │   ├── references/                 # API 参考文档

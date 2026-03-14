@@ -141,8 +141,8 @@ async def fetch_all_quick_news(limit: int = 1) -> None:
 
         logger.info(f"处理新闻: {item.title} (route: {route_id})")
 
-        # 触发分析任务
-        job_id, task_dir = await submit_analysis(
+        # 触发快速分析任务
+        job_id, task_dir, worth_deep_analysis = await submit_analysis(
             title=item.title,
             link=item.link,
             summary=item.summary or "",
@@ -151,9 +151,9 @@ async def fetch_all_quick_news(limit: int = 1) -> None:
         # 标记已处理
         if job_id:
             mark_processed(state, item, job_id, str(task_dir))
-            logger.info(f"分析任务已提交: {job_id}, 目录: {task_dir}")
+            logger.info(f"快速分析任务已完成: {job_id}, 目录: {task_dir}, 值得深度分析: {worth_deep_analysis}")
         else:
-            logger.warning(f"分析任务提交失败: {item.title}")
+            logger.warning(f"快速分析任务失败: {item.title}")
 
         # 保存状态
         save_state(state)
@@ -178,7 +178,7 @@ def setup_quick_news_jobs(scheduler: Scheduler) -> None:
 
     # 定时任务处理所有新闻（limit=0）
     scheduler.add_interval_job(
-        partial(fetch_all_sources, limit=0),
+        partial(fetch_all_quick_news, limit=0),
         job_id="news-fetch-all",
         minutes=config.interval_minutes,
     )

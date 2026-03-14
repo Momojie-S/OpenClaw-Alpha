@@ -2,7 +2,7 @@
 """
 OpenClaw Cron 工具模块
 
-提供 OpenClaw cron 相关的工具函数。
+提供 OpenClaw cron 相关的工具函数，使用 HTTP API 连接 Gateway。
 
 关联文档：
 - docs/openclaw/cron.md
@@ -11,12 +11,12 @@ OpenClaw Cron 工具模块
 import asyncio
 import json
 import logging
-import subprocess
 import time
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+from .gateway_client import get_gateway_client
 from .path_utils import get_openclaw_session_file, parse_agent_id_from_session_key
 
 logger = logging.getLogger(__name__)
@@ -50,28 +50,13 @@ class CronResult:
 
 def parse_cron_result(data: dict[str, Any]) -> CronResult:
     """
-    解析 openclaw cron add --expect-final 的返回结果
+    解析 cron.add 的返回结果
 
     Args:
         data: JSON 解析后的字典
 
     Returns:
         CronResult 对象
-
-    Example:
-        >>> result = parse_cron_result({
-        ...     "id": "job-uuid",
-        ...     "sessionId": "session-uuid",
-        ...     "sessionKey": "agent:alpha:cron:job-uuid:run:session-uuid"
-        ... })
-        >>> result.job_id
-        'job-uuid'
-        >>> result.agent_id
-        'alpha'
-        >>> result.context_path
-        '/home/user/.openclaw/agents/alpha/sessions/session-uuid.jsonl'
-        >>> result.context_path_deleted
-        '/home/user/.openclaw/agents/alpha/sessions/session-uuid.jsonl.deleted.*'
     """
     job_id = data.get("id", "")
     session_id = data.get("sessionId")
@@ -110,13 +95,13 @@ async def submit_cron_task(
     delivery_to: str | None = None,
 ) -> CronResult:
     """
-    提交 OpenClaw cron 任务（异步等待完成）
+    提交 OpenClaw cron 任务（使用 HTTP API）
 
     流程：
-    1. cron add --at "10m"（避免自动触发）
-    2. cron run --expect-final（手动触发）
-    3. 轮询 session store 获取 session 信息（使用 async 避免阻塞）
-    4. cron rm（删除任务）
+    1. cron.add（设置 10m 后执行，避免自动触发）
+    2. cron.run（手动触发）
+    3. 轮询 session store 获取 session 信息
+    4. cron.remove（删除任务）
 
     Args:
         message: 任务消息
@@ -132,21 +117,6 @@ async def submit_cron_task(
 
     Returns:
         CronResult 对象，包含任务执行结果
-
-    Example:
-        >>> result = await submit_cron_task(
-        ...     message="分析新闻：XXX",
-        ...     name="news-analysis",
-        ...     timeout_seconds=300,
-        ...     session_poll_timeout_seconds=300,
-        ...     model="zai/glm-5"
-        ... )
-        >>> if result.success:
-        ...     print(f"任务完成: {result.job_id}")
-        ...     print(f"上下文路径: {result.context_path}")
-        ...     print(f"备份路径模式: {result.context_path_deleted}")
-        ... else:
-        ...     print(f"任务失败: {result.error}")
     """
     # 生成任务名称
     if not name:
@@ -156,42 +126,7 @@ async def submit_cron_task(
     session_label = f"cron:{name}"
     session_key = f"agent:{agent_id}:{session_label}"
 
-    # 构造 cron add 命令（使用 10m 避免自动触发）
-    cmd = [
-        "openclaw",
-        "cron",
-        "add",
-        "--name",
-        name,
-        "--agent",
-        agent_id,
-        "--session",
-        "isolated",
-        "--session-key",
-        session_key,
-        "--message",
-        message,
-        "--at",
-        "10m",  # 10分钟后执行，避免自动触发
-        "--timeout-seconds",
-        str(timeout_seconds),
-        "--thinking",
-        thinking,
-        "--json",
-    ]
-
-    if model:
-        cmd.extend(["--model", model])
-
-    # 只有当 channel 和 to 都提供时才使用 announce 模式
-    if delivery_channel and delivery_to:
-        cmd.extend(["--announce", "--channel", delivery_channel, "--to", delivery_to])
-    else:
-        cmd.append("--no-deliver")
-
-    logger.debug(f"执行 cron add: {' '.join(cmd[:5])}...")
-
-    # 初始化 cron_result
+    # 初始化结果
     cron_result = CronResult(
         job_id="",
         session_id=None,
@@ -201,94 +136,131 @@ async def submit_cron_task(
         success=False,
     )
 
-    # 执行 cron add（使用 asyncio.to_thread 避免阻塞）
     try:
-        result = await asyncio.to_thread(subprocess.run, cmd, capture_output=True, text=True, check=False)
+        # 获取 Gateway 客户端
+        client = await get_gateway_client()
 
-        if result.returncode != 0:
-            error_msg = result.stderr.strip() or f"添加任务失败 (code: {result.returncode})"
+        # ========== 1. 添加任务 ==========
+        # 计算触发时间：10 分钟后
+        trigger_time = int((time.time() + 600) * 1000)
+
+        add_params: dict[str, Any] = {
+            "name": name,
+            "agentId": agent_id,
+            "sessionTarget": "isolated",
+            "sessionKey": session_key,
+            "schedule": {
+                "kind": "at",
+                "at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(trigger_time / 1000)),
+            },
+            "payload": {
+                "kind": "agentTurn",
+                "message": message,
+                "thinking": thinking,
+                "timeoutSeconds": timeout_seconds,
+            },
+            "enabled": True,
+        }
+
+        if model:
+            add_params["payload"]["model"] = model
+
+        # 设置 delivery
+        if delivery_channel and delivery_to:
+            add_params["delivery"] = {
+                "mode": "announce",
+                "channel": delivery_channel,
+                "to": delivery_to,
+            }
+        else:
+            add_params["delivery"] = {"mode": "none"}
+
+        logger.debug(f"cron.add 参数: {name}")
+        add_response = await client.call_tool(
+            "cron",
+            {"action": "add", **add_params},
+            timeout=30.0,
+        )
+
+        if not add_response.get("ok"):
+            error = add_response.get("error", {})
+            error_msg = error.get("message", "添加任务失败")
             logger.error(f"添加任务失败: {error_msg}")
             cron_result.error = error_msg
             return cron_result
 
-        # 解析返回结果
-        data = json.loads(result.stdout)
-        cron_result.job_id = data.get("id", "")
-        cron_result.agent_id = agent_id
-
+        # HTTP API 返回格式: {"result": {"details": {...}}}
+        add_data = add_response.get("result", {}).get("details", {})
+        cron_result.job_id = add_data.get("id", "")
         logger.info(f"任务创建成功: {cron_result.job_id}")
 
-    except json.JSONDecodeError as e:
-        error_msg = f"解析返回结果失败: {e}"
-        logger.error(error_msg)
-        cron_result.error = error_msg
-        return cron_result
-    except Exception as e:
-        error_msg = f"添加任务异常: {e}"
-        logger.error(error_msg)
-        cron_result.error = error_msg
-        return cron_result
+        # ========== 2. 触发任务 ==========
+        logger.info(f"触发任务: {cron_result.job_id}")
+        run_response = await client.call_tool(
+            "cron",
+            {"action": "run", "jobId": cron_result.job_id},
+            timeout=float(timeout_seconds),
+        )
 
-    # 手动触发任务（cron run --expect-final）
-    logger.info(f"触发任务: {cron_result.job_id}")
-    run_cmd = [
-        "openclaw",
-        "cron",
-        "run",
-        "--expect-final",
-        "--timeout",
-        str(timeout_seconds * 1000),  # 转换为毫秒
-        cron_result.job_id,
-    ]
-
-    try:
-        run_result = await asyncio.to_thread(subprocess.run, run_cmd, capture_output=True, text=True, check=False)
-
-        if run_result.returncode != 0:
-            error_msg = run_result.stderr.strip() or f"触发任务失败 (code: {run_result.returncode})"
+        if not run_response.get("ok"):
+            error = run_response.get("error", {})
+            error_msg = error.get("message", "触发任务失败")
             logger.error(f"触发任务失败: {error_msg}")
-            # 删除任务
-            await asyncio.to_thread(
-                subprocess.run, ["openclaw", "cron", "rm", cron_result.job_id], capture_output=True
-            )
+            # 尝试删除任务
+            await _remove_job(client, cron_result.job_id)
             cron_result.error = error_msg
             return cron_result
 
-        # 解析 run 返回结果（cron run 的输出不是 JSON）
-        # 直接认为任务执行成功
-        logger.info(f"任务运行完成")
+        # 解析 run 结果
+        run_data = run_response.get("result", {})
+        cron_result.session_id = run_data.get("sessionId")
+        cron_result.session_key = run_data.get("sessionKey")
 
-    except json.JSONDecodeError as e:
-        error_msg = f"解析 run 返回结果失败: {e}"
-        logger.error(error_msg)
-        # 删除任务
-        await asyncio.to_thread(
-            subprocess.run, ["openclaw", "cron", "rm", cron_result.job_id], capture_output=True
-        )
-        cron_result.error = error_msg
+        # 如果 run 没返回 session 信息，尝试从 session store 获取
+        if not cron_result.session_id:
+            await _poll_session_info(cron_result, agent_id, session_poll_timeout_seconds)
+
+        # 构造 context_path
+        if cron_result.session_id:
+            cron_result.context_path = str(get_openclaw_session_file(agent_id, cron_result.session_id))
+            session_file = Path(cron_result.context_path)
+            cron_result.context_path_deleted = str(
+                session_file.with_name(f"{session_file.stem}.deleted.*")
+            )
+
+        logger.info(f"任务运行完成: sessionId={cron_result.session_id}")
+
+        # ========== 3. 删除任务 ==========
+        if delete_after_run:
+            await _remove_job(client, cron_result.job_id)
+
+        cron_result.success = True
         return cron_result
+
     except Exception as e:
-        error_msg = f"触发任务异常: {e}"
-        logger.error(error_msg)
-        # 删除任务
-        await asyncio.to_thread(
-            subprocess.run, ["openclaw", "cron", "rm", cron_result.job_id], capture_output=True
-        )
+        error_msg = f"任务执行异常: {e}"
+        logger.error(error_msg, exc_info=True)
         cron_result.error = error_msg
         return cron_result
 
-    # 获取任务运行的 session 信息（异步轮询 session store）
-    try:
-        session_found = False
-        for attempt in range(session_poll_timeout_seconds):
-            await asyncio.sleep(1)  # 使用 async sleep 避免阻塞
 
-            session_store_path = Path.home() / ".openclaw" / "agents" / agent_id / "sessions" / "sessions.json"
+async def _poll_session_info(
+    cron_result: CronResult,
+    agent_id: str,
+    timeout_seconds: int,
+) -> None:
+    """轮询 session store 获取 session 信息"""
+    try:
+        for _ in range(timeout_seconds):
+            await asyncio.sleep(1)
+
+            session_store_path = (
+                Path.home() / ".openclaw" / "agents" / agent_id / "sessions" / "sessions.json"
+            )
 
             if not session_store_path.exists():
                 continue
 
-            # 读取文件（同步读取，因为没有 async 版本）
             with open(session_store_path, encoding="utf-8") as f:
                 sessions_data = json.load(f)
 
@@ -297,40 +269,28 @@ async def submit_cron_task(
                 if cron_result.job_id in session_key and ":run:" in session_key:
                     cron_result.session_id = session_info.get("sessionId")
                     cron_result.session_key = session_key
-                    # 构造 context_path 和 deleted 路径模式
-                    cron_result.context_path = str(get_openclaw_session_file(agent_id, cron_result.session_id))
-                    # deleted 文件路径模式：{stem}.deleted.*
-                    session_file = Path(cron_result.context_path)
-                    cron_result.context_path_deleted = str(session_file.with_name(f"{session_file.stem}.deleted.*"))
-                    session_found = True
                     logger.info(f"获取运行信息: sessionId={cron_result.session_id}")
-                    break
+                    return
 
-            if session_found:
-                break
-
-        if not session_found:
-            logger.warning(
-                f"未找到包含 job_id {cron_result.job_id} 的 session（轮询了 {session_poll_timeout_seconds} 秒）"
-            )
-            if session_store_path.exists():
-                logger.debug(f"session store 中的 session keys: {list(sessions_data.keys())[:5]}")
+        logger.warning(
+            f"未找到包含 job_id {cron_result.job_id} 的 session（轮询了 {timeout_seconds} 秒）"
+        )
 
     except Exception as e:
         logger.warning(f"获取运行信息失败: {e}")
 
-    # 删除任务
-    if delete_after_run:
-        try:
-            await asyncio.to_thread(
-                subprocess.run, ["openclaw", "cron", "rm", cron_result.job_id], capture_output=True
-            )
-            logger.info(f"任务已删除: {cron_result.job_id}")
-        except Exception as e:
-            logger.warning(f"删除任务失败: {e}")
 
-    # 标记成功
-    cron_result.success = True
-    logger.info(f"任务完成: {cron_result.job_id}, sessionId: {cron_result.session_id}")
-
-    return cron_result
+async def _remove_job(client, job_id: str) -> None:
+    """删除任务"""
+    try:
+        response = await client.call_tool(
+            "cron",
+            {"action": "remove", "jobId": job_id},
+            timeout=10.0,
+        )
+        if response.get("ok"):
+            logger.info(f"任务已删除: {job_id}")
+        else:
+            logger.warning(f"删除任务失败: {response.get('error', {}).get('message', '未知错误')}")
+    except Exception as e:
+        logger.warning(f"删除任务异常: {e}")

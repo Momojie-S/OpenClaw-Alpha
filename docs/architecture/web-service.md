@@ -128,35 +128,42 @@ modules:
 | 路由 | 方法 | 说明 |
 |------|------|------|
 | `/` | GET | 健康检查 |
-| `/api/news/trigger` | POST | 手动触发新闻拉取任务 |
+| `/api/news/quick/trigger` | POST | 手动触发快速新闻分析任务 |
 
-### 手动触发新闻拉取
+### 手动触发快速新闻分析
 
-**接口**：`POST /api/news/trigger`
+> **注意**：API 端点已更新。新设计将新闻分析分为快速分析和深度分析，详见 [docs/design/news/quick-analysis.md](../design/news/quick-analysis.md)。
 
-**说明**：立即执行一次所有配置的 RSS 路由拉取任务
+**接口**：`POST /api/news/quick/trigger`
+
+**说明**：立即执行快速新闻分析任务
 
 **响应**：
 ```json
 {
   "success": true,
-  "message": "新闻拉取任务已执行",
-  "routes_processed": 4
+  "message": "快速新闻分析任务已执行",
+  "routes_processed": 3,
+  "processed": 1,
+  "triggered_deep_analysis": 0
 }
 ```
 
 **使用场景**：
 - 调试和测试
-- 手动触发即时拉取
+- 手动触发即时分析
 - 验证配置是否正确
 
 **示例**：
 ```bash
-# 手动触发
-curl -X POST http://localhost:8765/api/news/trigger
+# 手动触发（默认处理1条）
+curl -X POST http://localhost:8765/api/news/quick/trigger
 
-# 响应
-{"success":true,"message":"新闻拉取任务已执行","routes_processed":4}
+# 处理3条新闻
+curl -X POST "http://localhost:8765/api/news/quick/trigger?limit=3"
+
+# 处理所有新新闻
+curl -X POST "http://localhost:8765/api/news/quick/trigger?limit=0"
 ```
 
 ### 模块路由（规划）

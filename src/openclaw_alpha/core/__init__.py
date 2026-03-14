@@ -9,7 +9,7 @@ from openclaw_alpha.core.path_utils import (
     get_cache_dir,
     get_config_dir,
     get_log_dir,
-    get_news_analysis_task_dir,
+    get_quick_news_analysis_task_dir,
     get_project_root,
     get_skills_dir,
     get_task_template_path,
@@ -38,6 +38,6 @@ __all__ = [
     "get_skills_dir",
     "get_workspace_dir",
     "get_task_template_path",
-    "get_news_analysis_task_dir",
+    "get_quick_news_analysis_task_dir",
     "ensure_dir",
 ]

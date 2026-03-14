@@ -10,6 +10,12 @@ OpenClaw 框架工具包
 """
 
 from .cron_utils import CronResult, parse_cron_result, submit_cron_task
+from .gateway_client import (
+    GatewayClient,
+    GatewayConfig,
+    close_gateway_client,
+    get_gateway_client,
+)
 from .path_utils import (
     get_openclaw_agent_dir,
     get_openclaw_agents_dir,
@@ -31,4 +37,9 @@ __all__ = [
     "CronResult",
     "parse_cron_result",
     "submit_cron_task",
+    # gateway_client
+    "GatewayClient",
+    "GatewayConfig",
+    "get_gateway_client",
+    "close_gateway_client",
 ]

@@ -1,5 +1,14 @@
 # 新闻订阅分析功能设计
 
+> **注意**：此文档为旧版设计，新设计请参考：
+> - 快速分析：[docs/design/news/quick-analysis.md](../design/news/quick-analysis.md)
+> - 深度分析：[docs/design/news/deep-analysis.md](../design/news/deep-analysis.md)
+> - 整体设计：[docs/design/news/overview.md](../design/news/overview.md)
+>
+> API 端点已更新为：
+> - 快速分析：`POST /api/news/quick/trigger`
+> - 深度分析：详见深度分析设计文档
+
 ## 目标
 
 定时从 RSSHub 拉取新闻，识别未处理的新闻，触发一次性 isolated session 进行分析。
