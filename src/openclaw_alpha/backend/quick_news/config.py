@@ -9,10 +9,17 @@ from pydantic import BaseModel
 from openclaw_alpha.core.path_utils import get_workspace_dir
 
 
+class RecipientConfig(BaseModel):
+    """单个接收人配置"""
+
+    name: str
+    agent_id: str = "notify"  # 推送时使用的 agent ID
+
+
 class DeliveryConfig(BaseModel):
     """消息推送配置"""
 
-    recipients: list[str] = ["Momojie"]  # 推送目标列表
+    recipients: list[RecipientConfig] = [RecipientConfig(name="Momojie")]
 
 
 class CronConfig(BaseModel):
