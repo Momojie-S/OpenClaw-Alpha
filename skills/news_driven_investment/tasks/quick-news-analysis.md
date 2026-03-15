@@ -84,6 +84,7 @@
 
 ```json
 {
+  "news_id": "从 news_meta.json 读取",
   "related_sectors": ["板块1", "板块2"],
   "related_companies": [
     {
@@ -101,6 +102,9 @@
   "worth_deep_analysis": true,
   "reason": "理由：为什么值得/不值得深入分析"
 }
+```
+
+**重要**：必须从任务目录下的 `news_meta.json` 读取 `news_id` 并写入 analysis.json！
 ```
 
 ### 3. report.md（可选）

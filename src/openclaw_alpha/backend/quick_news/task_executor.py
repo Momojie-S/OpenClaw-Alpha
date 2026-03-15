@@ -151,6 +151,11 @@ async def submit_analysis(
     try:
         ensure_dir(task_dir)
         logger.info(f"创建任务目录: {task_dir}")
+        
+        # 写入 news_id 标记文件，用于验证分析结果
+        news_meta = {"news_id": news_id, "title": title, "link": link}
+        with open(task_dir / "news_meta.json", 'w', encoding='utf-8') as f:
+            json.dump(news_meta, f, ensure_ascii=False, indent=2)
     except Exception as e:
         logger.error(f"创建任务目录失败: {e}")
         return (None, None, False)
@@ -189,13 +194,20 @@ async def submit_analysis(
     try:
         for i in range(config.cron.report_wait_timeout_seconds):
             if analysis_json_path.exists():
-                # analysis.json 已创建，等待 1 秒确保写入完成
+                # 等待 1 秒确保写入完成
                 await asyncio.sleep(1)
 
-                # 读取并更新 analysis.json
+                # 读取并验证 news_id
                 with open(analysis_json_path, 'r', encoding='utf-8') as f:
                     analysis = json.load(f)
-                    worth_deep_analysis = analysis.get("worth_deep_analysis", False)
+                
+                # 验证是否是当前新闻的分析结果
+                if analysis.get("news_id") != news_id:
+                    logger.debug(f"analysis.json 的 news_id 不匹配，继续等待...")
+                    await asyncio.sleep(1)
+                    continue
+
+                worth_deep_analysis = analysis.get("worth_deep_analysis", False)
 
                 # 追加 session 字段
                 analysis["session"] = {

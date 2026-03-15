@@ -35,3 +35,4 @@ workspace/
 progress/
 feedback/
 backend.log
+*.swp
