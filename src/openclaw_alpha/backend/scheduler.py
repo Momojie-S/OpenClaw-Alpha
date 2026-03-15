@@ -68,6 +68,9 @@ class Scheduler:
             trigger=IntervalTrigger(minutes=minutes),
             id=job_id,
             replace_existing=replace_existing,
+            max_instances=1,  # 同一任务只能有 1 个实例
+            coalesce=True,    # 合并错过的触发
+            misfire_grace_time=1,  # 错过 1 秒就跳过
         )
         logger.info(f"已添加间隔任务: {job_id}，间隔: {minutes} 分钟")
 
