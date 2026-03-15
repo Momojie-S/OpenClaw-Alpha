@@ -99,17 +99,24 @@ def build_message(
     return message
 
 
-def generate_news_id(link: str) -> str:
+def generate_news_id(link: str, title: str = "") -> str:
     """
-    根据链接生成新闻 ID
+    根据链接或标题生成新闻 ID
 
     Args:
         link: 新闻链接
+        title: 新闻标题（link 为空时使用）
 
     Returns:
         8位新闻 ID
     """
-    return hashlib.md5(link.encode()).hexdigest()[:8]
+    # 优先用 link，如果为空则用 title + timestamp
+    if link:
+        return hashlib.md5(link.encode()).hexdigest()[:8]
+    
+    # link 为空时，用 title + timestamp 保证唯一性
+    content = f"{title}:{time.time()}"
+    return hashlib.md5(content.encode()).hexdigest()[:8]
 
 
 async def submit_analysis(
@@ -138,7 +145,7 @@ async def submit_analysis(
         raise ValueError(f"新闻内容不能为空: {title}")
 
     date_str = datetime.now().strftime("%Y-%m-%d")
-    news_id = generate_news_id(link)
+    news_id = generate_news_id(link, title)
     task_dir = get_quick_news_analysis_task_dir(date_str, news_id)
 
     try:
