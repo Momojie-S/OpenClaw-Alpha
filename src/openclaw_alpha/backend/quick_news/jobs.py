@@ -129,6 +129,7 @@ async def fetch_all_quick_news(limit: int = 1) -> None:
     # 3. 逐个处理新新闻（触发分析任务）
     from .task_executor import submit_analysis
 
+    processed_count = 0
     for item in all_new_items:
         # 使用 item 携带的 route_id
         route_id = item.route_id
@@ -152,6 +153,7 @@ async def fetch_all_quick_news(limit: int = 1) -> None:
         if job_id:
             mark_processed(state, item, job_id, str(task_dir))
             logger.info(f"快速分析任务已完成: {job_id}, 目录: {task_dir}, 值得深度分析: {worth_deep_analysis}")
+            processed_count += 1
         else:
             logger.warning(f"快速分析任务失败: {item.title}")
 
@@ -159,6 +161,47 @@ async def fetch_all_quick_news(limit: int = 1) -> None:
         save_state(state)
 
     logger.info("新闻处理完成")
+
+    # 4. 发送汇总通知
+    if processed_count > 0:
+        await _send_summary_notification(processed_count)
+
+
+async def _send_summary_notification(count: int) -> None:
+    """
+    发送处理完成汇总通知
+
+    Args:
+        count: 成功处理的新闻数量
+    """
+    from datetime import datetime
+
+    from .task_executor import get_gateway_client
+
+    config = load_quick_news_config()
+    recipients = config.delivery.recipients
+
+    if not recipients:
+        return
+
+    now = datetime.now().strftime("%H:%M")
+    message = f"📊 **新闻快速分析完成**\n\n处理了 {count} 条新闻\n时间: {now}"
+
+    client = await get_gateway_client()
+    for recipient in recipients:
+        try:
+            result = await client.send_message(
+                channel=recipient.channel,
+                to=recipient.name,
+                message=message,
+                account_id=recipient.agent_id,
+            )
+            if result.get("ok"):
+                logger.info(f"汇总通知已发送: {recipient.name}")
+            else:
+                logger.warning(f"汇总通知发送失败: {recipient.name}")
+        except Exception as e:
+            logger.error(f"汇总通知发送异常: {recipient.name} - {e}")
 
 
 def setup_quick_news_jobs(scheduler: Scheduler) -> None:
