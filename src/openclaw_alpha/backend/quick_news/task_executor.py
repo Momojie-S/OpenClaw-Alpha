@@ -407,13 +407,13 @@ async def _notify_recipients(
     for recipient in recipients:
         try:
             result = await client.send_message(
-                channel="wecom",
+                channel=recipient.channel,
                 to=recipient.name,
                 message=message,
                 account_id=recipient.agent_id,
             )
             if result.get("ok"):
-                logger.info(f"已推送到企业微信: {recipient.name} (agent: {recipient.agent_id})")
+                logger.info(f"已推送到 {recipient.channel}: {recipient.name} (agent: {recipient.agent_id})")
             else:
                 logger.warning(f"推送失败: {recipient.name} - {result.get('error')}")
         except Exception as e:

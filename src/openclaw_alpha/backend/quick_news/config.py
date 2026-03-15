@@ -14,6 +14,7 @@ class RecipientConfig(BaseModel):
 
     name: str
     agent_id: str = "notify"  # 推送时使用的 agent ID
+    channel: str = "wecom"  # 推送渠道
 
 
 class DeliveryConfig(BaseModel):
