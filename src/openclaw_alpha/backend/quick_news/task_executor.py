@@ -151,11 +151,6 @@ async def submit_analysis(
     try:
         ensure_dir(task_dir)
         logger.info(f"创建任务目录: {task_dir}")
-        
-        # 写入 news_id 标记文件，用于验证分析结果
-        news_meta = {"news_id": news_id, "title": title, "link": link}
-        with open(task_dir / "news_meta.json", 'w', encoding='utf-8') as f:
-            json.dump(news_meta, f, ensure_ascii=False, indent=2)
     except Exception as e:
         logger.error(f"创建任务目录失败: {e}")
         return (None, None, False)
@@ -197,9 +192,16 @@ async def submit_analysis(
                 # 等待 1 秒确保写入完成
                 await asyncio.sleep(1)
 
-                # 读取并验证 news_id
                 with open(analysis_json_path, 'r', encoding='utf-8') as f:
                     analysis = json.load(f)
+                
+                # 检查是否已有 news_id（第一次读取时写入）
+                if "news_id" not in analysis:
+                    # 写入 news_id 标记当前新闻
+                    analysis["news_id"] = news_id
+                    with open(analysis_json_path, 'w', encoding='utf-8') as f:
+                        json.dump(analysis, f, ensure_ascii=False, indent=2)
+                    logger.info(f"已写入 news_id: {news_id}")
                 
                 # 验证是否是当前新闻的分析结果
                 if analysis.get("news_id") != news_id:
