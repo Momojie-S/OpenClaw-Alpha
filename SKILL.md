@@ -6,7 +6,7 @@ metadata:
     emoji: "📊"
     requires:
       bins: ["uv"]
-      env: ["TUSHARE_TOKEN"]
+      env: []
     install:
       linux: |
         cd {baseDir}

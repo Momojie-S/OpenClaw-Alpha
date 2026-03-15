@@ -103,12 +103,13 @@ interval_minutes: 30
 
 # Agent 配置
 agent_id: alpha
-model: zai/glm-4.7
+model: openrouter/openrouter/hunter-alpha
 
-# 消息推送
+# 消息推送（支持多人）
 delivery:
-  channel: wecom
-  to: Momojie
+  recipients:
+    - Momojie
+    # - DoctorReid  # 取消注释添加更多接收人
 
 # Cron 任务配置
 cron:
@@ -555,7 +556,6 @@ else:
 - [x] 修改 task_executor.py：仅在 report.md 存在时追加系统信息
 - [x] 修改 jobs.py：处理新的返回值（包含 worth_deep_analysis）
 - [ ] 实现 `trigger_deep_analysis` 函数（深度分析模块）
-- [ ] 实现 `update_hotness_ranking` 函数
 - [ ] 添加单元测试
 - [ ] 测试真实新闻的分析效果
 
@@ -566,5 +566,4 @@ else:
 - [overview.md](overview.md) - 新闻分析系统整体设计
 - [../architecture/news-subscription.md](../architecture/news-subscription.md) - 新闻订阅功能技术架构
 - [deep-analysis.md](deep-analysis.md) - 深度分析设计
-- [hotness-ranking.md](hotness-ranking.md) - 热度榜单设计（待编写）
 - [../../../skills/news_driven_investment/tasks/quick-news-analysis.md](../../../skills/news_driven_investment/tasks/quick-news-analysis.md) - 快速分析任务模板

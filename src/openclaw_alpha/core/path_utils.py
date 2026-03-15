@@ -110,6 +110,20 @@ def get_quick_news_analysis_task_dir(date: str, news_id: str) -> Path:
     return get_workspace_dir() / "quick_news_analysis" / date / news_id
 
 
+def get_news_archive_dir(route_id: str, date: str) -> Path:
+    """
+    获取新闻存档目录
+
+    Args:
+        route_id: RSS 路由 ID（如 cls, jin10）
+        date: 日期（YYYY-MM-DD）
+
+    Returns:
+        新闻存档目录路径（{workspace_dir}/news/{route_id}/{date}）
+    """
+    return get_workspace_dir() / "news" / route_id / date
+
+
 def ensure_dir(path: Path) -> Path:
     """
     确保目录存在，不存在则创建

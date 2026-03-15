@@ -12,17 +12,23 @@ import asyncio
 import hashlib
 import json
 import logging
+import re
 import time
 from datetime import datetime
 from pathlib import Path
 
-from openclaw_alpha.backend.quick_news.config import load_quick_news_config
+from openclaw_alpha.backend.quick_news.config import (
+    extract_route_id,
+    load_quick_news_config,
+)
 from openclaw_alpha.core.path_utils import (
     ensure_dir,
+    get_news_archive_dir,
     get_quick_news_analysis_task_dir,
     get_task_template_path,
 )
 from openclaw_alpha.openclaw.cron_utils import submit_cron_task
+from openclaw_alpha.openclaw.gateway_client import get_gateway_client
 
 logger = logging.getLogger(__name__)
 
@@ -227,4 +233,182 @@ async def submit_analysis(
     # if worth_deep_analysis:
     #     trigger_deep_analysis(analysis, task_dir)
 
+    # 保存新闻原文
+    news_archive_path = _save_news_archive(title, link, summary, date_str)
+
+    # 推送分析结果给多人
+    await _notify_recipients(
+        title=title,
+        analysis_path=analysis_json_path,
+        task_dir=str(task_dir),
+        news_archive_path=news_archive_path,
+    )
+
     return (cron_result.job_id, task_dir, worth_deep_analysis)
+
+
+def _sanitize_filename(title: str) -> str:
+    """
+    清理新闻标题中的特殊字符，使其可作为文件名
+
+    Args:
+        title: 新闻标题
+
+    Returns:
+        安全的文件名
+    """
+    # 移除或替换不安全字符
+    # 保留中英文、数字、空格、下划线、连字符
+    safe = re.sub(r'[<>:"/\\|?*\n\r\t]', '', title)
+    # 将多个空格压缩为一个
+    safe = re.sub(r'\s+', ' ', safe).strip()
+    # 限制长度（保留 50 字符，避免路径过长）
+    if len(safe) > 50:
+        safe = safe[:50]
+    return safe or "untitled"
+
+
+def _save_news_archive(
+    title: str,
+    link: str,
+    content: str,
+    date_str: str,
+) -> Path | None:
+    """
+    保存新闻原文到存档目录
+
+    Args:
+        title: 新闻标题
+        link: 新闻链接
+        content: 新闻内容
+        date_str: 日期字符串 (YYYY-MM-DD)
+
+    Returns:
+        存档文件路径，失败返回 None
+    """
+    try:
+        route_id = extract_route_id(link)
+        archive_dir = get_news_archive_dir(route_id, date_str)
+        ensure_dir(archive_dir)
+
+        # 清理标题作为文件名
+        safe_title = _sanitize_filename(title)
+        archive_path = archive_dir / f"{safe_title}.json"
+
+        # 如果文件已存在，追加序号
+        counter = 1
+        while archive_path.exists():
+            archive_path = archive_dir / f"{safe_title}_{counter}.json"
+            counter += 1
+
+        # 保存新闻数据
+        news_data = {
+            "title": title,
+            "link": link,
+            "content": content,
+            "archived_at": datetime.now().isoformat(),
+            "route_id": route_id,
+        }
+
+        with open(archive_path, 'w', encoding='utf-8') as f:
+            json.dump(news_data, f, ensure_ascii=False, indent=2)
+
+        logger.info(f"新闻原文已保存: {archive_path}")
+        return archive_path
+
+    except Exception as e:
+        logger.error(f"保存新闻原文失败: {e}")
+        return None
+
+
+async def _notify_recipients(
+    title: str,
+    analysis_path: Path,
+    task_dir: str,
+    news_archive_path: Path | None,
+) -> None:
+    """
+    推送分析结果给配置的 recipients
+
+    使用 Gateway HTTP API 发送到企业微信
+
+    Args:
+        title: 新闻标题
+        analysis_path: analysis.json 路径
+        task_dir: 任务目录
+        news_archive_path: 新闻原文存档路径
+    """
+    config = load_quick_news_config()
+    recipients = config.delivery.recipients
+
+    if not recipients:
+        logger.debug("未配置 recipients，跳过推送")
+        return
+
+    # 读取 analysis.json
+    analysis = {}
+    if analysis_path.exists():
+        try:
+            with open(analysis_path, "r", encoding="utf-8") as f:
+                analysis = json.load(f)
+        except Exception as e:
+            logger.warning(f"读取 analysis.json 失败: {e}")
+
+    # 构造推送消息
+    worth_deep = analysis.get("worth_deep_analysis", False)
+    related_sectors = analysis.get("related_sectors", [])
+    related_companies = analysis.get("related_companies", [])
+    impact = analysis.get("impact_assessment", "")
+
+    # 格式化相关公司
+    companies_str = ""
+    if related_companies:
+        companies_list = [
+            f"{c['name']}({c['code']})" if c.get("code") else c["name"]
+            for c in related_companies[:5]
+        ]
+        companies_str = "、".join(companies_list)
+        if len(related_companies) > 5:
+            companies_str += f" 等{len(related_companies)}家"
+
+    # 格式化板块
+    sectors_str = "、".join(related_sectors[:3])
+    if len(related_sectors) > 3:
+        sectors_str += f" 等{len(related_sectors)}个板块"
+
+    # 构造消息
+    message = f"""📰 **{title}**
+
+板块：{sectors_str or '无'}
+公司：{companies_str or '无'}
+影响：{impact[:100] + '...' if len(impact) > 100 else impact or '待分析'}
+深度分析：{'✅ 建议深入' if worth_deep else '⏭️ 跳过'}
+
+📂 任务目录：{task_dir}"""
+
+    # 添加新闻原文路径
+    if news_archive_path:
+        message += f"""
+📄 新闻原文：{news_archive_path}"""
+
+    # 添加提示语
+    message += """
+
+---
+💡 当前消息仅为通知，如需深入讨论，复制本消息后追加你想讨论的内容发送。"""
+
+    # 推送给每个 recipient
+    client = await get_gateway_client()
+    for recipient in recipients:
+        try:
+            result = await client.send_message(
+                channel="wecom",
+                to=recipient,
+                message=message,
+            )
+            if result.get("ok"):
+                logger.info(f"已推送到企业微信: {recipient}")
+            else:
+                logger.warning(f"推送失败: {recipient} - {result.get('error')}")
+        except Exception as e:
+            logger.error(f"推送异常: {recipient} - {e}")

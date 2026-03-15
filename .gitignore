@@ -34,3 +34,4 @@ workspace/
 # Task tracking (may contain sensitive info)
 progress/
 feedback/
+backend.log

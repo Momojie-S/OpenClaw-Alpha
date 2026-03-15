@@ -155,6 +155,39 @@ class GatewayClient:
         except Exception as e:
             return {"ok": False, "error": {"type": "error", "message": str(e)}}
 
+    async def send_message(
+        self,
+        channel: str,
+        to: str,
+        message: str,
+        account_id: str = "alpha",
+        timeout: float | None = None,
+    ) -> dict[str, Any]:
+        """
+        发送消息到指定渠道
+
+        Args:
+            channel: 渠道（如 "wecom"）
+            to: 目标用户（用户名）
+            message: 消息内容
+            account_id: Agent 账号 ID（默认 "alpha"）
+            timeout: 超时时间（秒）
+
+        Returns:
+            Gateway 响应数据
+        """
+        return await self.call_tool(
+            tool="message",
+            args={
+                "action": "send",
+                "channel": channel,
+                "to": to,
+                "accountId": account_id,
+                "message": message,
+            },
+            timeout=timeout or self.config.request_timeout,
+        )
+
     @property
     def is_connected(self) -> bool:
         """是否已连接（HTTP 客户端始终可用）"""

@@ -32,7 +32,15 @@ OpenClaw-Alpha/
 │   ├── openclaw/                   # 🔧 OpenClaw 框架工具（路径、cron 等）
 │   │   ├── __init__.py
 │   │   ├── path_utils.py           # OpenClaw 路径工具
-│   │   └── cron_utils.py           # OpenClaw cron 工具
+│   │   ├── cron_utils.py           # OpenClaw cron 工具
+│   │   └── gateway_client.py       # Gateway HTTP 客户端
+│   ├── backend/                    # 🚀 后端服务（定时任务、调度器）
+│   │   ├── __init__.py
+│   │   ├── main.py                 # 服务入口
+│   │   ├── scheduler.py            # 调度器（轮询任务状态）
+│   │   ├── config.py               # 服务配置
+│   │   ├── logger.py               # 日志配置
+│   │   └── quick_news/             # 快讯分析任务
 │   └── skills/                     # Skill 代码目录
 │       └── {skill_name}/
 │           ├── __init__.py
@@ -44,6 +52,14 @@ OpenClaw-Alpha/
 │           └── {scenario}_processor/
 │               ├── __init__.py
 │               └── {scenario}_processor.py
+│
+├── workspace/                      # 📁 运行时工作目录（状态、输出）
+│   ├── quick_news/                 # 快讯任务状态
+│   ├── quick_news_analysis/        # 快讯分析输出
+│   │   └── {date}/{task_id}/       # 按日期和任务ID组织
+│   │       ├── news.json           # 原始新闻数据
+│   │       └── analysis.json       # 分析结果
+│   └── news_analysis/              # 新闻分析输出
 │
 ├── docs/                           # 项目文档
 │   ├── architecture/               # 架构设计（技术实现）
@@ -83,6 +99,17 @@ OpenClaw-Alpha/
 - 用于指导项目中使用 OpenClaw 框架的最佳实践
 
 ## 核心概念
+
+### 后端服务
+
+基于 OpenClaw Gateway 的定时任务系统，实现新闻分析的自动化。
+
+**新闻分析流程**：
+```
+RSS 拉取 → 过滤已处理 → Agent 快速分析 → 高价值新闻 → 深度分析
+```
+
+详见 [新闻分析系统设计](docs/design/news/overview.md)。
 
 ### Fetcher（数据获取）
 - Fetcher（入口）：调度、选择可用的数据源实现
@@ -136,4 +163,3 @@ uv run --env-file .env pytest tests/{path}/test_xxx.py
 ### 环境变量设置
 - 项目所需的环境变量都能在 `.env` 文件中找到
 - 使用 `uv run` 命令时，必须使用 `--env-file .env` 参数来加载环境变量
-- 不要手动设置 `PYTHONPATH`，使用 `.env` 来加载
