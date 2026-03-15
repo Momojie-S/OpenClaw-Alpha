@@ -13,12 +13,6 @@ class DeliveryConfig(BaseModel):
     """消息推送配置"""
 
     recipients: list[str] = ["Momojie"]  # 推送目标列表
-    channel: str = "wecom"  # 推送渠道
-
-    @property
-    def to(self) -> str:
-        """cron 任务的单一接收人（取 recipients 第一个）"""
-        return self.recipients[0] if self.recipients else "Momojie"
 
 
 class CronConfig(BaseModel):

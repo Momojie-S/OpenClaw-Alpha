@@ -166,8 +166,6 @@ async def submit_analysis(
         thinking="low",
         agent_id=config.agent_id,
         model=config.model,
-        delivery_channel=config.delivery.channel,
-        delivery_to=config.delivery.to,
         session_poll_timeout_seconds=config.cron.session_poll_timeout_seconds,
     )
 
