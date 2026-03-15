@@ -195,20 +195,6 @@ async def submit_analysis(
                 with open(analysis_json_path, 'r', encoding='utf-8') as f:
                     analysis = json.load(f)
                 
-                # 检查是否已有 news_id（第一次读取时写入）
-                if "news_id" not in analysis:
-                    # 写入 news_id 标记当前新闻
-                    analysis["news_id"] = news_id
-                    with open(analysis_json_path, 'w', encoding='utf-8') as f:
-                        json.dump(analysis, f, ensure_ascii=False, indent=2)
-                    logger.info(f"已写入 news_id: {news_id}")
-                
-                # 验证是否是当前新闻的分析结果
-                if analysis.get("news_id") != news_id:
-                    logger.debug(f"analysis.json 的 news_id 不匹配，继续等待...")
-                    await asyncio.sleep(1)
-                    continue
-
                 worth_deep_analysis = analysis.get("worth_deep_analysis", False)
 
                 # 追加 session 字段
