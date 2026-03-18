@@ -184,13 +184,17 @@ async def submit_feedback_task(
 
     # 创建 progress.md
     progress_path = task_dir / "progress.md"
+    source_user = feedback.get("source_user", "未指定")
+    source_channel = feedback.get("source_channel", "未指定")
+    background = feedback.get("background", "")
+
     progress_content = f"""# 用户反馈处理
 
 - **反馈 ID**：{feedback_id}
 - **反馈时间**：{feedback['submitted_at']}
-- **提交用户**：{feedback['source_user']}
-- **提交渠道**：{feedback['source_channel']}
-
+- **提交用户**：{source_user}
+- **提交渠道**：{source_channel}
+{f'- **背景简述**：{background}' if background else ''}
 ## 处理进度
 
 - [ ] 开始处理
@@ -364,11 +368,14 @@ async def _notify_maintainers(feedback: dict, config) -> None:
 
     decision = feedback.get("decision", "待讨论")
     reason = feedback.get("reason", "")
+    source_user = feedback.get("source_user", "系统")
+    source_channel = feedback.get("source_channel", "")
+    source_info = f"{source_user} ({source_channel})" if source_channel else source_user
 
     message = f"""📊 反馈处理完成
 
 ID：{feedback['id']}
-来源：{feedback['source_user']} ({feedback['source_channel']})
+来源：{source_info}
 结果：{decision}
 理由：{reason[:100]}{'...' if len(reason) > 100 else reason}
 """

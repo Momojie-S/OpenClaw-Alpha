@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 """用户反馈处理模块数据模型"""
 
-from dataclasses import dataclass
-from datetime import datetime
+from dataclasses import dataclass, field
 from typing import Literal
 
 from pydantic import BaseModel, Field
@@ -15,12 +14,13 @@ class FeedbackItem:
 
     Attributes:
         id: 反馈 ID（content hash）
-        source_user: 提交用户
-        source_channel: 提交渠道
-        source_session: 来源 session key（用于发送结果消息）
         submitted_at: 提交时间
-        content: 反馈内容
+        content: 提出者的反馈原文
         status: 状态
+        source_user: 提交用户（可选）
+        source_channel: 提交渠道（可选）
+        source_session: 来源 session key（可选）
+        background: 背景简述（可选）
         task_dir: 任务目录（处理中）
         job_id: Cron 任务 ID（处理中）
         session_id: Session ID（处理中）
@@ -32,15 +32,19 @@ class FeedbackItem:
         completed_at: 完成时间（处理完成）
     """
 
+    # 必需字段
     id: str
-    source_user: str | None = None
-    source_channel: str | None = None
-    source_session: str | None = None
     submitted_at: str
     content: str
     status: Literal["pending", "processing", "completed"]
 
-    # 处理中字段
+    # 可选字段 - 提交时
+    source_user: str | None = None
+    source_channel: str | None = None
+    source_session: str | None = None
+    background: str | None = None
+
+    # 可选字段 - 处理中
     task_dir: str | None = None
     job_id: str | None = None
     session_id: str | None = None
@@ -48,7 +52,7 @@ class FeedbackItem:
     context_path_deleted: str | None = None
     started_at: str | None = None
 
-    # 处理完成字段
+    # 可选字段 - 处理完成
     decision: Literal["采纳", "调整后采纳", "不采纳", "待讨论"] | None = None
     reason: str | None = None
     completed_at: str | None = None
@@ -57,13 +61,20 @@ class FeedbackItem:
         """转换为字典（用于 JSON 序列化）"""
         result = {
             "id": self.id,
-            "source_user": self.source_user,
-            "source_channel": self.source_channel,
-            "source_session": self.source_session,
             "submitted_at": self.submitted_at,
             "content": self.content,
             "status": self.status,
         }
+
+        # 可选字段（只在有值时添加）
+        if self.source_user:
+            result["source_user"] = self.source_user
+        if self.source_channel:
+            result["source_channel"] = self.source_channel
+        if self.source_session:
+            result["source_session"] = self.source_session
+        if self.background:
+            result["background"] = self.background
 
         # 处理中字段
         if self.task_dir:
@@ -94,13 +105,13 @@ class FeedbackItem:
         """从字典创建（用于 JSON 反序列化）"""
         return cls(
             id=data["id"],
+            submitted_at=data["submitted_at"],
+            content=data["content"],
+            status=data["status"],
             source_user=data.get("source_user"),
             source_channel=data.get("source_channel"),
             source_session=data.get("source_session"),
-            submitted_at=data["submitted_at"],
             background=data.get("background"),
-            content=data["content"],
-            status=data["status"],
             task_dir=data.get("task_dir"),
             job_id=data.get("job_id"),
             session_id=data.get("session_id"),
@@ -123,10 +134,6 @@ class FeedbackQuery(BaseModel):
     status: Literal["pending", "processing", "completed"] | None = Field(
         default=None,
         description="状态过滤",
-    )
-    source_user: str | None = Field(default=None, description="用户过滤")
-    limit: int = Field(default=10, description="最多返回条数，0 表示全部")
-  description="状态过滤",
     )
     source_user: str | None = Field(default=None, description="用户过滤")
     limit: int = Field(default=10, description="最多返回条数，0 表示全部")

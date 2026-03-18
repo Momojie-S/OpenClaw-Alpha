@@ -94,6 +94,15 @@ class TriggerQuickNewsResponse(BaseModel):
     limit: int | None = None
 
 
+class TriggerFeedbackResponse(BaseModel):
+    """触发反馈处理响应"""
+
+    success: bool
+    message: str
+    total_feedback: int
+    processed: int
+
+
 # ============ API Endpoints ============
 
 
@@ -182,4 +191,3 @@ async def trigger_feedback_processing(limit: int = 1):
     except Exception as e:
         logger.error(f"手动触发反馈处理失败: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"执行失败: {str(e)}")
-500, detail=f"执行失败: {str(e)}")

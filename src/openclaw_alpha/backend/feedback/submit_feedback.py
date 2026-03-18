@@ -39,6 +39,7 @@ def get_current_time_iso() -> str:
 
 def construct_feedback_json(
     content: str,
+    background: str | None = None,
     source_user: str | None = None,
     source_channel: str | None = None,
     source_session: str | None = None,
@@ -47,7 +48,8 @@ def construct_feedback_json(
     构造反馈 JSON
 
     Args:
-        content: 反馈内容
+        content: 反馈原文
+        background: 背景简述（可选）
         source_user: 提交用户（可选）
         source_channel: 提交渠道（可选）
         source_session: 来源 session key（可选）
@@ -66,6 +68,8 @@ def construct_feedback_json(
     }
 
     # 只在有值时添加
+    if background:
+        feedback["background"] = background
     if source_user:
         feedback["source_user"] = source_user
     if source_channel:
@@ -198,10 +202,6 @@ if __name__ == "__main__":
     logging.basicConfig(
         level=logging.INFO,
         format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    )
-
-    main()
-ame)s - %(levelname)s - %(message)s",
     )
 
     main()
