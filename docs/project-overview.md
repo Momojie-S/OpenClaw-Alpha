@@ -116,11 +116,11 @@ RSS 拉取 → 过滤已处理 → Agent 快速分析 → 高价值新闻 → �
 ```
 详见 [新闻分析系统设计](docs/design/news/overview.md)。
 
-**用户反馈处理流程**：
+**用户反馈处理流程**（Iteration Loop 子模块）：
 ```
 用户提交反馈 → Backend 定时扫描 → 触发 Agent Session → 分析决策 → 通知结果 → 归档
 ```
-详见 [反馈处理系统设计](docs/design/feedback/overview.md)。
+详见 [Iteration Loop 设计](docs/design/iteration-loop/overview.md)。
 
 ### Fetcher（数据获取）
 - Fetcher（入口）：调度、选择可用的数据源实现
