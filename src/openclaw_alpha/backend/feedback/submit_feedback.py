@@ -110,6 +110,7 @@ def save_feedback_file(feedback: dict, feedback_dir: Path) -> Path:
 
 def submit_feedback(
     content: str,
+    background: str | None = None,
     source_user: str | None = None,
     source_channel: str | None = None,
     source_session: str | None = None,
@@ -119,10 +120,11 @@ def submit_feedback(
     提交用户反馈
 
     Args:
-        content: 反馈内容
-        source_user: 提交用户
-        source_channel: 提交渠道
-        source_session: 来源 session key
+        content: 反馈原文
+        background: 背景简述（可选）
+        source_user: 提交用户（可选）
+        source_channel: 提交渠道（可选）
+        source_session: 来源 session key（可选）
         project_root: 项目根目录（None 则自动检测）
 
     Returns:
@@ -134,13 +136,13 @@ def submit_feedback(
             # 从当前文件路径向上查找
             project_root = Path(__file__).parent.parent.parent.parent.parent
 
-        # 确定反馈目录
-        feedback_dir = project_root / "feedback"
+        # 确定反馈目录（新的 workspace/feedback/new 结构）
+        feedback_dir = project_root / "workspace" / "feedback" / "new"
         feedback_dir.mkdir(parents=True, exist_ok=True)
 
         # 构造反馈 JSON
         feedback = construct_feedback_json(
-            content, source_user, source_channel, source_session
+            content, background, source_user, source_channel, source_session
         )
 
         # 保存文件
@@ -183,6 +185,7 @@ def main():
     # 提交反馈
     result = submit_feedback(
         content=args.content,
+        background=args.background,
         source_user=args.source_user,
         source_channel=args.source_channel,
         source_session=args.source_session,
