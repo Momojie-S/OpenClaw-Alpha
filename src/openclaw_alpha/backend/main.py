@@ -49,10 +49,10 @@ async def lifespan(app: FastAPI):
 
         setup_quick_news_jobs(scheduler)
 
-    # 注册反馈处理任务
-    from .feedback.jobs import setup_feedback_jobs
+    # 注册 Iteration Loop 任务（项目自我迭代）
+    from .iteration_loop.jobs import setup_iteration_jobs
 
-    setup_feedback_jobs(scheduler)
+    setup_iteration_jobs(scheduler)
 
     logger.info(f"服务已启动，监听 {config.host}:{config.port}")
 
@@ -101,6 +101,13 @@ class TriggerFeedbackResponse(BaseModel):
     message: str
     total_feedback: int
     processed: int
+
+
+class TriggerIterationResponse(BaseModel):
+    """触发 Iteration Loop 响应"""
+
+    success: bool
+    message: str
 
 
 # ============ API Endpoints ============
@@ -155,39 +162,63 @@ async def trigger_quick_news_fetch(limit: int = 1):
 @app.post("/api/feedback/trigger", response_model=TriggerFeedbackResponse)
 async def trigger_feedback_processing(limit: int = 1):
     """
-    手动触发反馈处理任务
+    手动触发反馈处理任务（调试用）
 
-    立即扫描并处理待处理的反馈
-
-    主要用途：调试
+    立即处理指定数量的反馈
 
     Query Parameters:
-        limit: 最多处理多少条反馈，0 表示全部，默认 1
+        limit: 最多处理多少条反馈，默认 1
     """
     try:
+        from .iteration_loop.feedback import process as feedback_process
         from .feedback.config import load_feedback_config
-        from .feedback.jobs import scan_pending_feedback, process_feedback
 
-        # 检查是否启用
         config = load_feedback_config()
         if not config.enabled:
             raise HTTPException(status_code=400, detail="反馈处理模块已禁用")
 
-        # 扫描待处理反馈
-        pending_files = scan_pending_feedback(limit)
-
         logger.info(f"手动触发反馈处理任务 (limit: {limit})")
-        await process_feedback(limit)
+        processed = await feedback_process(limit=limit)
 
         return TriggerFeedbackResponse(
             success=True,
-            message="反馈扫描已执行",
-            total_feedback=len(pending_files),
-            processed=limit if limit > 0 else len(pending_files),
+            message="反馈处理已执行",
+            total_feedback=1 if processed else 0,
+            processed=1 if processed else 0,
         )
 
     except HTTPException:
         raise
     except Exception as e:
         logger.error(f"手动触发反馈处理失败: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"执行失败: {str(e)}")
+
+
+@app.post("/api/iteration/trigger", response_model=TriggerIterationResponse)
+async def trigger_iteration_loop():
+    """
+    手动触发 Iteration Loop（调试用）
+
+    立即执行一次完整的迭代循环（处理所有待办任务）
+    """
+    try:
+        from .iteration_loop.config import load_iteration_config
+        from .iteration_loop.jobs import run_iteration_cycle
+
+        config = load_iteration_config()
+        if not config.enabled:
+            raise HTTPException(status_code=400, detail="Iteration Loop 已禁用")
+
+        logger.info("手动触发 Iteration Loop")
+        await run_iteration_cycle()
+
+        return TriggerIterationResponse(
+            success=True,
+            message="Iteration Loop 已执行",
+        )
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"手动触发 Iteration Loop 失败: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"执行失败: {str(e)}")
