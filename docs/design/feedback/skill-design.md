@@ -110,8 +110,9 @@ uv run --env-file .env python -m openclaw_alpha.backend.feedback.submit_feedback
 **智能体只需做**：
 - 识别用户是否在提出反馈
 - 提取反馈原文（`content`）
-- 获取用户信息（`source_user`、`source_channel`）
-- 获取当前会话的 session key（`source_session`）
+- 提取背景简述（`background`，可选）
+- 获取用户信息（`source_user`、`source_channel`，可选）
+- 获取当前会话的 session key（`source_session`，可选）
 - 执行脚本命令
 
 **系统自动处理**：
@@ -125,7 +126,7 @@ uv run --env-file .env python -m openclaw_alpha.backend.feedback.submit_feedback
 ```
 智能体识别用户反馈
     ↓
-提取 content、source_user、source_channel、source_session
+提取 content、background（可选）、source_user（可选）、source_channel（可选）、source_session（可选）
     ↓
 执行脚本 submit_feedback
     ↓
@@ -133,7 +134,7 @@ uv run --env-file .env python -m openclaw_alpha.backend.feedback.submit_feedback
     ↓
 返回反馈 ID 和保存路径
     ↓
-（后续）Backend 处理完成后，通过 source_session 发送结果消息给提出者
+（后续）Backend 处理完成后，通过 source_session 发送结果消息给提出者（如有）
 ```
 
 ---
@@ -149,7 +150,8 @@ uv run --env-file .env python -m openclaw_alpha.backend.feedback.submit_feedback
   "source_channel": "wecom",
   "source_session": "wecom-agent:alpha:user:Momojie",
   "submitted_at": "2026-03-10T10:00:00+08:00",
-  "content": "反馈原文内容...",
+  "background": "触发场景：分析小龙虾概念股时，获取概念板块热度",
+  "content": "概念板块数据全部返回 0，功能不可用",
   "status": "pending"
 }
 ```
@@ -159,11 +161,12 @@ uv run --env-file .env python -m openclaw_alpha.backend.feedback.submit_feedback
 | 字段 | 类型 | 必需 | 说明 |
 |------|------|------|------|
 | `id` | string | ✅ | 反馈 ID，使用 content hash（SHA256 hex） |
-| `source_user` | string | ✅ | 提交用户名（从 inbound metadata 获取） |
-| `source_channel` | string | ✅ | 提交渠道（wecom、telegram 等） |
-| `source_session` | string | ✅ | 来源 session key（处理完成后用于发送结果消息给提出者） |
+| `source_user` | string | 可选 | 提交用户名（从 inbound metadata 获取） |
+| `source_channel` | string | 可选 | 提交渠道（wecom、telegram 等） |
+| `source_session` | string | 可选 | 来源 session key（处理完成后用于发送结果消息给提出者） |
 | `submitted_at` | string | ✅ | 提交时间（ISO 8601，时区为 Asia/Shanghai） |
-| `content` | string | ✅ | 反馈原文内容 |
+| `background` | string | 可选 | 背景简述（触发场景、问题描述、技术上下文等） |
+| `content` | string | ✅ | 提出者的反馈原文 |
 | `status` | string | ✅ | 固定为 `"pending"`（Backend 会更新为 processing/completed） |
 
 ### 文件命名

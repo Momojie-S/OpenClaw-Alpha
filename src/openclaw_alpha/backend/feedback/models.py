@@ -98,6 +98,7 @@ class FeedbackItem:
             source_channel=data.get("source_channel"),
             source_session=data.get("source_session"),
             submitted_at=data["submitted_at"],
+            background=data.get("background"),
             content=data["content"],
             status=data["status"],
             task_dir=data.get("task_dir"),
@@ -122,6 +123,10 @@ class FeedbackQuery(BaseModel):
     status: Literal["pending", "processing", "completed"] | None = Field(
         default=None,
         description="状态过滤",
+    )
+    source_user: str | None = Field(default=None, description="用户过滤")
+    limit: int = Field(default=10, description="最多返回条数，0 表示全部")
+  description="状态过滤",
     )
     source_user: str | None = Field(default=None, description="用户过滤")
     limit: int = Field(default=10, description="最多返回条数，0 表示全部")

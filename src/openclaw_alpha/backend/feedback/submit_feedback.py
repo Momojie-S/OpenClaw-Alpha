@@ -168,7 +168,8 @@ def submit_feedback(
 def main():
     """命令行入口"""
     parser = argparse.ArgumentParser(description="提交用户反馈")
-    parser.add_argument("--content", required=True, help="反馈内容")
+    parser.add_argument("--content", required=True, help="提出者的反馈原文")
+    parser.add_argument("--background", default=None, help="背景简述（可选）")
     parser.add_argument("--source-user", default=None, help="提交用户（可选）")
     parser.add_argument("--source-channel", default=None, help="提交渠道（可选）")
     parser.add_argument("--source-session", default=None, help="来源 session key（可选）")
@@ -197,6 +198,10 @@ if __name__ == "__main__":
     logging.basicConfig(
         level=logging.INFO,
         format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    )
+
+    main()
+ame)s - %(levelname)s - %(message)s",
     )
 
     main()

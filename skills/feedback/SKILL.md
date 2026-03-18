@@ -29,21 +29,23 @@ metadata:
 ```bash
 uv run --env-file .env python -m openclaw_alpha.backend.feedback.submit_feedback \
   --content "反馈内容" \
-  --source-user "用户名" \
-  --source-channel "渠道" \
-  --source-session "session:key"
+  --background "背景简述（可选）" \
+  --source-user "用户名（可选）" \
+  --source-channel "渠道（可选）" \
+  --source-session "session:key（可选）"
 ```
 
 ### 参数说明
 
 | 参数 | 必需 | 说明 |
 |------|------|------|
-| `--content` | ✅ | 反馈内容 |
+| `--content` | ✅ | 提出者的反馈原文 |
+| `--background` | 可选 | 背景简述（触发场景、问题描述等） |
 | `--source-user` | 可选 | 提交用户（从 inbound metadata 获取） |
 | `--source-channel` | 可选 | 提交渠道（wecom、telegram 等） |
 | `--source-session` | 可选 | 来源 session key（处理完成后用于发送结果消息） |
 
-**注意**：`source_user`、`source_channel`、`source_session` 均为可选参数。系统反馈（非用户提交）可以不提供这些参数。
+**注意**：`background`、`source_user`、`source_channel`、`source_session` 均为可选参数。系统反馈（非用户提交）可以不提供这些参数。
 
 ### 输出
 
@@ -62,10 +64,15 @@ uv run --env-file .env python -m openclaw_alpha.backend.feedback.submit_feedback
   "source_channel": "wecom",
   "source_session": "wecom-agent:alpha:user:Momojie",
   "submitted_at": "2026-03-10T10:00:00+08:00",
-  "content": "反馈原文内容...",
+  "background": "触发场景：分析小龙虾概念股时，获取概念板块热度",
+  "content": "概念板块数据全部返回 0，功能不可用",
   "status": "pending"
 }
 ```
+
+**字段说明**：
+- `background`：背景简述（可选）- 触发场景、问题描述、技术上下文等
+- `content`：提出者的反馈原文（必需）- 用户的实际反馈内容
 
 ## 后续处理
 
