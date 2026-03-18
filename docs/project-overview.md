@@ -40,7 +40,8 @@ OpenClaw-Alpha/
 │   │   ├── scheduler.py            # 调度器（轮询任务状态）
 │   │   ├── config.py               # 服务配置
 │   │   ├── logger.py               # 日志配置
-│   │   └── quick_news/             # 快讯分析任务
+│   │   ├── quick_news/             # 快讯分析任务
+│   │   └── feedback/               # 用户反馈处理模块
 │   └── skills/                     # Skill 代码目录
 │       └── {skill_name}/
 │           ├── __init__.py
@@ -59,7 +60,12 @@ OpenClaw-Alpha/
 │   │   └── {date}/{task_id}/       # 按日期和任务ID组织
 │   │       ├── news.json           # 原始新闻数据
 │   │       └── analysis.json       # 分析结果
-│   └── news_analysis/              # 新闻分析输出
+│   ├── news_analysis/              # 新闻分析输出
+│   └── feedback/                   # 用户反馈处理
+│       ├── config.yaml             # 反馈模块配置
+│       ├── new/                    # 待处理反馈
+│       ├── done/                   # 已处理反馈
+│       └── tasks/                  # 任务目录（progress.md）
 │
 ├── docs/                           # 项目文档
 │   ├── architecture/               # 架构设计（技术实现）
@@ -102,14 +108,19 @@ OpenClaw-Alpha/
 
 ### 后端服务
 
-基于 OpenClaw Gateway 的定时任务系统，实现新闻分析的自动化。
+基于 OpenClaw Gateway 的定时任务系统，实现自动化任务调度。
 
 **新闻分析流程**：
 ```
 RSS 拉取 → 过滤已处理 → Agent 快速分析 → 高价值新闻 → 深度分析
 ```
-
 详见 [新闻分析系统设计](docs/design/news/overview.md)。
+
+**用户反馈处理流程**：
+```
+用户提交反馈 → Backend 定时扫描 → 触发 Agent Session → 分析决策 → 通知结果 → 归档
+```
+详见 [反馈处理系统设计](docs/design/feedback/overview.md)。
 
 ### Fetcher（数据获取）
 - Fetcher（入口）：调度、选择可用的数据源实现
