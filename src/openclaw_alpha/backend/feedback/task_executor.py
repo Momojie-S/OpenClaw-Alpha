@@ -21,11 +21,17 @@ from openclaw_alpha.openclaw.gateway_client import get_gateway_client
 logger = logging.getLogger(__name__)
 
 
-def get_feedback_dir(project_root: Path | None = None) -> Path:
-    """获取反馈目录"""
+def get_feedback_dir(project_root: Path | None = None, subdir: str = "new") -> Path:
+    """
+    获取反馈目录
+
+    Args:
+        project_root: 项目根目录
+        subdir: 子目录名（new 或 done）
+    """
     if project_root is None:
         project_root = Path(__file__).parent.parent.parent.parent.parent
-    return project_root / "feedback"
+    return project_root / "workspace" / "feedback" / subdir
 
 
 def get_feedback_task_dir(project_root: Path | None = None, date: str | None = None, feedback_id: str = "") -> Path:
@@ -193,11 +199,14 @@ async def submit_feedback_task(
     with open(progress_path, "w", encoding="utf-8") as f:
         f.write(progress_content)
 
+    # 记录用户信息（可能为空）
+    source_user = feedback.get("source_user", "未指定")
+    source_channel = feedback.get("source_channel", "未指定")
+    logger.info(f"提交反馈处理任务: {feedback_id} (用户: {source_user}, 渠道: {source_channel})")
+
     try:
         # 构造任务消息
         message = build_message(str(task_dir), str(feedback_path), content)
-
-        logger.info(f"提交反馈处理任务: {feedback_id}")
 
         # 提交 Cron 任务
         cron_result = await submit_cron_task(
@@ -383,19 +392,18 @@ ID：{feedback['id']}
 
 async def _archive_feedback(feedback_path: Path) -> None:
     """
-    归档反馈文件
+    归档反馈文件（从 new/ 移到 done/）
 
     Args:
         feedback_path: 反馈 JSON 文件路径
     """
-    feedback_dir = feedback_path.parent
-    processed_dir = feedback_dir / "processed"
-
-    processed_dir.mkdir(exist_ok=True)
+    done_dir = get_feedback_dir(subdir="done")
+    done_dir.mkdir(parents=True, exist_ok=True)
 
     try:
         # 移动文件
-        feedback_path.rename(processed_dir / feedback_path.name)
-        logger.info(f"反馈已归档: {feedback_path.name}")
+        target = done_dir / feedback_path.name
+        feedback_path.rename(target)
+        logger.info(f"反馈已归档: {feedback_path.name} -> {target}")
     except Exception as e:
         logger.error(f"归档反馈失败: {e}")

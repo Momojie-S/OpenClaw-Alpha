@@ -39,9 +39,11 @@ uv run --env-file .env python -m openclaw_alpha.backend.feedback.submit_feedback
 | 参数 | 必需 | 说明 |
 |------|------|------|
 | `--content` | ✅ | 反馈内容 |
-| `--source-user` | ✅ | 提交用户（从 inbound metadata 获取） |
-| `--source-channel` | ✅ | 提交渠道（wecom、telegram 等） |
-| `--source-session` | ✅ | 来源 session key（处理完成后用于发送结果消息） |
+| `--source-user` | 可选 | 提交用户（从 inbound metadata 获取） |
+| `--source-channel` | 可选 | 提交渠道（wecom、telegram 等） |
+| `--source-session` | 可选 | 来源 session key（处理完成后用于发送结果消息） |
+
+**注意**：`source_user`、`source_channel`、`source_session` 均为可选参数。系统反馈（非用户提交）可以不提供这些参数。
 
 ### 输出
 

@@ -30,17 +30,14 @@ def scan_pending_feedback(
     Returns:
         待处理反馈文件列表
     """
-    feedback_dir = get_feedback_dir(project_root)
+    feedback_dir = get_feedback_dir(project_root, subdir="new")
 
     if not feedback_dir.exists():
         logger.warning(f"反馈目录不存在: {feedback_dir}")
         return []
 
-    # 扫描所有 JSON 文件
+    # 扫描所有 JSON 文件（new/ 目录下，无子目录）
     feedback_files = list(feedback_dir.glob("*.json"))
-
-    # 排除 processed 子目录
-    feedback_files = [f for f in feedback_files if f.parent.name != "processed"]
 
     # 过滤 pending 状态
     pending_files = []
@@ -142,7 +139,10 @@ async def _send_new_feedback_notification(feedback_files: list[Path], config) ->
 
     for i, feedback in enumerate(feedbacks[:5], 1):  # 最多显示 5 条
         content = feedback.get("content", "")[:50]
-        message += f"{i}. {feedback['source_user']} ({feedback['source_channel']})\n"
+        source_user = feedback.get("source_user", "系统")
+        source_channel = feedback.get("source_channel", "")
+        source_info = f"{source_user} ({source_channel})" if source_channel else source_user
+        message += f"{i}. {source_info}\n"
         message += f"   {content}{'...' if len(feedback.get('content', '')) > 50 else ''}\n"
         message += f"   ID: {feedback['id']}\n\n"
 

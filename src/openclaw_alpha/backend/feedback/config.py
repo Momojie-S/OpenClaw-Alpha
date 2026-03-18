@@ -43,6 +43,10 @@ class FeedbackConfig(BaseModel):
     delivery: DeliveryConfig = DeliveryConfig()
     cron: CronConfig = CronConfig()
 
+    # 目录配置
+    feedback_new_dir: str = "workspace/feedback/new"  # 待处理反馈
+    feedback_done_dir: str = "workspace/feedback/done"  # 已处理反馈
+
 
 def get_feedback_config_path() -> Path:
     """获取用户反馈处理模块配置文件路径"""

@@ -39,18 +39,18 @@ def get_current_time_iso() -> str:
 
 def construct_feedback_json(
     content: str,
-    source_user: str,
-    source_channel: str,
-    source_session: str,
+    source_user: str | None = None,
+    source_channel: str | None = None,
+    source_session: str | None = None,
 ) -> dict:
     """
     构造反馈 JSON
 
     Args:
         content: 反馈内容
-        source_user: 提交用户
-        source_channel: 提交渠道
-        source_session: 来源 session key
+        source_user: 提交用户（可选）
+        source_channel: 提交渠道（可选）
+        source_session: 来源 session key（可选）
 
     Returns:
         反馈 JSON 字典
@@ -58,15 +58,22 @@ def construct_feedback_json(
     feedback_id = generate_feedback_id(content)
     submitted_at = get_current_time_iso()
 
-    return {
+    feedback = {
         "id": feedback_id,
-        "source_user": source_user,
-        "source_channel": source_channel,
-        "source_session": source_session,
         "submitted_at": submitted_at,
         "content": content,
         "status": "pending",
     }
+
+    # 只在有值时添加
+    if source_user:
+        feedback["source_user"] = source_user
+    if source_channel:
+        feedback["source_channel"] = source_channel
+    if source_session:
+        feedback["source_session"] = source_session
+
+    return feedback
 
 
 def save_feedback_file(feedback: dict, feedback_dir: Path) -> Path:
@@ -99,9 +106,9 @@ def save_feedback_file(feedback: dict, feedback_dir: Path) -> Path:
 
 def submit_feedback(
     content: str,
-    source_user: str,
-    source_channel: str,
-    source_session: str,
+    source_user: str | None = None,
+    source_channel: str | None = None,
+    source_session: str | None = None,
     project_root: Path | None = None,
 ) -> dict:
     """
@@ -162,9 +169,9 @@ def main():
     """命令行入口"""
     parser = argparse.ArgumentParser(description="提交用户反馈")
     parser.add_argument("--content", required=True, help="反馈内容")
-    parser.add_argument("--source-user", required=True, help="提交用户")
-    parser.add_argument("--source-channel", required=True, help="提交渠道")
-    parser.add_argument("--source-session", required=True, help="来源 session key")
+    parser.add_argument("--source-user", default=None, help="提交用户（可选）")
+    parser.add_argument("--source-channel", default=None, help="提交渠道（可选）")
+    parser.add_argument("--source-session", default=None, help="来源 session key（可选）")
 
     args = parser.parse_args()
 

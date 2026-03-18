@@ -33,9 +33,9 @@ class FeedbackItem:
     """
 
     id: str
-    source_user: str
-    source_channel: str
-    source_session: str
+    source_user: str | None = None
+    source_channel: str | None = None
+    source_session: str | None = None
     submitted_at: str
     content: str
     status: Literal["pending", "processing", "completed"]
@@ -94,9 +94,9 @@ class FeedbackItem:
         """从字典创建（用于 JSON 反序列化）"""
         return cls(
             id=data["id"],
-            source_user=data["source_user"],
-            source_channel=data["source_channel"],
-            source_session=data.get("source_session", ""),
+            source_user=data.get("source_user"),
+            source_channel=data.get("source_channel"),
+            source_session=data.get("source_session"),
             submitted_at=data["submitted_at"],
             content=data["content"],
             status=data["status"],
