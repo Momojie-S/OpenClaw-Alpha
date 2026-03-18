@@ -33,6 +33,8 @@ workspace/
 
 # Task tracking (may contain sensitive info)
 progress/
-feedback/
+# feedback/ (数据目录，但源代码除外)
+/feedback/
+!/workspace/feedback/
 backend.log
 *.swp

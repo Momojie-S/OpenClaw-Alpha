@@ -49,6 +49,11 @@ async def lifespan(app: FastAPI):
 
         setup_quick_news_jobs(scheduler)
 
+    # 注册反馈处理任务
+    from .feedback.jobs import setup_feedback_jobs
+
+    setup_feedback_jobs(scheduler)
+
     logger.info(f"服务已启动，监听 {config.host}:{config.port}")
 
     yield
@@ -136,3 +141,45 @@ async def trigger_quick_news_fetch(limit: int = 1):
     except Exception as e:
         logger.error(f"手动触发新闻快速分析失败: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"执行失败: {str(e)}")
+
+
+@app.post("/api/feedback/trigger", response_model=TriggerFeedbackResponse)
+async def trigger_feedback_processing(limit: int = 1):
+    """
+    手动触发反馈处理任务
+
+    立即扫描并处理待处理的反馈
+
+    主要用途：调试
+
+    Query Parameters:
+        limit: 最多处理多少条反馈，0 表示全部，默认 1
+    """
+    try:
+        from .feedback.config import load_feedback_config
+        from .feedback.jobs import scan_pending_feedback, process_feedback
+
+        # 检查是否启用
+        config = load_feedback_config()
+        if not config.enabled:
+            raise HTTPException(status_code=400, detail="反馈处理模块已禁用")
+
+        # 扫描待处理反馈
+        pending_files = scan_pending_feedback(limit)
+
+        logger.info(f"手动触发反馈处理任务 (limit: {limit})")
+        await process_feedback(limit)
+
+        return TriggerFeedbackResponse(
+            success=True,
+            message="反馈扫描已执行",
+            total_feedback=len(pending_files),
+            processed=limit if limit > 0 else len(pending_files),
+        )
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"手动触发反馈处理失败: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"执行失败: {str(e)}")
+500, detail=f"执行失败: {str(e)}")
