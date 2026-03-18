@@ -49,8 +49,10 @@
 - [ ] 做出处理决策
 
 ## Step 4: 输出结果
-- [ ] 更新反馈 JSON 文件，添加 decision 和 reason 字段
+- [ ] **必须**：更新反馈 JSON 文件（使用任务消息中的 `<json_path>` 路径），添加 `decision` 和 `reason` 字段
 - [ ] 在 `progress.md` 中记录处理过程和详细分析
+
+**⚠️ 重要**：必须更新反馈 JSON 的 `decision` 字段，否则 Backend 无法检测完成状态，不会发送通知。
 
 ## 状态
 - **当前步骤**：（Step 1-4）

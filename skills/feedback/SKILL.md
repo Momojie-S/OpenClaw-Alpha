@@ -74,17 +74,3 @@ uv run --env-file .env python -m openclaw_alpha.backend.feedback.submit_feedback
 - `background`：背景简述（可选）- 触发场景、问题描述、技术上下文等
 - `content`：提出者的反馈原文（必需）- 用户的实际反馈内容
 
-## 后续处理
-
-- Backend 每 30 分钟扫描一次 `feedback/` 目录
-- 自动触发 Agent Session 处理反馈
-- 处理结果会更新到 JSON 文件
-- 处理完成后，通过 `source_session` 发送结果消息给提出者
-
-## 注意事项
-
-- 反馈会记录用户身份、来源 session 和内容
-- source_session 用于处理完成后发送结果消息
-- 处理过程可能需要数小时到数天
-- 处理结果会更新到反馈文件并通过 session 发送给用户
-- 不适用于实时反馈、紧急问题（如需要立即响应的问题请直接说明）

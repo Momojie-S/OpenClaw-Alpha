@@ -204,6 +204,8 @@ def setup_feedback_jobs(scheduler, project_root: Path | None = None) -> None:
     """
     from functools import partial
 
+    from openclaw_alpha.backend.feedback.task_executor import check_completed_feedback
+
     config = load_feedback_config()
 
     if not config.enabled:
@@ -217,4 +219,12 @@ def setup_feedback_jobs(scheduler, project_root: Path | None = None) -> None:
         minutes=config.interval_minutes,
     )
 
+    # 定时检测已完成反馈（发送通知 + 归档）
+    scheduler.add_interval_job(
+        partial(check_completed_feedback, project_root=project_root),
+        job_id="feedback-check-completed",
+        minutes=5,  # 每 5 分钟检测一次
+    )
+
     logger.info(f"反馈处理任务已注册，间隔: {config.interval_minutes} 分钟")
+    logger.info("反馈完成检测任务已注册，间隔: 5 分钟")

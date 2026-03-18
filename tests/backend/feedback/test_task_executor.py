@@ -144,9 +144,6 @@ class TestSubmitFeedbackTask:
                 ),
             ),
         ), patch(
-            "openclaw_alpha.backend.feedback.task_executor._wait_for_completion",
-            new_callable=AsyncMock,
-        ), patch(
             "openclaw_alpha.backend.feedback.task_executor.get_feedback_task_dir",
             return_value=tmp_path / "task",
         ):

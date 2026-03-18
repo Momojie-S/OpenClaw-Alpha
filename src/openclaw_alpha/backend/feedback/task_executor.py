@@ -246,12 +246,8 @@ async def submit_feedback_task(
             f"任务已提交: {cron_result.job_id}, sessionId: {cron_result.session_id}"
         )
 
-        # 等待处理完成（轮询 decision 字段）
-        await _wait_for_completion(
-            feedback_path,
-            config.cron.result_wait_timeout_seconds,
-        )
-
+        # 异步模式：不等待 Agent 处理完成
+        # 由定时任务 check_completed_feedback 检测完成并发送通知
         return True
 
     except Exception as e:
@@ -261,45 +257,50 @@ async def submit_feedback_task(
         return False
 
 
-async def _wait_for_completion(
-    feedback_path: Path,
-    timeout_seconds: int,
-) -> None:
+async def check_completed_feedback(project_root: Path | None = None) -> None:
     """
-    等待反馈处理完成（轮询 decision 字段）
+    检查已完成的反馈，发送通知并归档
 
-    Args:
-        feedback_path: 反馈 JSON 文件路径
-        timeout_seconds: 超时时间（秒）
+    由定时任务调用，扫描 new/ 目录中 status=processing 且有 decision 字段的反馈
     """
-    for i in range(timeout_seconds):
-        await asyncio.sleep(1)
+    feedback_dir = get_feedback_dir(project_root, subdir="new")
 
+    if not feedback_dir.exists():
+        return
+
+    for feedback_file in feedback_dir.glob("*.json"):
         try:
-            with open(feedback_path, "r", encoding="utf-8") as f:
+            with open(feedback_file, "r", encoding="utf-8") as f:
                 feedback = json.load(f)
 
-            if feedback.get("decision"):
+            # 检查是否处理完成（status=processing 且有 decision）
+            if feedback.get("status") == "processing" and feedback.get("decision"):
                 logger.info(
-                    f"反馈处理完成: {feedback['id']}, "
+                    f"检测到反馈处理完成: {feedback['id']}, "
                     f"decision: {feedback['decision']}"
                 )
+
+                # 更新状态为 completed
+                update_feedback_status(
+                    feedback_file,
+                    "completed",
+                    completed_at=datetime.now().isoformat(),
+                )
+
+                # 重新读取更新后的数据
+                with open(feedback_file, "r", encoding="utf-8") as f:
+                    feedback = json.load(f)
+
+                # 发送通知
                 await _send_completion_notifications(feedback)
-                await _archive_feedback(feedback_path)
-                return
+
+                # 归档
+                await _archive_feedback(feedback_file)
 
         except json.JSONDecodeError as e:
-            logger.error(f"解析反馈 JSON 失败: {e}")
+            logger.error(f"解析反馈文件失败: {feedback_file}, {e}")
         except Exception as e:
-            logger.error(f"读取反馈文件失败: {e}")
-
-    # 超时
-    logger.warning(
-        f"反馈处理超时: {feedback_path}, "
-        f"等待了 {timeout_seconds} 秒"
-    )
-    # 重置为 pending
-    update_feedback_status(feedback_path, "pending")
+            logger.error(f"检查反馈完成状态失败: {feedback_file}, {e}")
 
 
 async def _send_completion_notifications(feedback: dict) -> None:
