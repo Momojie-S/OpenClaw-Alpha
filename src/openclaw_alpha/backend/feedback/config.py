@@ -30,7 +30,7 @@ class CronConfig(BaseModel):
     session_poll_timeout_seconds: int = 300
 
     # 等待 decision 字段的超时时间（秒）
-    result_wait_timeout_seconds: int = 300
+    result_wait_timeout_seconds: int = 600
 
 
 class FeedbackConfig(BaseModel):
