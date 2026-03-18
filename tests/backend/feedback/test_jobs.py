@@ -1,11 +1,8 @@
 # -*- coding: utf-8 -*-
-"""反馈定时任务测试"""
+"""反馈工具函数测试"""
 
 import json
 from pathlib import Path
-from unittest.mock import AsyncMock, MagicMock, patch
-
-import pytest
 
 from openclaw_alpha.backend.feedback.jobs import scan_pending_feedback
 
@@ -116,48 +113,5 @@ class TestScanPendingFeedback:
         assert result[0].name == "valid.json"
 
 
-class TestProcessFeedback:
-    """处理反馈测试（mock 提交任务）"""
-
-    @pytest.mark.asyncio
-    async def test_process_calls_submit(self, tmp_path):
-        """处理应该调用 submit_feedback_task"""
-        feedback_dir = tmp_path / "workspace" / "feedback" / "new"
-        feedback_dir.mkdir(parents=True)
-
-        # 创建 pending 反馈
-        feedback = {
-            "id": "test-1",
-            "content": "测试反馈",
-            "submitted_at": "2026-03-18T10:00:00+08:00",
-            "status": "pending",
-        }
-        feedback_file = feedback_dir / "test-1.json"
-        with open(feedback_file, "w") as f:
-            json.dump(feedback, f)
-
-        with patch(
-            "openclaw_alpha.backend.feedback.jobs.submit_feedback_task",
-            new_callable=AsyncMock,
-            return_value=True,
-        ) as mock_submit, patch(
-            "openclaw_alpha.backend.feedback.jobs.load_feedback_config",
-            return_value=MagicMock(enabled=True),
-        ):
-            from openclaw_alpha.backend.feedback.jobs import process_feedback
-
-            await process_feedback(limit=1, project_root=tmp_path)
-
-            mock_submit.assert_called_once()
-
-    @pytest.mark.asyncio
-    async def test_process_disabled(self, tmp_path):
-        """模块禁用时不应该处理"""
-        with patch(
-            "openclaw_alpha.backend.feedback.jobs.load_feedback_config",
-            return_value=MagicMock(enabled=False),
-        ):
-            from openclaw_alpha.backend.feedback.jobs import process_feedback
-
-            # 应该直接返回，不抛异常
-            await process_feedback(limit=1, project_root=tmp_path)
+# 注意：process_feedback 已迁移到 iteration_loop/feedback/jobs.py::process
+# 相关测试见 tests/backend/iteration_loop/test_feedback.py
