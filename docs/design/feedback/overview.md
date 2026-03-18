@@ -46,13 +46,13 @@
 
 ```
 {project_root}/
-├── feedback/                      # 反馈目录
-│   ├── 2026-03-10-xxx.json       # 待处理反馈
-│   └── processed/                # 已处理反馈
-│       └── 2026-03-10-xxx.json   # 处理完成
 └── workspace/
-    └── feedback/                 # 工作目录
+    └── feedback/
         ├── config.yaml           # 配置
+        ├── new/                  # 待处理反馈
+        │   └── {YYYY-MM-DD}-{hash}.json
+        ├── done/                 # 已处理反馈
+        │   └── {YYYY-MM-DD}-{hash}.json
         └── tasks/                # 任务目录
             └── {YYYY-MM-DD}/
                 └── {feedback_id}/
