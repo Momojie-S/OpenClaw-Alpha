@@ -69,12 +69,18 @@ async def lifespan(app: FastAPI):
     logger.info("服务已关闭")
 
 
+from .config_api import router as config_router
+
+
 app = FastAPI(
     title="OpenClaw-Alpha Backend",
     description="OpenClaw-Alpha Web 服务",
     version="0.1.0",
     lifespan=lifespan,
 )
+
+# 注册配置管理 API
+app.include_router(config_router)
 
 
 def get_scheduler() -> Scheduler | None:
