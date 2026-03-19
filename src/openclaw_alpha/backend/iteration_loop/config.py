@@ -9,11 +9,18 @@ from pydantic import BaseModel
 from openclaw_alpha.core.path_utils import get_workspace_dir
 
 
+class DevTasksConfig(BaseModel):
+    """开发任务配置"""
+
+    enabled: bool = True
+
+
 class IterationLoopConfig(BaseModel):
     """Iteration Loop 主模块配置"""
 
     enabled: bool = True
     interval_minutes: int = 30
+    dev_tasks: DevTasksConfig = DevTasksConfig()
 
 
 def get_config_path() -> Path:
