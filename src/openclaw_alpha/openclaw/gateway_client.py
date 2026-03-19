@@ -155,6 +155,37 @@ class GatewayClient:
         except Exception as e:
             return {"ok": False, "error": {"type": "error", "message": str(e)}}
 
+    async def list_sessions(
+        self,
+        kinds: list[str] | None = None,
+        active_minutes: int | None = None,
+        agent_id: str | None = None,
+        timeout: float | None = None,
+    ) -> dict[str, Any]:
+        """
+        获取会话列表
+
+        Args:
+            kinds: 会话类型过滤（如 ["isolated", "subagent"]）
+            active_minutes: 只显示最近 N 分钟内更新的会话
+            agent_id: Agent ID 过滤
+            timeout: 超时时间（秒）
+
+        Returns:
+            Gateway 响应数据
+        """
+        args: dict[str, Any] = {"action": "list"}
+        if kinds:
+            args["kinds"] = kinds
+        if active_minutes is not None:
+            args["activeMinutes"] = active_minutes
+
+        return await self.call_tool(
+            tool="sessions_list",
+            args=args,
+            timeout=timeout or self.config.request_timeout,
+        )
+
     async def send_message(
         self,
         channel: str,
