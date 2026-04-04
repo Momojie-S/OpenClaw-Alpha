@@ -155,7 +155,7 @@ cron:
 ### 清理策略
 
 - 保留 7 天
-- 每日凌晨自动清理
+- 定时任务触发时清理（每次拉取新闻前）
 - 清理函数：`cleanup_old_states(keep_days=7)`
 
 ---
@@ -167,6 +167,9 @@ cron:
 ```python
 async def fetch_and_analyze():
     """定时任务：拉取新闻并触发分析"""
+    # 0. 清理 7 天前的旧状态文件
+    cleanup_old_states(keep_days=7)
+
     # 1. 遍历 RSS 源（按优先级）
     for route in RSS_ROUTES:
         # 2. 拉取 RSS 内容
@@ -298,7 +301,7 @@ Backend 调用 `openclaw cron add --session isolated` 触发 Agent Session
 
 **状态文件**：
 - 保留 7 天
-- 每日凌晨自动清理
+- 定时任务触发时清理（每次拉取新闻前）
 - 清理函数：`cleanup_old_states(keep_days=7)`
 
 **清理逻辑**：

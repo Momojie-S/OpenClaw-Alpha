@@ -22,7 +22,7 @@ class TestIterationLoopConfigAPI:
     def test_get_config_default(self, client):
         """测试获取默认配置"""
         with patch(
-            "openclaw_alpha.backend.config_api.get_iteration_config_path"
+            "openclaw_alpha.backend.iteration_loop.config.get_config_path"
         ) as mock_path:
             mock_path.return_value = Path("/nonexistent/config.yaml")
 
@@ -112,7 +112,7 @@ class TestFeedbackConfigAPI:
     def test_get_config_default(self, client):
         """测试获取默认配置"""
         with patch(
-            "openclaw_alpha.backend.config_api.get_feedback_config_path"
+            "openclaw_alpha.backend.feedback.config.get_feedback_config_path"
         ) as mock_path:
             mock_path.return_value = Path("/nonexistent/config.yaml")
 

@@ -11,6 +11,7 @@ from .config import QuickNewsConfig, load_quick_news_config
 from .rss_fetcher import fetch_with_instance
 from .state_manager import (
     add_pending,
+    cleanup_old_states,
     is_processed,
     load_state,
     mark_processed,
@@ -101,6 +102,11 @@ async def fetch_all_quick_news(limit: int = 1) -> None:
     if not config.enabled:
         logger.info("新闻模块已禁用")
         return
+
+    # 清理 7 天前的旧状态文件
+    deleted = cleanup_old_states(keep_days=7)
+    if deleted:
+        logger.info(f"已清理 {len(deleted)} 个过期状态文件")
 
     logger.info(f"开始拉取 {len(INVESTMENT_ROUTES)} 个路由 (全局 limit: {limit})")
 

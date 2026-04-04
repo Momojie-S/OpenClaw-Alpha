@@ -38,3 +38,6 @@ progress/
 !/workspace/feedback/
 backend.log
 *.swp
+
+# OpenSpec
+openspec/changes/

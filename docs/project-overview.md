@@ -104,6 +104,15 @@ OpenClaw-Alpha/
 - 包含 cron、sessions 等功能的深入研究和使用技巧
 - 用于指导项目中使用 OpenClaw 框架的最佳实践
 
+## 常用配置
+
+| 配置项 | 文件路径 | 说明 |
+|--------|----------|------|
+| 新闻分析 | `src/openclaw_alpha/backend/quick_news/config.py` | `QuickNewsConfig.agent_id` 指定分析任务的 agent；`RecipientConfig` 控制推送目标 |
+| 新闻分析运行时 | `workspace/quick_news/config.yaml` | 可覆盖默认配置（如启用/关闭、间隔、模型等） |
+| 用户反馈 | `workspace/feedback/config.yaml` | 反馈模块配置 |
+| 环境变量 | `.env` | API Key 等敏感配置 |
+
 ## 核心概念
 
 ### 后端服务

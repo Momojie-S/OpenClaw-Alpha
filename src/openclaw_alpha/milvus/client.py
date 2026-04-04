@@ -1,0 +1,48 @@
+"""Milvus 连接管理模块。"""
+
+import os
+
+from pymilvus import MilvusClient
+
+_client: MilvusClient | None = None
+
+
+def get_client() -> MilvusClient:
+    """获取 MilvusClient 单例。
+
+    环境变量:
+        MILVUS_URI: Milvus 连接地址
+        MILVUS_TOKEN: 认证 token
+
+    Returns:
+        pymilvus.MilvusClient 实例
+
+    Raises:
+        ValueError: 环境变量未配置
+    """
+    global _client
+    if _client is not None:
+        return _client
+
+    uri = os.environ.get("MILVUS_URI")
+    token = os.environ.get("MILVUS_TOKEN")
+
+    if not uri:
+        raise ValueError("环境变量 MILVUS_URI 未配置")
+    if not token:
+        raise ValueError("环境变量 MILVUS_TOKEN 未配置")
+
+    # Zilliz Serverless URI 需要显式指定 443 端口
+    if uri.startswith("https://") and ":" not in uri[8:]:
+        uri = uri + ":443"
+
+    _client = MilvusClient(uri=uri, token=token)
+    return _client
+
+
+def close() -> None:
+    """关闭 Milvus 连接并重置单例。"""
+    global _client
+    if _client is not None:
+        _client.close()
+        _client = None

@@ -37,8 +37,7 @@
 - 立即实现功能
 
 **后续行动**：
-- 如果反馈被采纳且需要开发工作，由智能体输出 `next_steps` 中建议创建开发任务
-- 开发任务在独立的开发流程中执行（参见 `development-workflow.md`）
+- 如果反馈被采纳且需要开发工作，由智能体输出 `next_steps` 中建议后续开发方向。
 
 ---
 
@@ -51,12 +50,24 @@
         ├── config.yaml           # 配置
         ├── new/                  # 待处理反馈
         │   └── {YYYY-MM-DD}-{hash}.json
-        ├── done/                 # 已处理反馈
+        ├── done/                 # 已处理反馈（归档）
         │   └── {YYYY-MM-DD}-{hash}.json
         └── tasks/                # 任务目录
             └── {YYYY-MM-DD}/
                 └── {feedback_id}/
                     └── progress.md    # 处理进度
+```
+
+### Backend 代码
+
+```
+src/openclaw_alpha/backend/feedback/
+├── __init__.py
+├── config.py              # 配置模型
+├── jobs.py                # 定时任务：扫描 pending 反馈
+├── models.py              # 数据模型
+├── task_executor.py       # 触发 Agent Session、等待完成、归档
+└── submit_feedback.py     # 反馈提交接口
 ```
 
 ### Backend 代码
@@ -193,7 +204,7 @@ Backend 定时扫描（jobs.py）
     ├─ 给提出者（通过 source_session）
     └─ 给维护者（通过 delivery.recipients）
     ↓
-归档到 feedback/processed/
+归档到 feedback/done/
 ```
 
 **详细说明**：
@@ -207,7 +218,7 @@ Backend 定时扫描（jobs.py）
 
 每 30 分钟执行一次：
 
-1. **扫描反馈目录**：收集所有 `.json` 文件（排除 `processed/` 子目录）
+1. **扫描反馈目录**：收集 `new/` 目录下所有 `.json` 文件
 
 2. **过滤待处理反馈**：筛选 `status == "pending"` 的反馈
 
@@ -235,7 +246,7 @@ Backend 定时扫描（jobs.py）
    - 通过 `source_session` 发送结果消息给提出者
    - 通过 `delivery.recipients` 发送通知给维护者
 
-9. **归档**：移动 JSON 文件到 `processed/` 目录
+9. **归档**：移动 JSON 文件到 `done/` 目录
 
 ### 失败处理
 
@@ -297,7 +308,7 @@ Backend 轮询检测 JSON 文件的 `status` 是否变为 `completed`。
 
 处理完成后：
 1. 发送消息通知（提出者和维护者）
-2. 将 JSON 文件移动到 `processed/` 目录
+2. 将 JSON 文件移动到 `done/` 目录
 
 ---
 

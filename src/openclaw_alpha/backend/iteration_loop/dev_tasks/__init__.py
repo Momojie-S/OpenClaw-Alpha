@@ -1,120 +1,170 @@
 # -*- coding: utf-8 -*-
-"""开发任务子模块"""
+"""开发任务子模块 - 基于 OpenSpec"""
 
 import asyncio
+import json
 import logging
-import re
+import random
+import subprocess
 import time
 from pathlib import Path
 
-from openclaw_alpha.core.path_utils import get_workspace_dir
 from openclaw_alpha.openclaw.cron_utils import submit_cron_task
 from openclaw_alpha.openclaw.gateway_client import get_gateway_client
 
 logger = logging.getLogger(__name__)
 
-# 状态部分提取正则（只匹配 ## 状态 下的内容）
-STATUS_SECTION_PATTERN = re.compile(
-    r"##\s*状态\s*\n(.*?)(?=\n##|\Z)",
-    re.DOTALL | re.IGNORECASE
-)
-# 完成状态的正则匹配（在状态部分内）
-COMPLETED_PATTERN = re.compile(r"当前阶段[：:]\s*(完成|Phase\s*7)", re.IGNORECASE)
-# 当前阶段提取
-PHASE_PATTERN = re.compile(r"当前阶段[：:]\s*(.+?)(?:\n|$)", re.IGNORECASE)
-
 # Session 监控配置
 SESSION_POLL_INTERVAL_SECONDS = 30  # 轮询间隔
 SESSION_INACTIVE_THRESHOLD_SECONDS = 120  # Session 不活跃阈值（2分钟）
-PROGRESS_INACTIVE_THRESHOLD_SECONDS = 300  # progress.md 不更新阈值（5分钟）
+
+# OpenSpec 项目目录
+OPENSPEC_PROJECT_DIR = Path(__file__).parent.parent.parent.parent.parent
 
 
-def _scan_progress_files() -> list[Path]:
-    """扫描进度文件目录"""
-    progress_dir = get_workspace_dir().parent / "progress"
+def _run_openspec_list() -> list[str]:
+    """
+    调用 openspec list --json 获取活跃的 changes
 
-    if not progress_dir.exists():
-        logger.debug(f"进度目录不存在: {progress_dir}")
+    Returns:
+        活跃 change 名称列表
+    """
+    try:
+        result = subprocess.run(
+            ["openspec", "list", "--json"],
+            cwd=str(OPENSPEC_PROJECT_DIR),
+            capture_output=True,
+            text=True,
+            timeout=30,
+        )
+
+        if result.returncode != 0:
+            logger.warning(f"openspec list 失败: {result.stderr}")
+            return []
+
+        data = json.loads(result.stdout)
+        changes = data.get("changes", [])
+        logger.debug(f"扫描到 {len(changes)} 个活跃 changes")
+        return changes
+
+    except FileNotFoundError:
+        logger.error("openspec CLI 未安装")
+        return []
+    except json.JSONDecodeError as e:
+        logger.error(f"解析 openspec list 输出失败: {e}")
+        return []
+    except subprocess.TimeoutExpired:
+        logger.error("openspec list 超时")
+        return []
+    except Exception as e:
+        logger.error(f"运行 openspec list 异常: {e}")
         return []
 
-    return list(progress_dir.glob("*.md"))
 
-
-def _parse_progress_file(file_path: Path) -> dict:
+def _check_change_completeness(change_name: str) -> bool:
     """
-    解析进度文件
+    检查 change 是否完整
 
-    只从"## 状态"部分提取信息，避免匹配文档其他位置的相同文本。
+    完整性标准：
+    1. 有 proposal.md
+    2. 有 design.md
+    3. 有 specs/ 目录且至少一个 spec 文件
+    4. 有 tasks.md 且包含未完成的 [ ] 任务
+
+    Args:
+        change_name: change 名称
 
     Returns:
-        {
-            "path": Path,
-            "current_phase": str,
-            "is_completed": bool,
-            "status_content": str,  # 状态部分的原始内容
-        }
+        是否完整
     """
-    content = file_path.read_text(encoding="utf-8")
+    change_dir = OPENSPEC_PROJECT_DIR / "openspec" / "changes" / change_name
 
-    # 提取状态部分
-    status_match = STATUS_SECTION_PATTERN.search(content)
-    if not status_match:
-        logger.warning(f"进度文件缺少状态部分: {file_path.name}")
-        return {
-            "path": file_path,
-            "current_phase": "未知",
-            "is_completed": False,
-            "status_content": "",
-        }
+    if not change_dir.exists():
+        return False
 
-    status_content = status_match.group(1)
+    # 检查 proposal.md
+    if not (change_dir / "proposal.md").exists():
+        return False
 
-    # 检查是否已完成（只在状态部分内匹配）
-    is_completed = bool(COMPLETED_PATTERN.search(status_content))
+    # 检查 design.md
+    if not (change_dir / "design.md").exists():
+        return False
 
-    # 提取当前阶段（只在状态部分内匹配）
-    phase_match = PHASE_PATTERN.search(status_content)
-    current_phase = phase_match.group(1).strip() if phase_match else "未知"
+    # 检查 specs/ 目录（至少一个 spec 文件）
+    specs_dir = change_dir / "specs"
+    if not specs_dir.exists():
+        return False
 
-    return {
-        "path": file_path,
-        "current_phase": current_phase,
-        "is_completed": is_completed,
-        "status_content": status_content,
-    }
+    spec_files = list(specs_dir.rglob("*.md"))
+    if not spec_files:
+        return False
+
+    # 检查 tasks.md 且包含未完成的 [ ] 任务
+    tasks_file = change_dir / "tasks.md"
+    if not tasks_file.exists():
+        return False
+
+    try:
+        tasks_content = tasks_file.read_text(encoding="utf-8")
+        # 检查是否有未完成的任务
+        if "- [ ] " not in tasks_content:
+            return False
+    except Exception as e:
+        logger.debug(f"读取 tasks.md 失败: {e}")
+        return False
+
+    return True
 
 
-def _find_pending_task() -> dict | None:
+def _find_complete_changes() -> list[str]:
     """
-    找到一个待处理的开发任务
+    过滤出完整的 changes
 
     Returns:
-        进度文件信息，或 None
+        完整的 change 名称列表
     """
-    progress_files = _scan_progress_files()
+    active_changes = _run_openspec_list()
 
-    for file_path in progress_files:
-        info = _parse_progress_file(file_path)
-        if not info["is_completed"]:
-            logger.info(f"发现待处理任务: {file_path.name}, 当前阶段: {info['current_phase']}")
-            return info
+    complete_changes = []
+    for change_name in active_changes:
+        if _check_change_completeness(change_name):
+            complete_changes.append(change_name)
+            logger.debug(f"完整的 change: {change_name}")
+        else:
+            logger.debug(f"不完整的 change: {change_name}")
 
-    return None
+    return complete_changes
 
 
-def _build_message(progress_path: Path) -> str:
-    """构造开发任务消息"""
-    return f"""请按照开发任务流程（development-workflow）继续完成任务。
+def _select_random_change(changes: list[str]) -> str | None:
+    """
+    随机选择一个 change
 
-进度文件：{progress_path}
+    Args:
+        changes: change 名称列表
 
-这是从上次进度继续。开始前请：
-1. 重新阅读项目结构（project-overview.md）
-2. 阅读相关设计文档
-3. 读取进度文件了解当前状态
-4. 继续执行待完成任务
+    Returns:
+        选中的 change 名称，或 None
+    """
+    if not changes:
+        return None
 
-完成后请更新进度文件。"""
+    selected = random.choice(changes)
+    logger.info(f"随机选中 change: {selected}")
+    return selected
+
+
+def _build_message(change_name: str) -> str:
+    """
+    构造开发任务消息
+
+    Args:
+        change_name: change 名称
+
+    Returns:
+        消息内容
+    """
+    return f"使用 OpenSpec apply 流程完成 change {change_name}"
 
 
 async def _check_session_status(session_id: str) -> dict:
@@ -163,7 +213,7 @@ async def _check_session_status(session_id: str) -> dict:
 
 async def _monitor_session(
     session_id: str,
-    progress_path: Path,
+    change_name: str,
     timeout_seconds: int,
 ) -> str:
     """
@@ -171,14 +221,13 @@ async def _monitor_session(
 
     Args:
         session_id: Session ID
-        progress_path: 进度文件路径
+        change_name: change 名称
         timeout_seconds: 超时时间（秒）
 
     Returns:
         最终状态: "completed" | "aborted" | "timeout" | "error"
     """
     start_time = time.time()
-    last_progress_mtime = 0
 
     logger.info(f"开始监控 session: {session_id}, 超时: {timeout_seconds}s")
 
@@ -189,18 +238,18 @@ async def _monitor_session(
             logger.warning(f"Session 超时: {session_id}, 已运行 {elapsed:.0f}s")
             return "timeout"
 
-        # 检查 progress.md 完成状态
-        if progress_path.exists():
-            info = _parse_progress_file(progress_path)
-            if info["is_completed"]:
-                logger.info(f"Progress 标记完成: {progress_path.name}")
-                return "completed"
+        # 检查 change 是否已完成（tasks.md 全部 [x]）
+        change_dir = OPENSPEC_PROJECT_DIR / "openspec" / "changes" / change_name
+        tasks_file = change_dir / "tasks.md"
 
-            # 检查 progress.md 更新时间
-            current_mtime = progress_path.stat().st_mtime
-            if current_mtime > last_progress_mtime:
-                last_progress_mtime = current_mtime
-                logger.debug(f"Progress 已更新: {progress_path.name}")
+        if tasks_file.exists():
+            try:
+                tasks_content = tasks_file.read_text(encoding="utf-8")
+                if "- [ ] " not in tasks_content:
+                    logger.info(f"Change 任务已全部完成: {change_name}")
+                    return "completed"
+            except Exception as e:
+                logger.debug(f"读取 tasks.md 失败: {e}")
 
         # 检查 session 状态
         status = await _check_session_status(session_id)
@@ -209,29 +258,27 @@ async def _monitor_session(
             logger.warning(f"Session 被中止: {session_id}")
             return "aborted"
 
-        # 如果 session 不在列表中，且 progress.md 已完成 = 正常完成
+        # 如果 session 不在列表中
         if not status["found"]:
-            # 等待一下再检查 progress.md（可能刚更新）
+            # 等待一下再检查 tasks.md
             await asyncio.sleep(5)
-            if progress_path.exists():
-                info = _parse_progress_file(progress_path)
-                if info["is_completed"]:
-                    return "completed"
 
-            # Session 消失但 progress 未完成 = 异常
-            logger.warning(f"Session 消失但 progress 未完成: {session_id}")
+            if tasks_file.exists():
+                try:
+                    tasks_content = tasks_file.read_text(encoding="utf-8")
+                    if "- [ ] " not in tasks_content:
+                        return "completed"
+                except Exception:
+                    pass
+
+            # Session 消失但 tasks 未完成 = 异常
+            logger.warning(f"Session 消失但 tasks 未完成: {session_id}")
             return "error"
 
-        # 检查 session 和 progress 是否都长时间不活跃
+        # 检查 session 是否长时间不活跃
         if status["inactive_seconds"] and status["inactive_seconds"] > SESSION_INACTIVE_THRESHOLD_SECONDS:
-            progress_inactive = time.time() - last_progress_mtime if last_progress_mtime > 0 else float("inf")
-
-            if progress_inactive > PROGRESS_INACTIVE_THRESHOLD_SECONDS:
-                logger.warning(
-                    f"Session 和 progress 都不活跃: session_inactive={status['inactive_seconds']:.0f}s, "
-                    f"progress_inactive={progress_inactive:.0f}s"
-                )
-                return "error"
+            logger.warning(f"Session 长时间不活跃: {status['inactive_seconds']:.0f}s")
+            return "error"
 
         # 等待下次轮询
         await asyncio.sleep(SESSION_POLL_INTERVAL_SECONDS)
@@ -248,23 +295,27 @@ async def process(limit: int = 1, project_root: Path | None = None) -> bool:
     Returns:
         是否有任务被处理
     """
-    # 查找待处理任务
-    task_info = _find_pending_task()
+    # 查找完整的 changes
+    complete_changes = _find_complete_changes()
 
-    if not task_info:
-        logger.debug("无待处理开发任务")
+    if not complete_changes:
+        logger.debug("无完整的 OpenSpec changes")
         return False
 
-    progress_path = task_info["path"]
-    logger.info(f"处理开发任务: {progress_path.name}")
+    # 随机选择一个
+    change_name = _select_random_change(complete_changes)
+    if not change_name:
+        return False
+
+    logger.info(f"处理开发任务: {change_name}")
 
     # 构造消息
-    message = _build_message(progress_path)
+    message = _build_message(change_name)
 
-    # 触发 Agent（开发任务可能需要较长时间）
+    # 触发 Agent
     result = await submit_cron_task(
         message=message,
-        name=f"dev-task-{progress_path.stem}",
+        name=f"dev-task-{change_name}",
         timeout_seconds=1800,  # 30分钟超时
         agent_id="alpha",
         thinking="low",
@@ -274,44 +325,15 @@ async def process(limit: int = 1, project_root: Path | None = None) -> bool:
         logger.error(f"开发任务提交失败: {result.error}")
         return False
 
-    logger.info(f"开发任务已提交: {progress_path.name}, sessionId: {result.session_id}")
+    logger.info(f"开发任务已提交: {change_name}, sessionId: {result.session_id}")
 
     # 监控 session 执行
     if result.session_id:
         final_status = await _monitor_session(
             session_id=result.session_id,
-            progress_path=progress_path,
+            change_name=change_name,
             timeout_seconds=1800,
         )
         logger.info(f"Session 结束: {result.session_id}, 状态: {final_status}")
 
-        # 如果异常结束，记录到进度文件
-        if final_status in ("aborted", "timeout", "error"):
-            _append_error_to_progress(progress_path, final_status)
-
     return True
-
-
-def _append_error_to_progress(progress_path: Path, status: str) -> None:
-    """将错误状态追加到进度文件"""
-    try:
-        status_text = {
-            "aborted": "被中止",
-            "timeout": "超时",
-            "error": "异常停止",
-        }.get(status, status)
-
-        content = f"""
-
----
-
-## 系统记录
-
-**{time.strftime('%Y-%m-%d %H:%M:%S')}** - 任务{status_text}，需要人工检查。
-
-"""
-        with open(progress_path, "a", encoding="utf-8") as f:
-            f.write(content)
-
-    except Exception as e:
-        logger.error(f"追加错误状态失败: {e}")

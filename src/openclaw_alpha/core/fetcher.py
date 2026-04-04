@@ -183,5 +183,6 @@ class Fetcher:
             f"{m.name}(ds={m.required_data_source}, credit={m.required_credit})"
             for m in self._methods
         ]
-        all_errors = check_errors + exec_errors
-        raise NoAvailableMethodError(self.name, checked_methods, all_errors)
+        raise NoAvailableMethodError(
+            self.name, checked_methods, check_errors, exec_errors
+        )

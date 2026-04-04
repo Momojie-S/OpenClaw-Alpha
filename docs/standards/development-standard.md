@@ -4,6 +4,24 @@
 
 开始开发前，请确保已配置标准开发环境（Python、uv 等），并安装项目特定的开发工具，详见 [development-environment.md](development-environment.md)。
 
+## 开发流程
+
+项目的开发流程需要遵循 Openspec 规范。
+
+1. 开始时，按 openspec-explore skill进行探索，明确需求和相关改动方案。
+2. 确定需求和改动方案后，按 openspec-propose skill进行创建change。
+3. 创建完整的change后，按 openspec-apply-change skill进行开发。
+4. 完成change的所有task后，按 openspec-verify-change skill 对change的实现进行验证。
+5. 完成验证后，按 openspec-sync-specs skill 将change同步的main spec中。
+6. 同步完成后，按 openspec-archive-change skill 将change归档。
+7. 归档后，检查 git status，忽略无关文件，提交相关文件。
+
+### Openspec额外说明
+
+- 创建 `tasks.md` 时，应该在最后加入相关的回顾任务:
+  - 回顾开发、测试过程遇到的问题，更新规范文档。
+  - 更新docs目录下与本次change相关的设计文档。
+
 ## 技术约束
 
 - **算力有限，不涉及机器学习**：量化模型、ML 预测、深度学习等均不考虑

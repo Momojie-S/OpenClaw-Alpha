@@ -38,7 +38,7 @@ class QuickNewsConfig(BaseModel):
 
     enabled: bool = True
     interval_minutes: int = 30
-    agent_id: str = "alpha"
+    agent_id: str = "echo"
     model: str | None = None
     delivery: DeliveryConfig = DeliveryConfig()
     cron: CronConfig = CronConfig()
