@@ -153,6 +153,7 @@ os.makedirs(workspace, exist_ok=True)
 - **测试类和 Fixtures**: 测试文件必须使用测试类（以 `Test` 为前缀）来组织相关的测试方法。必须使用 `pytest.fixture` 来管理测试依赖和状态
 - **测试文件命名**: 避免在不同目录使用相同的测试文件名（如多个 `test_processor.py`），会导致 Python 模块导入冲突。应使用具描述性的唯一名称（如 `test_sentiment_processor.py`, `test_risk_processor.py`）
 - **单例模式测试**: 测试涉及单例模式（如 DataSourceRegistry）时，必须在测试前重置状态，避免测试间干扰。可在 conftest.py 中使用 autouse fixture 进行重置
+- **fixture 命名**: autouse fixture 命名不得与测试文件中导入的函数重名，建议使用 `_reset_xxx` 格式
 - **fixture 复用**: 通用 fixture（如临时目录、mock 配置等）应在 `conftest.py` 中定义，避免重复代码
 - **导入约定**: 由于项目使用 `src-layout`，测试文件中的导入路径不得包含 `src` 目录
   - 正确：`from openclaw_alpha.core.agent import Agent`
@@ -170,7 +171,6 @@ os.makedirs(workspace, exist_ok=True)
 - **测试数据清理**: 测试产生的数据必须在测试完成后清理
   - 使用 pytest fixture 的 `yield` 和 `finalizer` 机制确保测试后清理
   - 测试数据必须使用 `test_` 前缀标记（如 id 为 `test_user_123` 或 name 为 `test_session_abc`），便于识别和清理
-- **大模型选用**: 测试时如果需要使用真实的大模型，必须要使用 `ModelScope-Free` 下的 `moonshotai/Kimi-K2.5` 模型
 
 ### DataFetcher 实现规范
 

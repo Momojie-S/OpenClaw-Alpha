@@ -27,13 +27,23 @@ OpenClaw-Alpha/
 │           └── decisions.md        # 调研/决策记录
 │
 ├── src/openclaw_alpha/
-│   ├── core/                       # 框架核心（Fetcher, FetchMethod 等）
+│   ├── core/                       # 通用基础设施
+│   │   ├── fetcher.py              # 数据获取框架
+│   │   ├── data_source.py          # 数据源注册
+│   │   ├── registry.py             # 全局注册表
+│   │   ├── milvus/                 # 🗄️ Milvus 连接管理
+│   │   │   ├── __init__.py
+│   │   │   └── client.py           # get_client(), close()
+│   │   └── embedding/              # 🧮 向量生成服务（工厂模式）
+│   │       ├── __init__.py
+│   │       ├── base.py             # Embedder 抽象基类
+│   │       ├── dashscope.py        # 百炼 text-embedding-v4 (1024d)
+│   │       └── factory.py          # get_embedder() 工厂
 │   ├── data_sources/               # 数据源实现（Tushare, AKShare）
 │   ├── openclaw/                   # 🔧 OpenClaw 框架工具（路径、cron 等）
+│   ├── news/                       # 📰 新闻条目存储
 │   │   ├── __init__.py
-│   │   ├── path_utils.py           # OpenClaw 路径工具
-│   │   ├── cron_utils.py           # OpenClaw cron 工具
-│   │   └── gateway_client.py       # Gateway HTTP 客户端
+│   │   └── store.py                # insert_news(), ensure_collection()
 │   ├── backend/                    # 🚀 后端服务（定时任务、调度器）
 │   │   ├── __init__.py
 │   │   ├── main.py                 # 服务入口
@@ -131,6 +141,20 @@ RSS 拉取 → 过滤已处理 → Agent 快速分析 → 高价值新闻 → �
 ```
 详见 [Iteration Loop 设计](docs/design/iteration-loop/overview.md)。
 
+### 事件跟踪系统
+
+基于 Milvus 向量数据库的新闻事件跟踪，支持语义去重和关联。
+
+```
+新闻 → embedding → Milvus(news_items collection) → 本地文件系统(详情)
+```
+
+- `core/milvus/` — 连接管理（单例）
+- `core/embedding/` — 向量生成（工厂模式，支持多 provider）
+- `news/` — 新闻存储（insert_news 入口，自动建表）
+
+详见 [事件跟踪存储设计](docs/design/news/event-tracking-storage.md)。
+
 ### Fetcher（数据获取）
 - Fetcher（入口）：调度、选择可用的数据源实现
 - FetchMethod（实现）：具体数据获取逻辑，绑定单一数据源
@@ -151,6 +175,8 @@ RSS 拉取 → 过滤已处理 → Agent 快速分析 → 高价值新闻 → �
 - **包管理**: uv
 - **语言**: Python
 - **数据源**: AKShare, Tushare
+- **向量数据库**: Milvus (Zilliz Cloud Serverless)
+- **Embedding**: 百炼 DashScope text-embedding-v4
 
 ## 命令执行规范
 

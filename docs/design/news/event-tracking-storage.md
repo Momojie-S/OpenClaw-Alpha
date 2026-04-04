@@ -22,7 +22,7 @@ Collection: `news_items`，每条新闻一条记录。
 | 字段 | 类型 | 说明 |
 |------|------|------|
 | news_id | VARCHAR (PK) | 主键，关联本地文件系统 |
-| embedding | FLOAT_VECTOR(768) | 摘要的向量（bge-m3） |
+| embedding | FLOAT_VECTOR(1024) | 摘要的向量（text-embedding-v4） |
 | event_id | VARCHAR | 所属事件ID，去重核心字段 |
 | entities | VARCHAR (BM25全文索引, Jieba分词) | 实体词空格分隔，如 `"NVDA TSM 芯片 半导体 美股 A股"` |
 | created_at | INT64 | 时间戳 |

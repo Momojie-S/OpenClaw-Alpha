@@ -5,7 +5,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from openclaw_alpha.milvus.client import close, get_client
+from openclaw_alpha.core.milvus.client import close, get_client
 
 
 def _make_mock_client():
@@ -28,7 +28,7 @@ class TestGetClientSingleton:
         monkeypatch.setenv("MILVUS_TOKEN", "root:Milvus")
 
         mock = _make_mock_client()
-        with patch("openclaw_alpha.milvus.client.MilvusClient", return_value=mock):
+        with patch("openclaw_alpha.core.milvus.client.MilvusClient", return_value=mock):
             client1 = get_client()
             client2 = get_client()
             assert client1 is mock
@@ -60,7 +60,7 @@ class TestClose:
 
         mock1 = _make_mock_client()
         mock2 = _make_mock_client()
-        with patch("openclaw_alpha.milvus.client.MilvusClient", side_effect=[mock1, mock2]):
+        with patch("openclaw_alpha.core.milvus.client.MilvusClient", side_effect=[mock1, mock2]):
             client1 = get_client()
             assert client1 is mock1
             close()
