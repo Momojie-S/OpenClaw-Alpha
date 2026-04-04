@@ -184,3 +184,23 @@ def fetch_all_routes(
         logger.info(f"路由 {route}: 从 {instance} 获取 {len(items)} 条")
 
     return results
+
+
+async def async_fetch_with_fallback(
+    route: str, instances: list[str] | None = None
+) -> tuple[str, list[RSSItem]]:
+    """fetch_with_fallback 的异步版本"""
+    import asyncio
+    return await asyncio.get_running_loop().run_in_executor(
+        None, fetch_with_fallback, route, instances
+    )
+
+
+async def async_fetch_all_routes(
+    routes: list[str], instances: list[str] | None = None
+) -> dict[str, tuple[str, list[RSSItem]]]:
+    """fetch_all_routes 的异步版本"""
+    import asyncio
+    return await asyncio.get_running_loop().run_in_executor(
+        None, fetch_all_routes, routes, instances
+    )

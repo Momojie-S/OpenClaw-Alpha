@@ -17,7 +17,7 @@ metadata:
 ### 1. 获取新闻
 
 ```bash
-uv run --env-file .env python -m openclaw_alpha.skills.news_driven_investment.news_fetcher.news_fetcher --source cls_global --limit 20
+uv run --env-file .env python -m openclaw_alpha.news.fetcher.news_fetcher --source cls_global --limit 20
 ```
 
 **参数：**

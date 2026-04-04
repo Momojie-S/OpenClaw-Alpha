@@ -3,6 +3,8 @@
 
 from .fetcher import (
     RSSItem,
+    async_fetch_all_routes,
+    async_fetch_with_fallback,
     fetch_all_routes,
     fetch_single_url,
     fetch_with_fallback,
@@ -22,4 +24,7 @@ __all__ = [
     "fetch_single_url",
     "fetch_with_fallback",
     "fetch_all_routes",
+    # 异步版本
+    "async_fetch_with_fallback",
+    "async_fetch_all_routes",
 ]

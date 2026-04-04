@@ -175,7 +175,7 @@ RSS 拉取 → 过滤已处理 → Agent 快速分析 → 高价值新闻 → �
 - **包管理**: uv
 - **语言**: Python
 - **数据源**: AKShare, Tushare
-- **向量数据库**: Milvus (Zilliz Cloud Serverless)
+- **向量数据库**: Milvus 2.6
 - **Embedding**: 百炼 DashScope text-embedding-v4
 
 ## 命令执行规范

@@ -36,17 +36,15 @@ Collection: `news_items`，每条新闻一条记录。
 
 ```
 data/
-├── news/                     # 新闻原始内容
-│   └── {news_id}.md          # title, source, url, content, raw_summary
+├── news/                     # 新闻内容
+│   └── {news_id}/
+│       ├── news.json         # 元数据 + 分析结果
+│       ├── content.md        # 新闻原文
+│       └── embedding.json    # {"vector": [...]} (1024d)
 │
 ├── events/                   # 事件聚合
 │   └── {event_id}/
-│       ├── meta.json         # summary, entities, importance, status, created_at
-│       └── timeline.json     # [{news_id, ts, key_dev}, ...]
-│
-└── analysis/                 # 分析记录（后续扩展）
-    └── {event_id}/
-        └── {analysis_id}.md
+│       └── event.json        # summary, entities, importance, status, news_ids
 ```
 
 `news_id` 是连接 Milvus 和文件系统的桥梁。
