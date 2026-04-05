@@ -1,185 +1,180 @@
 # -*- coding: utf-8 -*-
-"""新闻快速分析模块定时任务"""
+"""新闻快速分析模块定时任务
+
+Backend 通过 CLI service 层拉取新闻，用 news.json 的 analysis_status 追踪分析状态。
+"""
 
 import asyncio
+import json
 import logging
-
-from openclaw_alpha.rsshub import INVESTMENT_ROUTES
+from pathlib import Path
 
 from ..scheduler import Scheduler
 from .config import QuickNewsConfig, load_quick_news_config
-from .rss_fetcher import fetch_with_instance
-from .state_manager import (
-    add_pending,
-    cleanup_old_states,
-    is_processed,
-    load_state,
-    mark_processed,
-    save_state,
-)
+from .task_executor import submit_analysis
 
 logger = logging.getLogger(__name__)
 
+# RSSHub 路由 → CLI source 名称 映射
+_ROUTE_TO_SOURCE = {
+    "/cls/telegraph": "cls_telegraph",
+    "/jin10": "jin10",
+    "/wallstreetcn/news": "wallstreetcn_news",
+    "/yicai/brief": "yicai_brief",
+}
 
-async def fetch_and_process(route: str) -> list:
+_DEFAULT_DATA_DIR = Path("data")
+
+
+def _scan_pending_news(data_dir: Path | None = None) -> list[dict]:
+    """扫描 data/news/ 下所有待分析新闻。
+
+    筛选条件：analysis_status 为空或 "failed"。
+    返回按 created_at 排序（旧新闻优先）。
     """
-    拉取单个路由并返回未处理的新闻（不触发分析）
+    base = (data_dir or _DEFAULT_DATA_DIR) / "news"
+    if not base.exists():
+        return []
 
-    Args:
-        route: RSS 路由（如 /cls/telegraph）
+    pending = []
+    for news_dir in base.iterdir():
+        if not news_dir.is_dir():
+            continue
+        news_json = news_dir / "news.json"
+        if not news_json.exists():
+            continue
+        try:
+            data = json.loads(news_json.read_text(encoding="utf-8"))
+        except (json.JSONDecodeError, OSError):
+            continue
+
+        status = data.get("analysis_status")
+        if status in (None, "failed"):
+            pending.append(data)
+
+    # 旧新闻优先（created_at 升序）
+    pending.sort(key=lambda n: n.get("created_at", 0))
+    return pending
+
+
+async def fetch_all_sources() -> dict:
+    """拉取所有新闻源并落盘。
 
     Returns:
-        未处理的新新闻列表（携带 route_id）
+        {"sources": int, "saved": int, "skipped": int}
     """
-    from datetime import date
+    from openclaw_alpha.news.service import fetch_and_save
 
-    # 从路由提取 route_id
-    route_id = route.strip("/").split("/")[0]
-    logger.info(f"拉取路由: {route} (route_id: {route_id})")
+    total_saved = 0
+    total_skipped = 0
+    source_count = 0
 
-    # 1. 拉取 RSS（自动尝试多个实例）
-    instance, items = await fetch_with_instance(route)
+    for route, source_name in _ROUTE_TO_SOURCE.items():
+        try:
+            logger.info(f"拉取新闻源: {source_name} ({route})")
+            result = await fetch_and_save(source=source_name, limit=100)
+            saved = result.get("saved", 0)
+            skipped = result.get("skipped", 0)
+            total_saved += saved
+            total_skipped += skipped
+            source_count += 1
+            logger.info(f"  {source_name}: saved={saved}, skipped={skipped}")
+        except Exception as e:
+            logger.error(f"拉取新闻源失败: {source_name}, 错误: {e}")
 
-    if not items:
-        logger.info(f"路由无新内容: {route}")
-        return []
-
-    logger.info(f"成功从 {instance} 获取 {len(items)} 条新闻")
-
-    # 2. 加载今日状态
-    state = load_state(route_id)
-
-    # 3. 过滤未处理的新闻
-    from .models import NewsItem
-
-    news_items = [
-        NewsItem(
-            id=item["id"],
-            title=item["title"],
-            link=item["link"],
-            published=item.get("published"),
-            summary=item.get("summary"),
-            route_id=route_id,  # 携带 route_id
-        )
-        for item in items
-    ]
-
-    # 4. 只处理今天发布的新闻
-    today = date.today()
-    today_items = [item for item in news_items if item.published and item.published.date() == today]
-
-    if len(today_items) < len(news_items):
-        logger.info(f"过滤出今天发布的新闻: {len(today_items)} / {len(news_items)}")
-
-    # 5. 过滤未处理的
-    new_items = [item for item in today_items if not is_processed(state, item.id)]
-
-    if not new_items:
-        logger.info(f"无新新闻: {route_id}")
-        return []
-
-    logger.info(f"发现 {len(new_items)} 条新新闻: {route_id}")
-
-    # 只添加到待处理列表，不保存状态
-    for item in new_items:
-        add_pending(state, item)
-
-    # 保存状态（记录待处理）
-    save_state(state)
-
-    return new_items
+    logger.info(f"拉取完成: {source_count} 个源, saved={total_saved}, skipped={total_skipped}")
+    return {"sources": source_count, "saved": total_saved, "skipped": total_skipped}
 
 
 async def fetch_all_quick_news(limit: int = 1) -> None:
-    """
-    拉取所有 RSS 路由并触发分析任务
+    """拉取所有新闻源并触发分析任务。
 
     Args:
-        limit: 全局最多处理多少条新闻，默认 1（调试用），0 表示全部
+        limit: 全局最多分析多少条新闻，默认 1（调试用），0 表示全部
     """
+    from openclaw_alpha.news.service import read_news_json, write_news_json
+
     config = load_quick_news_config()
 
     if not config.enabled:
         logger.info("新闻模块已禁用")
         return
 
-    # 清理 7 天前的旧状态文件
-    deleted = cleanup_old_states(keep_days=7)
-    if deleted:
-        logger.info(f"已清理 {len(deleted)} 个过期状态文件")
+    # 1. 拉取所有新闻源
+    fetch_result = await fetch_all_sources()
 
-    logger.info(f"开始拉取 {len(INVESTMENT_ROUTES)} 个路由 (全局 limit: {limit})")
-
-    # 1. 收集所有路由的新新闻
-    all_new_items = []
-    for route in INVESTMENT_ROUTES:
-        try:
-            items = await fetch_and_process(route)
-            all_new_items.extend(items)
-        except Exception as e:
-            logger.error(f"拉取路由失败: {route}, 错误: {e}")
-
-    if not all_new_items:
-        logger.info("无新新闻需要处理")
+    # 2. 扫描待分析新闻
+    pending = _scan_pending_news()
+    if not pending:
+        logger.info("无待分析新闻")
         return
 
-    logger.info(f"总共发现 {len(all_new_items)} 条新新闻")
+    logger.info(f"发现 {len(pending)} 条待分析新闻")
 
-    # 2. 应用全局 limit 限制（limit=0 表示全部）
+    # 3. 应用 limit
     if limit > 0:
-        all_new_items = all_new_items[:limit]
-        logger.info(f"应用全局 limit 限制，处理前 {limit} 条")
+        pending = pending[:limit]
+        logger.info(f"应用 limit={limit}，处理前 {limit} 条")
 
-    logger.info(f"准备处理 {len(all_new_items)} 条新新闻")
-
-    # 3. 逐个处理新新闻（触发分析任务）
-    from .task_executor import submit_analysis
-
+    # 4. 逐个触发分析
     processed_count = 0
-    for item in all_new_items:
-        # 使用 item 携带的 route_id
-        route_id = item.route_id
-        if not route_id:
-            logger.warning(f"item 缺少 route_id: {item.id}")
+    for news_data in pending:
+        news_id = news_data["news_id"]
+        title = news_data.get("title", "")
+        summary = news_data.get("summary", "")
+        content_path = _DEFAULT_DATA_DIR / "news" / news_id / "content.md"
+
+        # 读取 content 作为 summary 的补充
+        content = ""
+        if content_path.exists():
+            content = content_path.read_text(encoding="utf-8")
+
+        # 用 summary || content 作为分析输入
+        analysis_text = summary or content
+
+        if not analysis_text or not analysis_text.strip():
+            logger.warning(f"跳过无内容的新闻: {news_id} ({title})")
             continue
 
-        # 加载对应路由的状态
-        state = load_state(route_id)
+        logger.info(f"处理新闻: {title} ({news_id})")
 
-        logger.info(f"处理新闻: {item.title} (route: {route_id})")
+        # 写入 pending 状态
+        news_data["analysis_status"] = "pending"
+        write_news_json(news_id, news_data)
 
-        # 触发快速分析任务
-        job_id, task_dir, worth_deep_analysis = await submit_analysis(
-            title=item.title,
-            link=item.link,
-            summary=item.summary or "",
+        # 触发分析
+        success, worth_deep = await submit_analysis(
+            news_id=news_id,
+            title=title,
+            link=news_data.get("link", ""),
+            summary=analysis_text,
         )
 
-        # 标记已处理
-        if job_id:
-            mark_processed(state, item, job_id, str(task_dir))
-            logger.info(f"快速分析任务已完成: {job_id}, 目录: {task_dir}, 值得深度分析: {worth_deep_analysis}")
+        # 更新状态
+        news_data = read_news_json(news_id) or news_data
+        if success:
+            news_data["analysis_status"] = "done"
+            # 从 analysis 中提取 worth_deep_analysis
+            analysis = news_data.get("analysis", {})
+            if isinstance(analysis, dict):
+                news_data["worth_deep_analysis"] = analysis.get("worth_deep_analysis", False)
+            write_news_json(news_id, news_data)
             processed_count += 1
+            logger.info(f"分析完成: {news_id}, 值得深度分析: {news_data.get('worth_deep_analysis', False)}")
         else:
-            logger.warning(f"快速分析任务失败: {item.title}")
+            news_data["analysis_status"] = "failed"
+            write_news_json(news_id, news_data)
+            logger.warning(f"分析失败: {news_id}")
 
-        # 保存状态
-        save_state(state)
+    logger.info(f"新闻处理完成: {processed_count}/{len(pending)} 成功")
 
-    logger.info("新闻处理完成")
-
-    # 4. 发送汇总通知
+    # 5. 发送汇总通知
     if processed_count > 0:
         await _send_summary_notification(processed_count)
 
 
 async def _send_summary_notification(count: int) -> None:
-    """
-    发送处理完成汇总通知
-
-    Args:
-        count: 成功处理的新闻数量
-    """
+    """发送处理完成汇总通知。"""
     from datetime import datetime
 
     from .task_executor import get_gateway_client
@@ -211,12 +206,7 @@ async def _send_summary_notification(count: int) -> None:
 
 
 def setup_quick_news_jobs(scheduler: Scheduler) -> None:
-    """
-    注册新闻模块定时任务
-
-    Args:
-        scheduler: 调度器实例
-    """
+    """注册新闻模块定时任务。"""
     from functools import partial
 
     config = load_quick_news_config()
@@ -225,7 +215,6 @@ def setup_quick_news_jobs(scheduler: Scheduler) -> None:
         logger.info("新闻模块已禁用，跳过任务注册")
         return
 
-    # 定时任务处理所有新闻（limit=0）
     scheduler.add_interval_job(
         partial(fetch_all_quick_news, limit=0),
         job_id="news-fetch-all",

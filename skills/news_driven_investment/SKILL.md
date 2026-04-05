@@ -17,8 +17,11 @@ metadata:
 ### 1. 获取新闻
 
 ```bash
-uv run --env-file .env python -m openclaw_alpha.news.fetcher.news_fetcher --source cls_global --limit 20
+uv run --env-file .env python -m openclaw_alpha.news.cli fetch-news --source cls_global --limit 20
 ```
+
+自动落盘到本地，重复调用幂等（已存在的新闻跳过）。
+返回包含 `news_id` 的新闻列表。
 
 **参数：**
 - `--source` — 新闻源（默认 `cls_global`）

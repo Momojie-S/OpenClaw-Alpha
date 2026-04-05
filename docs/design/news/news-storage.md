@@ -91,6 +91,23 @@ def _sync_to_milvus(news_id: str):
     }])
 ```
 
+### Milvus Collection Schema（news_items）
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| news_id | VARCHAR (PK) | 新闻唯一标识 |
+| embedding | FLOAT_VECTOR(1024) | 语义向量（DashScope text-embedding-v4） |
+| bm25_vector | SPARSE_FLOAT_VECTOR | BM25 稀疏向量（自动生成） |
+| event_id | VARCHAR | 关联事件 ID |
+| entities | VARCHAR | 实体关键词（BM25 输入字段） |
+| created_at | INT64 | 创建时间戳 |
+
+**BM25 Function**：`FunctionType.BM25`，输入 `entities` → 输出 `bm25_vector`，Milvus 自动分词生成稀疏向量。
+
+**索引**：
+- `embedding`：AUTOINDEX，metric_type `COSINE`
+- `bm25_vector`：SPARSE_INVERTED_INDEX，metric_type `BM25`
+
 ### 约束
 
 - upsert 必须带 embedding 字段（Milvus 要求非 null 字段全传）

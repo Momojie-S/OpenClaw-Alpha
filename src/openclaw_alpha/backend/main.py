@@ -138,9 +138,8 @@ async def trigger_quick_news_fetch(limit: int = 1):
         limit: 全局最多处理多少条新闻，默认 1（调试用）
     """
     try:
-        from .quick_news.jobs import fetch_all_quick_news
+        from .quick_news.jobs import fetch_all_quick_news, _ROUTE_TO_SOURCE
         from .quick_news.config import load_quick_news_config
-        from openclaw_alpha.rsshub import INVESTMENT_ROUTES
 
         # 检查是否启用
         config = load_quick_news_config()
@@ -154,7 +153,7 @@ async def trigger_quick_news_fetch(limit: int = 1):
         return TriggerQuickNewsResponse(
             success=True,
             message="新闻快速分析任务已执行",
-            routes_processed=len(INVESTMENT_ROUTES),
+            routes_processed=len(_ROUTE_TO_SOURCE),
             limit=limit,
         )
 

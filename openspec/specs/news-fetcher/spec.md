@@ -16,6 +16,10 @@ TBD
 
 所有新闻条目必须携带 news_id。
 
+#### Scenario: fetch-news 自动落盘时使用 news_id
+- **WHEN** fetch-news 调用 fetcher 获取新闻列表
+- **THEN** 每条新闻的 news_id 由 fetcher 生成，用于创建 `data/news/{news_id}/` 目录
+
 #### Scenario: RSSHub 源 news_id
 - **WHEN** 通过 RSSHub 源拉取新闻（source 为 cls_telegraph、jin10 等）
 - **THEN** 每条新闻的 news_id 格式为 `{route_id}_{item.id}`，route_id 为路由第一段
@@ -30,11 +34,15 @@ TBD
 
 #### Scenario: Backend 定时任务调用
 - **WHEN** Backend 定时任务拉取新闻
-- **THEN** 使用 `openclaw_alpha.news.fetcher.fetch()` 获取带 news_id 的结果
+- **THEN** 通过 `fetch_and_save()` 调用 `fetch()` 函数获取新闻并自动落盘，使用统一的 news_id 格式
 
 #### Scenario: Agent skill 调用
 - **WHEN** Agent 通过 skill 获取新闻
 - **THEN** 使用同一个 `fetch()` 函数，news_id 格式与 Backend 一致
+
+#### Scenario: Backend 多源拉取
+- **WHEN** Backend 需要拉取多个新闻源（cls_telegraph、jin10 等）
+- **THEN** 对每个源调用 `fetch_and_save(source=...)` ，每个源独立返回 saved/skipped 统计
 
 ### Requirement: SKILL.md 更新
 

@@ -70,34 +70,4 @@ def load_quick_news_config(config_path: Path | None = None) -> QuickNewsConfig:
     return QuickNewsConfig(**data)
 
 
-def extract_route_id(url: str) -> str:
-    """
-    从 RSSHub URL 中提取 route_id
 
-    Args:
-        url: RSSHub URL
-
-    Returns:
-        route_id（路由路径的第一段）
-
-    Examples:
-        >>> extract_route_id("https://rsshub.app/cls/telegraph")
-        'cls'
-        >>> extract_route_id("https://rsshub.app/jin10")
-        'jin10'
-    """
-    # 移除协议和域名，获取路径
-    path = url.split("://")[-1]
-    parts = path.split("/")
-
-    # 找到第一个非空段（跳过域名）
-    for i, part in enumerate(parts):
-        if "." in part:  # 域名部分
-            continue
-        if part:  # 第一个非域名的非空段
-            return part
-
-    # 如果无法提取，使用 URL hash
-    import hashlib
-
-    return hashlib.md5(url.encode()).hexdigest()[:8]

@@ -15,9 +15,18 @@
 - **WHEN** 调用 `insert_news()` 且 news_items collection 不存在
 - **THEN** 自动创建 collection（含 schema + index）后插入
 
+#### Scenario: upsert 同步（含 BM25）
+- **WHEN** `_sync_to_milvus()` 被调用
+- **THEN** 从 news.json 读 entities + 从 embedding.json 读向量，upsert 到 Milvus（BM25 向量由 Milvus 自动从 entities 生成）
+
 ### Requirement: Collection Schema
-news_items collection SHALL 包含字段：news_id(VARCHAR PK), embedding(FLOAT_VECTOR 1024), event_id(VARCHAR), entities(VARCHAR BM25), created_at(INT64)。
+news_items collection SHALL 包含字段：news_id(VARCHAR PK), embedding(FLOAT_VECTOR 1024), event_id(VARCHAR), entities(VARCHAR BM25), bm25_vector(SPARSE_FLOAT_VECTOR), created_at(INT64)。
 
 #### Scenario: 自动创建 collection
 - **WHEN** ensure_collection() 检测到 news_items 不存在
-- **THEN** 创建 collection，embedding 字段使用 AUTOINDEX，entities 字段使用 BM25 全文索引（Jieba 分词）
+- **THEN** 创建 collection，embedding 字段使用 AUTOINDEX + COSINE，entities 字段使用 BM25 全文索引（Jieba 分词），bm25_vector 字段使用 SPARSE_INVERTED_INDEX + BM25
+
+#### Scenario: 新增 bm25_vector 字段
+- **WHEN** 创建 news_items collection
+- **THEN** schema 包含 bm25_vector（SPARSE_FLOAT_VECTOR）字段，由 FunctionType.BM25 从 entities 字段自动生成稀疏向量
+- **AND** 索引：embedding 用 AUTOINDEX + COSINE，bm25_vector 用 SPARSE_INVERTED_INDEX + BM25
