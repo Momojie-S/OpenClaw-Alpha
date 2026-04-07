@@ -93,11 +93,22 @@ def _cmd_create_event(args):
     _output({"message": "create-event 待后续统一设计"})
 
 
+def _cmd_trigger(args):
+    """触发快速分析调试流程：拉取 → 扫描待分析 → 提交 cron → 等待结果。"""
+    from openclaw_alpha.backend.quick_news.jobs import fetch_all_quick_news
+    asyncio.run(fetch_all_quick_news(limit=args.limit))
+    _output({"triggered": True, "limit": args.limit})
+
+
 def _add_common_args(p):
     p.add_argument("--data-dir", help="数据根目录（默认 data/）")
 
 
 def main():
+    import atexit
+    from openclaw_alpha.core.milvus import close as _close_milvus
+    atexit.register(_close_milvus)
+
     parser = argparse.ArgumentParser(description="News CLI")
     sub = parser.add_subparsers(dest="command", required=True)
 
@@ -154,8 +165,18 @@ def main():
     _add_common_args(p)
     p.set_defaults(func=_cmd_create_event)
 
+    # trigger (调试)
+    p = sub.add_parser("trigger", help="触发快速分析（调试用）")
+    p.add_argument("--limit", type=int, default=1, help="处理新闻数量（默认 1）")
+    _add_common_args(p)
+    p.set_defaults(func=_cmd_trigger)
+
     args = parser.parse_args()
-    args.func(args)
+    try:
+        args.func(args)
+    finally:
+        from openclaw_alpha.core.milvus import close
+        close()
 
 
 if __name__ == "__main__":

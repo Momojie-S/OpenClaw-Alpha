@@ -15,8 +15,6 @@ import logging
 from pathlib import Path
 
 from openclaw_alpha.core.path_utils import (
-    ensure_dir,
-    get_quick_news_analysis_task_dir,
     get_task_template_path,
 )
 from openclaw_alpha.openclaw.cron_utils import submit_cron_task
@@ -39,7 +37,7 @@ def load_task_template() -> str:
 
 
 def build_message(
-    task_dir: str,
+    news_dir_relative: str,
     news_id: str,
     title: str,
     link: str,
@@ -48,13 +46,37 @@ def build_message(
     """构造分析任务消息。
 
     Args:
-        task_dir: 任务工作目录
-        news_id: 新闻 ID（CLI 层统一生成）
+        news_dir_relative: 新闻数据目录相对路径（如 data/news/{news_id}）
+        news_id: 新闻 ID
         title: 新闻标题
         link: 新闻链接
         summary: 新闻内容
     """
     template = load_task_template()
+
+    # 计算绝对路径（数据在项目根的 data/ 下，非 workspace/data/）
+    from openclaw_alpha.core.path_utils import get_project_root
+
+    news_dir = get_project_root() / news_dir_relative
+
+    # 读取已有状态，让 Agent 知道哪些步骤可以跳过
+    existing_status = []
+    news_json_path = news_dir / "news.json"
+    if news_json_path.exists():
+        import json as _json
+
+        try:
+            news_data = _json.loads(news_json_path.read_text(encoding="utf-8"))
+            if news_data.get("summary"):
+                existing_status.append(f"summary 已存在: {news_data['summary']}")
+            if news_data.get("analysis"):
+                existing_status.append("analysis 已存在（如需更新请重写）")
+        except Exception:
+            pass
+
+    status_note = ""
+    if existing_status:
+        status_note = "\n---\n\n## 已有数据状态\n\n" + "\n".join(f"- {s}" for s in existing_status) + "\n\n已有数据如准确可跳过对应步骤，优先完成缺失步骤。"
 
     message = f"""{template}
 
@@ -62,20 +84,19 @@ def build_message(
 
 ## 本次任务参数
 
-- **任务目录**：{task_dir}
-- **新闻 ID**：{news_id}
-- **新闻标题**：{title}
-- **新闻链接**：{link}
-"""
+- **NEWS_ID**: `{news_id}`
+- **news_dir**: `{news_dir}`
+- **TITLE**: {title}
+- **LINK**: {link}{status_note}"""
 
     if summary:
         message += f"""
+
 ---
 
 ## 新闻内容
 
-{summary}
-"""
+{summary}"""
 
     return message
 
@@ -105,16 +126,14 @@ async def submit_analysis(
         logger.warning(f"新闻内容为空: {news_id} ({title})")
         return (False, False)
 
-    # 创建分析任务目录（用于 Agent 写 progress.md / report.md）
-    date_str = datetime.now().strftime("%Y-%m-%d")
-    task_dir = get_quick_news_analysis_task_dir(date_str, news_id)
-    ensure_dir(task_dir)
+    # 新闻数据目录（data/news/{news_id}/）
+    news_dir_relative = str(Path("data") / "news" / news_id)
 
     logger.info(f"提交快速分析任务: {title} ({news_id})")
 
     # 构造消息
     try:
-        message = build_message(str(task_dir), news_id, title, link, summary)
+        message = build_message(news_dir_relative, news_id, title, link, summary)
     except FileNotFoundError as e:
         logger.error(f"加载任务模板失败: {e}")
         return (False, False)
@@ -125,6 +144,7 @@ async def submit_analysis(
     cron_result = await submit_cron_task(
         message=message,
         name=f"news-analysis-{news_id}",
+        timeout_seconds=config.cron.agent_turn_timeout_seconds,
         delete_after_run=True,
         thinking="low",
         agent_id=config.agent_id,
@@ -138,13 +158,14 @@ async def submit_analysis(
 
     logger.info(f"任务已完成: {cron_result.job_id}, sessionId: {cron_result.session_id}")
 
-    # Agent 通过 CLI update-news 将分析结果写入 news.json
-    # Backend 等待 news.json 中出现 analysis 字段
+    # submit_cron_task 已通过 Gateway cron state 确认任务完成
+    # 此时 Agent 应已通过 CLI 写入分析结果到 news.json
     worth_deep_analysis = False
     analysis_found = False
 
     try:
-        for _ in range(config.cron.report_wait_timeout_seconds):
+        # 短暂等待文件写入（Agent 可能刚完成 CLI 调用，文件 I/O 可能稍有延迟）
+        for attempt in range(30):  # 最多等 30 秒
             news_data = read_news_json(news_id)
             if news_data and "analysis" in news_data:
                 analysis_found = True
@@ -163,7 +184,7 @@ async def submit_analysis(
                 break
             await asyncio.sleep(1)
         else:
-            logger.warning(f"分析结果未在 {config.cron.report_wait_timeout_seconds} 秒内出现: {news_id}")
+            logger.warning(f"任务完成但 analysis 字段未写入: {news_id}")
     except Exception as e:
         logger.error(f"读取分析结果失败: {e}")
 
@@ -172,7 +193,7 @@ async def submit_analysis(
         await _notify_recipients(
             news_id=news_id,
             title=title,
-            task_dir=str(task_dir),
+            news_dir=news_dir_relative,
         )
 
     return (analysis_found, worth_deep_analysis)
@@ -181,7 +202,7 @@ async def submit_analysis(
 async def _notify_recipients(
     news_id: str,
     title: str,
-    task_dir: str,
+    news_dir: str,
 ) -> None:
     """推送分析结果通知。"""
     from openclaw_alpha.news.service import read_news_json
@@ -197,8 +218,6 @@ async def _notify_recipients(
     worth_deep = analysis.get("worth_deep_analysis", False) if isinstance(analysis, dict) else False
     related_sectors = analysis.get("related_sectors", []) if isinstance(analysis, dict) else []
     related_companies = analysis.get("related_companies", []) if isinstance(analysis, dict) else []
-    impact = analysis.get("impact_assessment", "") if isinstance(analysis, dict) else ""
-
     # 格式化相关公司
     companies_str = ""
     if related_companies:
@@ -214,14 +233,16 @@ async def _notify_recipients(
     if len(related_sectors) > 3:
         sectors_str += f" 等{len(related_sectors)}个板块"
 
-    message = f"""📰 **{title}**
+    summary_text = news_data.get("summary", "")
+    summary_line = f"\n概括：{summary_text[:80] + '...' if len(summary_text) > 80 else summary_text}" if summary_text else ""
+
+    message = f"""📰 **{title}**{summary_line}
 
 板块：{sectors_str or '无'}
 公司：{companies_str or '无'}
-影响：{impact[:100] + '...' if len(impact) > 100 else impact or '待分析'}
 深度分析：{'✅ 建议深入' if worth_deep else '⏭️ 跳过'}
 
-📂 任务目录：{task_dir}
+📂 news_dir：{news_dir}
 
 ---
 💡 当前消息仅为通知，如需深入讨论，复制本消息后追加你想讨论的内容发送。"""

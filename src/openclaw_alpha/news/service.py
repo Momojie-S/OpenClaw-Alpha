@@ -50,8 +50,8 @@ def read_content(news_id: str, data_dir: Path | None = None) -> str | None:
     return p.read_text(encoding="utf-8")
 
 
-def read_embedding(news_id: str, data_dir: Path | None = None) -> list[float] | None:
-    d = _read_json(_news_dir(news_id, data_dir) / "embedding.json")
+def read_summary_vector(news_id: str, data_dir: Path | None = None) -> list[float] | None:
+    d = _read_json(_news_dir(news_id, data_dir) / "summary_vector.json")
     if d is None:
         return None
     return d.get("vector")
@@ -84,23 +84,28 @@ def _save_news_item(item: NewsItem, data_dir: Path | None = None) -> bool:
 
 
 def _sync_to_milvus(news_id: str, data_dir: Path | None = None) -> None:
-    """统一 Milvus 同步：读 news.json + embedding.json，有 embedding 时 upsert。"""
+    """统一 Milvus 同步：读 news.json + summary_vector.json，有向量时 upsert。"""
     news = read_news_json(news_id, data_dir)
     if news is None:
         return
-    vector = read_embedding(news_id, data_dir)
+    vector = read_summary_vector(news_id, data_dir)
     if vector is None:
         return
 
     client = get_client()
     ensure_collection(client)
+    entities = news.get("entities", "")
+    # 确保 entities 是 string（兼容 list 格式）
+    if isinstance(entities, list):
+        entities = " ".join(entities)
+
     client.upsert(
         collection_name="news_items",
         data=[{
             "news_id": news_id,
-            "embedding": vector,
+            "summary_vector": vector,
             "event_id": news.get("event_id", ""),
-            "entities": news.get("entities", ""),
+            "entities": entities,
             "created_at": news.get("created_at", 0),
         }],
     )
@@ -132,27 +137,39 @@ async def fetch_and_save(
         source=source, symbol=symbol, keyword=keyword, date=date, limit=limit
     )
 
-    saved = []
-    skipped = []
+    saved_list: list[str] = []
+    skipped_list: list[str] = []
+    news_output: list[dict] = []
+
     for item in result.news:
         created = _save_news_item(item, data_dir)
-        (saved if created else skipped).append(item.news_id)
+        if created:
+            saved_list.append(item.news_id)
+            nd = _news_dir(item.news_id, data_dir)
+            content = read_content(item.news_id, data_dir) or ""
+            news_output.append({
+                "news_id": item.news_id,
+                "news_dir": str(nd.resolve()),
+                "title": item.title,
+                "link": item.url or "",
+                "content": content,
+                "saved": True,
+                "skipped": False,
+            })
+        else:
+            skipped_list.append(item.news_id)
+            news_output.append({
+                "news_id": item.news_id,
+                "saved": False,
+                "skipped": True,
+            })
 
     return {
         "source": result.source,
         "total": result.total,
-        "saved": len(saved),
-        "skipped": len(skipped),
-        "news": [
-            {
-                "news_id": item.news_id,
-                "title": item.title,
-                "date": str(item.date) if item.date else "",
-                "time": str(item.time) if item.time else "",
-                "source": item.source,
-            }
-            for item in result.news
-        ],
+        "saved": len(saved_list),
+        "skipped": len(skipped_list),
+        "news": news_output,
     }
 
 
@@ -173,7 +190,7 @@ def update_news(
         embedder = get_embedder()
         vector = embedder.embed(summary)
         _write_json(
-            _news_dir(news_id, data_dir) / "embedding.json",
+            _news_dir(news_id, data_dir) / "summary_vector.json",
             {"vector": vector},
         )
         news["summary"] = summary
@@ -204,9 +221,9 @@ def search_similar(
     if news is None:
         return {"error": f"news_id {news_id} not found"}
 
-    vector = read_embedding(news_id, data_dir)
+    vector = read_summary_vector(news_id, data_dir)
     if vector is None:
-        return {"error": f"news_id {news_id} has no embedding yet"}
+        return {"error": f"news_id {news_id} has no summary_vector yet"}
 
     client = get_client()
     ensure_collection(client)
@@ -214,6 +231,7 @@ def search_similar(
     results = client.search(
         collection_name="news_items",
         data=[vector],
+        anns_field="summary_vector",
         limit=top + 1,  # 多取一个排除自己
         output_fields=["news_id", "event_id"],
     )
@@ -246,7 +264,7 @@ def search_keyword(
     results = client.search(
         collection_name="news_items",
         data=[keyword],
-        anns_field="entities",
+        anns_field="entities_vector",
         limit=top,
         output_fields=["news_id", "entities"],
     )
@@ -277,10 +295,13 @@ def get_news(
     if news is None:
         return {"error": f"news_id {news_id} not found"}
 
+    nd = str(_news_dir(news_id, data_dir).resolve())
+
     if fields is None:
+        news["news_dir"] = nd
         return news
 
-    result = {}
+    result = {"news_dir": nd}
     for f in fields:
         if f == "content":
             content = read_content(news_id, data_dir)

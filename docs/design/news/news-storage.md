@@ -7,7 +7,7 @@ data/
 ├── news/{news_id}/
 │   ├── news.json        # 元数据 + 分析结果
 │   ├── content.md       # 新闻原文
-│   └── embedding.json   # {"vector": [...]} (1024d)
+│   └── summary_vector.json   # {"vector": [...]} (1024d)
 └── events/{event_id}/
     └── event.json       # 事件聚合信息
 ```
@@ -45,13 +45,13 @@ data/
 
 新闻原文，独立存储避免 news.json 过大。
 
-### embedding.json
+### summary_vector.json
 
 ```json
 {"vector": [0.1, 0.2, ...]}
 ```
 
-1024 维 float 向量，由 `update-news --summary` 时生成。单独存储保持 news.json 可读。
+1024 维 float 向量，由 `update-news --summary` 时生成（DashScope text-embedding-v4）。单独存储保持 news.json 可读。
 
 ### event.json
 
@@ -84,7 +84,7 @@ def _sync_to_milvus(news_id: str):
     ensure_collection(client)
     client.upsert("news_items", data=[{
         "news_id": news_id,
-        "embedding": embedding["vector"],
+        "summary_vector": embedding["vector"],
         "event_id": news.get("event_id", ""),
         "entities": news.get("entities", ""),
         "created_at": news.get("created_at", 0),
@@ -95,23 +95,41 @@ def _sync_to_milvus(news_id: str):
 
 | 字段 | 类型 | 说明 |
 |------|------|------|
-| news_id | VARCHAR (PK) | 新闻唯一标识 |
-| embedding | FLOAT_VECTOR(1024) | 语义向量（DashScope text-embedding-v4） |
-| bm25_vector | SPARSE_FLOAT_VECTOR | BM25 稀疏向量（自动生成） |
-| event_id | VARCHAR | 关联事件 ID |
-| entities | VARCHAR | 实体关键词（BM25 输入字段） |
+| news_id | VARCHAR(256) (PK) | 新闻唯一标识 |
+| summary_vector | FLOAT_VECTOR(1024) | 语义向量（从 summary 生成，DashScope text-embedding-v4） |
+| entities_vector | SPARSE_FLOAT_VECTOR | 关键词向量（从 entities 自动生成，勿手动写入） |
+| event_id | VARCHAR(256) | 关联事件 ID |
+| entities | VARCHAR(2048) | 实体关键词，空格分隔（如 `"石油化工 黄金 中国石油"`） |
 | created_at | INT64 | 创建时间戳 |
 
-**BM25 Function**：`FunctionType.BM25`，输入 `entities` → 输出 `bm25_vector`，Milvus 自动分词生成稀疏向量。
+**BM25 Function**：`FunctionType.BM25`，输入 `entities` → 输出 `entities_vector`，Milvus 自动分词生成稀疏向量。
 
-**索引**：
-- `embedding`：AUTOINDEX，metric_type `COSINE`
-- `bm25_vector`：SPARSE_INVERTED_INDEX，metric_type `BM25`
+**entities 字段 Analyzer**：使用 `chinese` 内置分词器。
+
+> **为什么不选其他 analyzer：**
+> - `jieba`：Zilliz Cloud Serverless 不支持（仅自建 Milvus 可用）
+> - `standard`：按空格切 token，`"中国石油"` 作为完整 token，搜 `"石油"` 无法命中
+> - `chinese`：中文分词，`"中国石油"` → `["中国", "石油"]`，支持子串搜索
+
+**索引**（两个向量字段，搜索时必须指定 `anns_field`）：
+- `summary_vector`：AUTOINDEX，COSINE — 用于 `search-similar`（语义匹配）
+- `entities_vector`：SPARSE_INVERTED_INDEX，BM25 — 用于 `search-keyword`（关键词搜索）
+
+### 连接注意事项
+
+Zilliz Cloud Serverless 的 URI 必须显式带 `:443` 端口：
+
+```
+MILVUS_URI=https://xxx.serverless.gcp-us-west1.cloud.zilliz.com:443
+```
+
+pymilvus 默认用 19530 端口（自建 Milvus 默认），Zilliz Cloud Serverless 不开放 19530，不带端口会导致连接超时。
 
 ### 约束
 
-- upsert 必须带 embedding 字段（Milvus 要求非 null 字段全传）
-- 统一入口自动从 embedding.json 读取，调用者无需关心
-- embedding 不存在时静默跳过
+- upsert 必须带 summary_vector 字段（Milvus 要求非 null 字段全传）
+- 统一入口自动从 summary_vector.json 读取，调用者无需关心
+- summary_vector 不存在时静默跳过
+- entities 在 sync 时自动做 list→string 转换（news.json 可能为 list）
 
 CLI 命令详见 [news-cli.md](news-cli.md)。

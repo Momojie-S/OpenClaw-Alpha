@@ -41,3 +41,9 @@ backend.log
 
 # OpenSpec
 openspec/changes/
+
+# Agent configs
+.agents/
+
+# Runtime data
+data/

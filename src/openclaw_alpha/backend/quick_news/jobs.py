@@ -7,6 +7,7 @@ Backend 通过 CLI service 层拉取新闻，用 news.json 的 analysis_status �
 import asyncio
 import json
 import logging
+import time
 from pathlib import Path
 
 from ..scheduler import Scheduler
@@ -118,6 +119,7 @@ async def fetch_all_quick_news(limit: int = 1) -> None:
 
     # 4. 逐个触发分析
     processed_count = 0
+    start_time = time.monotonic()
     for news_data in pending:
         news_id = news_data["news_id"]
         title = news_data.get("title", "")
@@ -166,17 +168,16 @@ async def fetch_all_quick_news(limit: int = 1) -> None:
             write_news_json(news_id, news_data)
             logger.warning(f"分析失败: {news_id}")
 
+    elapsed = time.monotonic() - start_time
     logger.info(f"新闻处理完成: {processed_count}/{len(pending)} 成功")
 
     # 5. 发送汇总通知
     if processed_count > 0:
-        await _send_summary_notification(processed_count)
+        await _send_summary_notification(processed_count, elapsed)
 
 
-async def _send_summary_notification(count: int) -> None:
+async def _send_summary_notification(count: int, elapsed_seconds: float) -> None:
     """发送处理完成汇总通知。"""
-    from datetime import datetime
-
     from .task_executor import get_gateway_client
 
     config = load_quick_news_config()
@@ -185,8 +186,10 @@ async def _send_summary_notification(count: int) -> None:
     if not recipients:
         return
 
-    now = datetime.now().strftime("%H:%M")
-    message = f"📊 **新闻快速分析完成**\n\n处理了 {count} 条新闻\n时间: {now}"
+    mins = int(elapsed_seconds // 60)
+    secs = int(elapsed_seconds % 60)
+    elapsed_str = f"{mins}分{secs}秒" if mins > 0 else f"{secs}秒"
+    message = f"📊 **新闻快速分析完成**\n\n处理了 {count} 条新闻\n总耗时: {elapsed_str}"
 
     client = await get_gateway_client()
     for recipient in recipients:

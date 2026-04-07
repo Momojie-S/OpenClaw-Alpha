@@ -98,16 +98,17 @@ async def submit_cron_task(
     提交 OpenClaw cron 任务（使用 HTTP API）
 
     流程：
-    1. cron.add（设置 10m 后执行，避免自动触发）
-    2. cron.run（手动触发）
-    3. 轮询 session store 获取 session 信息
-    4. cron.remove（删除任务）
+    1. cron.add（创建任务）
+    2. cron.run（fire-and-forget 触发）
+    3. 轮询 cron job state 等待完成（Gateway 管理，不依赖 Agent 写入）
+    4. 从 session store 获取 session 信息
+    5. cron.remove（删除任务）
 
     Args:
         message: 任务消息
         name: 任务名称（可选，默认自动生成时间戳名称）
-        timeout_seconds: 超时时间（秒），默认 300 秒（5 分钟）
-        session_poll_timeout_seconds: 轮询 session store 的超时时间（秒），默认 300 秒（5 分钟）
+        timeout_seconds: Agent 执行超时（秒），传给 cron payload
+        session_poll_timeout_seconds: 轮询 job 完成状态的超时（秒）
         delete_after_run: 运行后删除任务，默认 True
         thinking: 思考级别，默认 "low"
         agent_id: Agent ID，默认 "alpha"
@@ -141,7 +142,6 @@ async def submit_cron_task(
         client = await get_gateway_client()
 
         # ========== 1. 添加任务 ==========
-        # 计算触发时间：10 分钟后
         trigger_time = int((time.time() + 600) * 1000)
 
         add_params: dict[str, Any] = {
@@ -165,7 +165,6 @@ async def submit_cron_task(
         if model:
             add_params["payload"]["model"] = model
 
-        # 设置 delivery
         if delivery_channel and delivery_to:
             add_params["delivery"] = {
                 "mode": "announce",
@@ -189,50 +188,44 @@ async def submit_cron_task(
             cron_result.error = error_msg
             return cron_result
 
-        # HTTP API 返回格式: {"result": {"details": {...}}}
         add_data = add_response.get("result", {}).get("details", {})
         cron_result.job_id = add_data.get("id", "")
         logger.info(f"任务创建成功: {cron_result.job_id}")
 
-        # ========== 2. 触发任务 ==========
+        # ========== 2. 触发任务（fire-and-forget）==========
         logger.info(f"触发任务: {cron_result.job_id}")
-        run_response = await client.call_tool(
-            "cron",
-            {"action": "run", "jobId": cron_result.job_id},
-            timeout=float(timeout_seconds),
-        )
 
-        if not run_response.get("ok"):
-            error = run_response.get("error", {})
-            error_msg = error.get("message", "触发任务失败")
-            logger.error(f"触发任务失败: {error_msg}")
-            # 尝试删除任务
-            await _remove_job(client, cron_result.job_id)
-            cron_result.error = error_msg
+        async def _fire_and_forget_run():
+            try:
+                await client.call_tool(
+                    "cron",
+                    {"action": "run", "jobId": cron_result.job_id},
+                    timeout=float(timeout_seconds + 60),
+                )
+            except Exception as e:
+                logger.debug(f"cron.run 后台完成: {e}")
+
+        asyncio.create_task(_fire_and_forget_run())
+
+        # ========== 3. 轮询 job 完成状态（通过 cron.runs）==========
+        run_ok = await _poll_job_completion(client, cron_result, session_poll_timeout_seconds)
+
+        logger.info(f"任务运行完成: sessionId={cron_result.session_id}")
+
+        # ========== 4. 删除任务 ==========
+        await _remove_job(client, cron_result.job_id)
+
+        if not run_ok:
+            cron_result.error = f"任务在 {session_poll_timeout_seconds} 秒内未完成"
             return cron_result
-
-        # 解析 run 结果
-        run_data = run_response.get("result", {})
-        cron_result.session_id = run_data.get("sessionId")
-        cron_result.session_key = run_data.get("sessionKey")
-
-        # 如果 run 没返回 session 信息，尝试从 session store 获取
-        if not cron_result.session_id:
-            await _poll_session_info(cron_result, agent_id, session_poll_timeout_seconds)
 
         # 构造 context_path
         if cron_result.session_id:
-            cron_result.context_path = str(get_openclaw_session_file(agent_id, cron_result.session_id))
+            cron_result.context_path = str(get_openclaw_session_file(cron_result.agent_id, cron_result.session_id))
             session_file = Path(cron_result.context_path)
             cron_result.context_path_deleted = str(
                 session_file.with_name(f"{session_file.stem}.deleted.*")
             )
-
-        logger.info(f"任务运行完成: sessionId={cron_result.session_id}")
-
-        # ========== 3. 删除任务 ==========
-        if delete_after_run:
-            await _remove_job(client, cron_result.job_id)
 
         cron_result.success = True
         return cron_result
@@ -244,40 +237,83 @@ async def submit_cron_task(
         return cron_result
 
 
-async def _poll_session_info(
+async def _poll_job_completion(
+    client,
     cron_result: CronResult,
-    agent_id: str,
     timeout_seconds: int,
-) -> None:
-    """轮询 session store 获取 session 信息"""
-    try:
-        for _ in range(timeout_seconds):
-            await asyncio.sleep(1)
+) -> bool:
+    """轮询 cron.runs 等待任务完成。
 
-            session_store_path = (
-                Path.home() / ".openclaw" / "agents" / agent_id / "sessions" / "sessions.json"
+    使用 cron.runs API 获取运行记录，从中提取完成状态和 session 信息。
+    不依赖 Agent 写入任何文件，也不依赖 cron.list（已知可能返回空）。
+
+    Returns:
+        True 如果任务完成（ok 或 error），False 如果超时
+    """
+    logger.info(f"开始轮询任务完成状态: {cron_result.job_id}（超时 {timeout_seconds}s）")
+    start = time.monotonic()
+
+    # 等待 3 秒让任务启动
+    await asyncio.sleep(3)
+
+    while (time.monotonic() - start) < timeout_seconds:
+        try:
+            response = await client.call_tool(
+                "cron",
+                {"action": "runs", "jobId": cron_result.job_id},
+                timeout=10.0,
             )
 
-            if not session_store_path.exists():
-                continue
+            if response.get("ok"):
+                # cron.runs 返回格式: result.details.entries[]
+                details = response.get("result", {}).get("details", {})
+                entries = details.get("entries", [])
 
-            with open(session_store_path, encoding="utf-8") as f:
-                sessions_data = json.load(f)
+                if entries:
+                    latest = entries[0]  # 最新的 run 记录
+                    run_status = latest.get("status")
+                    duration_ms = latest.get("durationMs", 0)
+                    session_id = latest.get("sessionId")
+                    session_key = latest.get("sessionKey")
 
-            # 查找包含 job_id 的 session
-            for session_key, session_info in sessions_data.items():
-                if cron_result.job_id in session_key and ":run:" in session_key:
-                    cron_result.session_id = session_info.get("sessionId")
-                    cron_result.session_key = session_key
-                    logger.info(f"获取运行信息: sessionId={cron_result.session_id}")
-                    return
+                    if run_status in ("ok", "error"):
+                        # 填充 session 信息
+                        if session_id:
+                            cron_result.session_id = session_id
+                        if session_key:
+                            cron_result.session_key = session_key
+                            # 从 session_key 解析实际 agent_id
+                            actual_agent = parse_agent_id_from_session_key(session_key)
+                            if actual_agent:
+                                cron_result.agent_id = actual_agent
 
-        logger.warning(
-            f"未找到包含 job_id {cron_result.job_id} 的 session（轮询了 {timeout_seconds} 秒）"
-        )
+                        if run_status == "ok":
+                            logger.info(f"任务完成: ok（耗时 {duration_ms}ms）")
+                            return True
+                        else:
+                            summary = latest.get("summary", "未知错误")
+                            logger.warning(f"任务完成: error - {summary}")
+                            cron_result.error = summary
+                            return True
 
-    except Exception as e:
-        logger.warning(f"获取运行信息失败: {e}")
+        except Exception as e:
+            logger.debug(f"轮询异常（继续）: {e}")
+
+        await asyncio.sleep(10)
+
+    logger.error(f"任务轮询超时: {cron_result.job_id}")
+    return False
+
+
+def _extract_agent_from_session_key(session_key: str) -> str | None:
+    """从 session key 提取 agent_id。
+
+    session_key 格式: agent:{agent_id}:{label}:run:{session_id}
+    """
+    parts = session_key.split(":")
+    if len(parts) >= 2 and parts[0] == "agent":
+        return parts[1]
+    return None
 
 
 async def _remove_job(client, job_id: str) -> None:

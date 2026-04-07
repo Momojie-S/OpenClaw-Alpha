@@ -50,12 +50,12 @@ def load_candidates(date: str = None) -> list[dict]:
     return []
 
 
-def append_system_info(task_dir: str, job_id: str, session_id: str, context_path: str, context_path_deleted: str | None = None) -> str:
+def append_system_info(news_dir: str, job_id: str, session_id: str, context_path: str, context_path_deleted: str | None = None) -> str:
     """
     在报告末尾追加系统运行信息
 
     Args:
-        task_dir: 任务工作目录
+        news_dir: 新闻数据目录
         job_id: Cron 任务 ID
         session_id: 当前 session ID（sessionKey）
         context_path: OpenClaw 上下文存储路径（session file，.jsonl）
@@ -74,7 +74,7 @@ def append_system_info(task_dir: str, job_id: str, session_id: str, context_path
     """
     from pathlib import Path
 
-    report_path = Path(task_dir) / "report.md"
+    report_path = Path(news_dir) / "report.md"
 
     if not report_path.exists():
         raise FileNotFoundError(f"报告文件不存在: {report_path}")

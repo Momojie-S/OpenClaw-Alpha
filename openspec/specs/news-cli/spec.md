@@ -26,7 +26,7 @@
 
 ### Requirement: fetch-news 自动落盘
 
-fetch-news 调用 fetcher 后，返回前自动保存到本地。
+fetch-news 调用 fetcher 后，返回前自动保存到本地。saved 的新闻输出包含完整信息。
 
 #### Scenario: 新新闻自动保存
 - **WHEN** fetcher 返回新闻列表
@@ -35,6 +35,14 @@ fetch-news 调用 fetcher 后，返回前自动保存到本地。
 #### Scenario: 已有新闻幂等跳过
 - **WHEN** news_id 对应的 news.json 已存在
 - **THEN** 跳过该条，不覆盖
+
+#### Scenario: saved 新闻输出包含完整信息
+- **WHEN** fetch-news 成功保存一条新闻
+- **THEN** 输出包含 `news_id`、`news_dir`（绝对路径）、`title`、`link`、`content`（从 content.md 读取）、`saved: true`、`skipped: false`
+
+#### Scenario: skipped 新闻输出精简
+- **WHEN** fetch-news 跳过一条已有新闻
+- **THEN** 输出仅包含 `news_id`、`saved: false`、`skipped: true`，不包含 news_dir/title/link/content
 
 ### Requirement: update-news 统一写入
 
@@ -46,7 +54,7 @@ fetch-news 调用 fetcher 后，返回前自动保存到本地。
 
 #### Scenario: 只传 analysis
 - **WHEN** update-news 传入 `--analysis`
-- **THEN** 解析 JSON → 更新 news.json analysis 字段 → 拼接 entities → sync Milvus（有 embedding 时）
+- **THEN** 解析 JSON（字段为 related_sectors、related_companies、worth_deep_analysis） → 更新 news.json analysis 字段 → 拼接 entities → sync Milvus（有 embedding 时）
 
 #### Scenario: 同时传 summary + analysis
 - **WHEN** update-news 同时传入 `--summary` 和 `--analysis`
@@ -88,11 +96,11 @@ fetch-news 调用 fetcher 后，返回前自动保存到本地。
 
 #### Scenario: 不指定 fields
 - **WHEN** get-news 不传 `--fields`
-- **THEN** 返回完整 news.json
+- **THEN** 返回完整 news.json + `news_dir`（绝对路径）
 
 #### Scenario: 指定 fields
 - **WHEN** get-news 传入 `--fields summary,content`
-- **THEN** 按 key-value 返回指定字段，content 从 content.md 读取
+- **THEN** 按 key-value 返回指定字段（含 `news_dir`），content 从 content.md 读取
 
 #### Scenario: news_id 不存在
 - **WHEN** get-news 传入的 news_id 目录不存在

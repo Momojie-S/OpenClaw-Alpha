@@ -26,11 +26,12 @@ class DeliveryConfig(BaseModel):
 class CronConfig(BaseModel):
     """Cron 任务配置"""
 
-    # 轮询 session store 的超时时间（秒）
-    session_poll_timeout_seconds: int = 300
+    # Agent 执行超时（秒），传给 cron payload 的 timeoutSeconds
+    agent_turn_timeout_seconds: int = 900
 
-    # 等待 report.md 创建的超时时间（秒）
-    report_wait_timeout_seconds: int = 300
+    # 轮询 Gateway cron job 完成状态的超时时间（秒）
+    # 包括 Agent 执行 + delivery announce 的全部时间
+    session_poll_timeout_seconds: int = 900
 
 
 class QuickNewsConfig(BaseModel):
@@ -38,7 +39,7 @@ class QuickNewsConfig(BaseModel):
 
     enabled: bool = True
     interval_minutes: int = 30
-    agent_id: str = "echo"
+    agent_id: str = "main"
     model: str | None = None
     delivery: DeliveryConfig = DeliveryConfig()
     cron: CronConfig = CronConfig()
