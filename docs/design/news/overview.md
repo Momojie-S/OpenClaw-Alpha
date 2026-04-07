@@ -10,6 +10,23 @@
          结构化 + 索引          深度洞察 + 建议
 ```
 
+## 核心定位
+
+**新闻分析是一个整体 skill，数据积累为分析服务。**
+
+新闻拉取、数据存储、事件追踪、预测回顾——这些不是独立功能，而是为了给下一次分析提供更好的上下文输入：
+
+```
+新闻拉取 → 数据落盘 → 分析（核心）
+                        ↑
+            事件追踪 ← 提供历史上下文
+            预测回顾 ← 提供实际表现参考
+            向量搜索 ← 提供相似新闻参考
+            关键词搜索 ← 提供相关新闻参考
+```
+
+数据积累 → 更好的上下文 → 更准确的分析 → 更多的数据积累。这是一个正循环。
+
 ## 设计原则
 
 ### 调度与执行分离
@@ -57,6 +74,7 @@ Agent 通过 CLI 操作数据，每次分析产生数据沉淀：
 | Milvus 存储 | ✅ 已实现 | 向量搜索 + BM25 关键词搜索 |
 | Backend 调度 | ✅ 已实现 | 定时拉取 + analysis_status 追踪 |
 | Agent 任务模板 | ✅ v2 已实现 | CLI 写入闭环 |
+| 事件追踪 | 📐 设计完成 | 待实现 |
 | 深度分析 | ⏳ 待实现 | TODO |
 
 ---
@@ -101,4 +119,4 @@ data/news/{news_id}/
 - [news-storage.md](news-storage.md) — 数据结构 + Milvus 同步
 - [news-cli.md](news-cli.md) — CLI 命令手册
 - [news-fetcher.md](news-fetcher.md) — 新闻拉取设计
-- [event-tracking-storage.md](event-tracking-storage.md) — 事件跟踪存储设计
+- [event-tracking.md](event-tracking.md) — 事件追踪系统设计

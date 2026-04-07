@@ -4,6 +4,7 @@
 import hashlib
 import json
 import time
+from datetime import datetime, timezone, timedelta
 from pathlib import Path
 from typing import Any, Optional
 
@@ -178,6 +179,7 @@ def update_news(
     summary: str | None = None,
     analysis: dict | None = None,
     event_id: str | None = None,
+    review: dict | None = None,
     data_dir: Path | None = None,
 ) -> dict:
     """更新新闻字段，统一 sync 一次。"""
@@ -200,9 +202,28 @@ def update_news(
         news["analysis"] = analysis
         news["entities"] = _build_entities(analysis)
 
-    # --event-id
+    # --event-id: 双向关联
     if event_id is not None:
+        event_path = _event_dir(event_id, data_dir) / "event.json"
+        event = _read_json(event_path)
+        if event is None:
+            return {"error": f"event_id {event_id} not found"}
+
         news["event_id"] = event_id
+
+        # 追加 news_id 到 event.json.news_ids（幂等）
+        now = _now_iso()
+        existing_ids = {n["news_id"] for n in event.get("news_ids", [])}
+        if news_id not in existing_ids:
+            event.setdefault("news_ids", []).append(
+                {"news_id": news_id, "timestamp": now}
+            )
+            event["updated_at"] = now
+            _write_json(event_path, event)
+
+    # --review: 追加到 analysis.reviews[]
+    if review is not None:
+        news.setdefault("analysis", {}).setdefault("reviews", []).append(review)
 
     news["updated_at"] = int(time.time())
     write_news_json(news_id, news, data_dir)
@@ -309,6 +330,93 @@ def get_news(
         elif f in news:
             result[f] = news[f]
     return result
+
+
+def _now_iso() -> str:
+    """当前时间 ISO 8601 字符串（东八区）。"""
+    tz = timezone(timedelta(hours=8))
+    return datetime.now(tz).isoformat()
+
+
+def _gen_event_id() -> str:
+    """生成 event_id: evt_{timestamp}_{random4}。"""
+    ts = int(time.time())
+    rand = hashlib.md5(str(ts).encode()).hexdigest()[:4]
+    return f"evt_{ts}_{rand}"
+
+
+def create_event(
+    title: str,
+    news_id: str,
+    data_dir: Path | None = None,
+) -> dict:
+    """创建事件并双向关联首条新闻。"""
+    # 校验 news_id 存在
+    news = read_news_json(news_id, data_dir)
+    if news is None:
+        return {"error": f"news_id {news_id} not found"}
+
+    now = _now_iso()
+    event_id = _gen_event_id()
+    event = {
+        "event_id": event_id,
+        "title": title,
+        "status": "ongoing",
+        "news_ids": [{"news_id": news_id, "timestamp": now}],
+        "created_at": now,
+        "updated_at": now,
+    }
+    _write_json(_event_dir(event_id, data_dir) / "event.json", event)
+
+    # 双向：更新 news.json 的 event_id
+    news["event_id"] = event_id
+    write_news_json(news_id, news, data_dir)
+
+    return event
+
+
+def close_event(
+    event_id: str, data_dir: Path | None = None
+) -> dict:
+    """关闭事件。"""
+    event_path = _event_dir(event_id, data_dir) / "event.json"
+    event = _read_json(event_path)
+    if event is None:
+        return {"error": f"event_id {event_id} not found"}
+    if event.get("status") == "closed":
+        return {"error": f"event {event_id} already closed"}
+
+    event["status"] = "closed"
+    event["updated_at"] = _now_iso()
+    _write_json(event_path, event)
+    return event
+
+
+def list_events(
+    status: str | None = None,
+    limit: int = 50,
+    data_dir: Path | None = None,
+) -> dict:
+    """列出事件，按 updated_at 降序。"""
+    events_dir = (data_dir or _DEFAULT_DATA_DIR) / "events"
+    if not events_dir.exists():
+        return {"events": []}
+
+    events = []
+    for d in events_dir.iterdir():
+        if not d.is_dir():
+            continue
+        event = _read_json(d / "event.json")
+        if event is None:
+            continue
+        if status and event.get("status") != status:
+            continue
+        events.append(event)
+
+    # 按 updated_at 降序
+    events.sort(key=lambda e: e.get("updated_at", ""), reverse=True)
+    events = events[:limit]
+    return {"events": events}
 
 
 def get_event(

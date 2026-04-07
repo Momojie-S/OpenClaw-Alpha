@@ -178,4 +178,4 @@ python -m openclaw_alpha.news.cli trigger [--limit N]
 - [news-cli.md](news-cli.md) — CLI 命令手册
 - [news-fetcher.md](news-fetcher.md) — 新闻拉取设计
 - [deep-analysis.md](deep-analysis.md) — 深度分析设计
-- [event-tracking-storage.md](event-tracking-storage.md) — 事件跟踪存储设计
+- [event-tracking.md](event-tracking.md) — 事件追踪系统设计

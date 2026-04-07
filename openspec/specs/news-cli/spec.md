@@ -148,6 +148,35 @@ Backend 通过 import 调用 news/service.py 的函数，不走 subprocess CLI�
 - **WHEN** Backend 需要写入 analysis_status
 - **THEN** 调用 `update_news(news_id, ...)` 或直接操作 news.json（通过已有的 read_news_json / write_news_json）
 
+### Requirement: update-news --event-id bidirectional
+`update-news --event-id` SHALL 同时更新 news.json.event_id 和 event.json.news_ids（双向关联）。
+
+原行为：只更新 news.json.event_id，不修改 event 文件。
+
+#### Scenario: Link news to event updates both sides
+- **WHEN** 调用 `update-news news_1 --event-id "evt_xxx"`
+- **THEN** news_1.event_id 更新为 "evt_xxx"
+- **AND** evt_xxx.event.json.news_ids 追加 news_1
+
+#### Scenario: Event not found returns error
+- **WHEN** 调用 `update-news news_1 --event-id "evt_nonexistent"`
+- **THEN** 返回错误，news.json 不修改
+
+#### Scenario: Duplicate link is idempotent
+- **WHEN** 调用 `update-news news_1 --event-id "evt_xxx"` 且 news_1 已在 event.json.news_ids 中
+- **THEN** 不重复追加，正常返回
+
+### Requirement: update-news --review 追加回顾
+`update-news --review` SHALL 追加 review 到 news.json 的 analysis.reviews[]。
+
+#### Scenario: Append first review
+- **WHEN** 调用 `update-news news_1 --review '{...}'`，且 news_1 的 reviews 为空
+- **THEN** news_1 的 analysis.reviews 包含 1 条 review
+
+#### Scenario: Append additional review
+- **WHEN** 调用 `update-news news_1 --review '{...}'`，且 news_1 已有 reviews
+- **THEN** 新 review 追加到数组末尾，已有 review 不受影响
+
 ### Requirement: 错误统一格式
 
 所有错误以 `{"error": "message"}` 格式返回，CLI 以 exit code 1 退出。

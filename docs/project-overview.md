@@ -153,7 +153,7 @@ RSS 拉取 → 过滤已处理 → Agent 快速分析 → 高价值新闻 → �
 - `core/embedding/` — 向量生成（工厂模式，支持多 provider）
 - `news/` — 新闻存储（insert_news 入口，自动建表）
 
-详见 [事件跟踪存储设计](docs/design/news/event-tracking-storage.md)。
+详见 [事件追踪系统设计](docs/design/news/event-tracking.md)。
 
 ### Fetcher（数据获取）
 - Fetcher（入口）：调度、选择可用的数据源实现

@@ -30,12 +30,16 @@ def _cmd_update_news(args):
     analysis = None
     if args.analysis:
         analysis = json.loads(args.analysis)
+    review = None
+    if args.review:
+        review = json.loads(args.review)
 
     result = service.update_news(
         news_id=args.news_id,
         summary=args.summary,
         analysis=analysis,
         event_id=args.event_id,
+        review=review,
         data_dir=Path(args.data_dir) if args.data_dir else None,
     )
     if "error" in result:
@@ -90,7 +94,35 @@ def _cmd_get_event(args):
 
 
 def _cmd_create_event(args):
-    _output({"message": "create-event 待后续统一设计"})
+    result = service.create_event(
+        title=args.title,
+        news_id=args.news_id,
+        data_dir=Path(args.data_dir) if args.data_dir else None,
+    )
+    if "error" in result:
+        _output(result)
+        sys.exit(1)
+    _output(result)
+
+
+def _cmd_close_event(args):
+    result = service.close_event(
+        event_id=args.event_id,
+        data_dir=Path(args.data_dir) if args.data_dir else None,
+    )
+    if "error" in result:
+        _output(result)
+        sys.exit(1)
+    _output(result)
+
+
+def _cmd_list_events(args):
+    result = service.list_events(
+        status=args.status,
+        limit=args.limit,
+        data_dir=Path(args.data_dir) if args.data_dir else None,
+    )
+    _output(result)
 
 
 def _cmd_trigger(args):
@@ -128,6 +160,7 @@ def main():
     p.add_argument("--summary")
     p.add_argument("--analysis")
     p.add_argument("--event-id")
+    p.add_argument("--review", help="追加 review JSON")
     _add_common_args(p)
     p.set_defaults(func=_cmd_update_news)
 
@@ -158,12 +191,25 @@ def main():
     _add_common_args(p)
     p.set_defaults(func=_cmd_get_event)
 
-    # create-event (预留)
-    p = sub.add_parser("create-event", help="创建事件（预留）")
+    # create-event
+    p = sub.add_parser("create-event", help="创建事件并关联首条新闻")
     p.add_argument("news_id")
-    p.add_argument("--summary")
+    p.add_argument("--title", required=True, help="事件标题")
     _add_common_args(p)
     p.set_defaults(func=_cmd_create_event)
+
+    # close-event
+    p = sub.add_parser("close-event", help="关闭事件")
+    p.add_argument("event_id")
+    _add_common_args(p)
+    p.set_defaults(func=_cmd_close_event)
+
+    # list-events
+    p = sub.add_parser("list-events", help="列出事件")
+    p.add_argument("--status", choices=["ongoing", "closed"], help="过滤状态")
+    p.add_argument("--limit", type=int, default=50, help="返回数量")
+    _add_common_args(p)
+    p.set_defaults(func=_cmd_list_events)
 
     # trigger (调试)
     p = sub.add_parser("trigger", help="触发快速分析（调试用）")
