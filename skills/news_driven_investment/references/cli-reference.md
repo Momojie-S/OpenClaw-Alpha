@@ -80,20 +80,50 @@ news-cli update-news <news_id> --summary "概括" --analysis '{...}'
 |------|------|------|
 | `news_id` | str | 新闻 ID（位置参数） |
 | `--summary` | str | 新闻概括（触发 embedding 生成 + Milvus 入库） |
-| `--analysis` | str | JSON 格式分析结果（3 字段） |
-| `--event-id` | str | 关联事件 ID |
+| `--analysis` | str | JSON 格式分析结果（含 prediction） |
+| `--event-id` | str | 关联事件 ID（双向：同时追加 news_id 到 event.json.news_ids） |
+| `--review` | str | JSON 格式回顾，追加到 analysis.reviews[] |
 | `--data-dir` | str | 数据根目录 |
 
-**analysis JSON 格式**（3 字段）：
+**analysis JSON 格式**：
 ```json
 {
   "related_sectors": ["板块1", "板块2"],
   "related_companies": [
     {"name": "公司名", "listed": true, "code": "000001"}
   ],
-  "worth_deep_analysis": true
+  "worth_deep_analysis": true,
+  "prediction": {
+    "summary": "预测概述",
+    "targets": [
+      {
+        "type": "sector",
+        "name": "石油开采",
+        "direction": "up",
+        "confidence": "high",
+        "timeframe": "1-3天",
+        "reasoning": "理由"
+      }
+    ]
+  }
 }
 ```
+
+`prediction` 字段可选，分析时追加。设计详见 `docs/design/news/event-tracking.md`。
+
+**review JSON 格式**：
+```json
+{
+  "summary": "回顾总结：石油+3.2%后回落，航运-1.8%准确",
+  "target_updates": [
+    {"name": "石油开采", "actual_change": "+3.2%→+1.5%", "status": "accurate_then_fading"},
+    {"name": "航运", "actual_change": "-1.8%", "status": "accurate"},
+    {"name": "铝材", "actual_change": "+1.5%", "status": "missed"}
+  ]
+}
+```
+
+review 追加到 `analysis.reviews[]` 数组，可多次追加。status 取值：`accurate` / `inaccurate` / `accurate_then_fading` / `missed` / `pending`。
 
 **行为**：多参数同时传入时，先全部写入 news.json，最后统一 sync Milvus 一次。
 
@@ -189,8 +219,62 @@ news-cli get-event <event_id>
 
 ## create-event
 
-创建新事件（预留，暂未实现）。
+创建新事件并双向关联首条新闻（news.json.event_id + event.json.news_ids）。
 
 ```bash
-news-cli create-event <news_id> --summary "事件概述"
+news-cli create-event <news_id> --title "事件标题"
 ```
+
+| 参数 | 类型 | 说明 |
+|------|------|------|
+| `news_id` | str | 首条关联新闻 ID（位置参数） |
+| `--title` | str | 事件标题 |
+| `--data-dir` | str | 数据根目录（默认 `data/`） |
+
+**行为**：生成 event_id（`evt_{timestamp}_{random4}`），创建 `data/events/{event_id}/event.json`，同时更新 news.json 的 event_id 字段。幂等。
+
+**输出**：
+```json
+{
+  "event_id": "evt_1775357774_a3f2",
+  "title": "事件标题",
+  "news_id": "wallstreetcn_3769266"
+}
+```
+
+---
+
+## close-event
+
+关闭事件。
+
+```bash
+news-cli close-event <event_id>
+```
+
+| 参数 | 类型 | 说明 |
+|------|------|------|
+| `event_id` | str | 事件 ID（位置参数） |
+| `--data-dir` | str | 数据根目录（默认 `data/`） |
+
+**行为**：更新 event.json status 为 `closed`。已关闭的事件重复调用会报错。
+
+---
+
+## list-events
+
+列出事件，按 updated_at 降序。
+
+```bash
+# 列出所有事件
+news-cli list-events
+
+# 只看进行中的事件
+news-cli list-events --status ongoing --limit 10
+```
+
+| 参数 | 类型 | 默认值 | 说明 |
+|------|------|--------|------|
+| `--status` | `ongoing` \| `closed` | - | 过滤状态 |
+| `--limit` | int | - | 返回数量 |
+| `--data-dir` | str | `data/` | 数据根目录 |

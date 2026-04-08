@@ -42,6 +42,9 @@ metadata:
 |------|------|----------|
 | `get-news` | 查看单条新闻的完整信息 | 包含 `news_dir`（数据目录绝对路径） |
 | `get-event` | 查看事件聚合信息 | |
+| `list-events` | 列出事件（支持 --status 过滤） | 按 updated_at 降序 |
+| `create-event` | 创建事件并关联首条新闻 | 双向关联 |
+| `close-event` | 关闭事件 | status → closed |
 
 ## 写入闭环
 
@@ -58,6 +61,10 @@ metadata:
 - 越多新闻被分析和写入，后续分析的上下文越丰富
 
 ## 使用场景
+
+### 事件追踪
+
+分析时通过 `search-similar` 查找相似新闻 → 按事件分组 → LLM 判断归属已有事件或新建事件 → 写入 prediction → 定期 review 验证预测。设计详见 `docs/design/news/event-tracking.md`。
 
 ### 快速分析
 
