@@ -14,49 +14,36 @@ from openclaw_alpha.core.processor_utils import get_output_path, load_output
 class TestGetOutputPath:
     """get_output_path 测试类"""
 
-    def test_basic_path(self, temp_workspace):
+    def test_basic_path(self):
         """测试基本路径生成"""
         path = get_output_path("test_skill", "test_processor")
 
         # 验证路径结构
-        assert str(temp_workspace) in str(path)
-        assert ".openclaw_alpha" in str(path)
+        assert "processor_data" in str(path)
         assert "test_skill" in str(path)
         assert "test_processor.json" in str(path)
 
-    def test_default_date_is_today(self, temp_workspace):
+    def test_default_date_is_today(self):
         """测试默认日期是今天"""
         path = get_output_path("test_skill", "test_processor")
         today = datetime.now().strftime("%Y-%m-%d")
 
         assert today in str(path)
 
-    def test_custom_date(self, temp_workspace):
+    def test_custom_date(self):
         """测试自定义日期"""
         path = get_output_path("test_skill", "test_processor", date="2026-03-06")
 
         assert "2026-03-06" in str(path)
         assert path.name == "test_processor.json"
 
-    def test_custom_extension(self, temp_workspace):
+    def test_custom_extension(self):
         """测试自定义扩展名"""
         path = get_output_path("test_skill", "test_processor", ext="csv")
 
         assert path.name == "test_processor.csv"
 
-    def test_no_workspace_env(self, monkeypatch):
-        """测试未设置环境变量时使用当前工作目录"""
-        monkeypatch.delenv("OPENCLAW_AGENT_WORKSPACE", raising=False)
-
-        # 不应抛出异常，而是使用当前工作目录
-        path = get_output_path("test_skill", "test_processor")
-
-        # 验证路径结构仍然正确
-        assert ".openclaw_alpha" in str(path)
-        assert "test_skill" in str(path)
-        assert "test_processor.json" in str(path)
-
-    def test_path_structure(self, temp_workspace):
+    def test_path_structure(self):
         """测试路径结构完整"""
         path = get_output_path("my_skill", "my_processor", date="2026-01-15", ext="csv")
 
@@ -156,14 +143,3 @@ class TestLoadOutput:
 
         assert result == test_data
         assert result["name"] == "测试名称"
-
-    def test_no_workspace_env(self, monkeypatch):
-        """测试未设置环境变量时使用当前工作目录"""
-        monkeypatch.delenv("OPENCLAW_AGENT_WORKSPACE", raising=False)
-
-        # 不应抛出异常，而是使用当前工作目录
-        path = get_output_path("test_skill", "test_processor")
-
-        # 验证路径结构仍然正确
-        assert ".openclaw_alpha" in str(path)
-        assert "test_skill" in str(path)

@@ -4,7 +4,7 @@
 
 ## Purpose
 
-管理 event.json 的 CRUD 操作，事件存储在 `data/events/{event_id}/event.json`。
+管理 event.json 的 CRUD 操作，事件存储在 `runtime/data/events/{event_id}/event.json`。
 
 ## Requirements
 
@@ -15,8 +15,8 @@
 
 #### Scenario: Create new event with first news
 - **WHEN** 调用 `create-event --title "xxx" --news-id "news_1"`
-- **THEN** 创建 `data/events/{event_id}/event.json`，包含 title、status="ongoing"、news_ids 含该 news_id
-- **AND** 更新 `data/news/{news_id}/news.json` 的 event_id 字段
+- **THEN** 创建 `runtime/data/events/{event_id}/event.json`，包含 title、status="ongoing"、news_ids 含该 news_id
+- **AND** 更新 `runtime/data/news/{news_id}/news.json` 的 event_id 字段
 
 #### Scenario: News not found
 - **WHEN** 调用 `create-event --news-id "nonexistent"`

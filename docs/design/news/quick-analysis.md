@@ -108,7 +108,7 @@ data/news/{news_id}/
 
 ## 配置
 
-**路径**：`workspace/quick_news/config.yaml`
+**路径**：`runtime/quick_news/config.yaml`
 
 ```yaml
 enabled: true

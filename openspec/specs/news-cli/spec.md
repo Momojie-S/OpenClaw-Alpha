@@ -30,7 +30,7 @@ fetch-news 调用 fetcher 后，返回前自动保存到本地。saved 的新闻
 
 #### Scenario: 新新闻自动保存
 - **WHEN** fetcher 返回新闻列表
-- **THEN** 对每条新闻检查 `data/news/{news_id}/news.json` 是否存在，不存在则创建目录并写入 news.json 和 content.md
+- **THEN** 对每条新闻检查 `runtime/data/news/{news_id}/news.json` 是否存在，不存在则创建目录并写入 news.json 和 content.md
 
 #### Scenario: 已有新闻幂等跳过
 - **WHEN** news_id 对应的 news.json 已存在
@@ -134,7 +134,7 @@ news.json 中通过 `analysis_status` 字段追踪分析进度，由 Backend 负
 
 #### Scenario: 待分析新闻筛选
 - **WHEN** Backend 需要找出待分析的新闻
-- **THEN** 扫描 data/news/ 下所有 news.json，筛选 analysis_status 为空或 "failed" 的新闻
+- **THEN** 扫描 runtime/data/news/ 下所有 news.json，筛选 analysis_status 为空或 "failed" 的新闻
 
 ### Requirement: Backend 直接 import service 层
 

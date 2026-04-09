@@ -6,9 +6,11 @@ from logging.handlers import TimedRotatingFileHandler
 from pathlib import Path
 from typing import Optional
 
+from openclaw_alpha.core.path_utils import get_log_dir
+
 
 # 默认日志目录
-DEFAULT_LOG_DIR = Path.home() / ".openclaw_alpha" / "logs"
+DEFAULT_LOG_DIR = get_log_dir()
 
 
 def setup_logging(

@@ -4,6 +4,8 @@
 
 输出统一为 JSON。
 
+更新本文档时，应该同步更新 `skills/news_driven_investment/SKILL.md` 文件
+
 ---
 
 ## fetch-news

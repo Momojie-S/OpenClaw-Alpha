@@ -6,7 +6,7 @@ from pathlib import Path
 import yaml
 from pydantic import BaseModel
 
-from openclaw_alpha.core.path_utils import get_workspace_dir
+from openclaw_alpha.core.path_utils import get_runtime_dir
 
 
 class DevTasksConfig(BaseModel):
@@ -25,7 +25,7 @@ class IterationLoopConfig(BaseModel):
 
 def get_config_path() -> Path:
     """获取配置文件路径"""
-    return get_workspace_dir() / "iteration_loop" / "config.yaml"
+    return get_runtime_dir() / "iteration_loop" / "config.yaml"
 
 
 def load_iteration_config(config_path: Path | None = None) -> IterationLoopConfig:

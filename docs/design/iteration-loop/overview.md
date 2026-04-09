@@ -56,7 +56,7 @@ Iteration Loop 触发（定时 / 手动）
 ## 目录结构
 
 ```
-workspace/
+runtime/
 └── iteration-loop/                  # 迭代工作目录（规划中）
     ├── dev_tasks/                   # 开发任务
     │   ├── pending/                 # 待处理

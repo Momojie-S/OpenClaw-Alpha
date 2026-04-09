@@ -12,9 +12,56 @@ metadata:
 
 从财经新闻中发现投资机会，关联产业分析和标的筛选。
 
+## 新闻与事件追踪
+
+我们会在本地记录，新闻和对应事件，用于积累提供更完善的分析。
+
+每条新闻，有唯一标识`news_id`，本地记录保存在 `runtime/data/news/{news_id}/` 目录下。
+
+新闻，有对应的事件，事件唯一标识`event_id`，本地记录保存在 `runtime/data/events/{event_id}/` 目录下。
+
+在分析过程中，应该持续使用CLI工具，进行结构化记录，大部分内容不需要直接编辑对应文件。
+
+以下文件需要额外手动编辑，保存更详细的文本记录:
+
+- `runtime/data/news/{news_id}/report.md`: 记录新闻分析的思路、过程、调研结果、结论等，格式不限。
+
+## 基础分析要求
+
+无论是对新闻做快速分析还是深入分析，都应该遵循以下要求:
+
+1. 对当前新闻进行概括，使用CLI工具写入`summary 新闻概括`，有助于后续搜索相关新闻。
+2. 使用CLI工具，在本地搜索相关新闻和事件，回顾历史。
+3. 对当前新闻进行分析，使用CLI工具记录，以下内容为必要记录项:
+    - analysis，结构化的分析结果
+    - event-id，关联已有事件或者新建事件
+4. 分析过程中，如果调研到市场情况没有在历史新闻的review中反映记录，则需要追加review记录。
+5. 分析过程中，应该持续更新 `report.md` 记录
+
+### 分析原则
+
+- **投资视角**：不是新闻摘要，是"这对投资有什么影响"
+- **预期差优先**：市场共识外的信息才有超额收益
+- **多维度交叉**：新闻 + 板块趋势 + 资金流向，单一维度不可靠
+
+### 快速分析
+
+参考 [任务模板](tasks/quick-news-analysis.md) 用于日常新闻快速筛选和初步评估，输出结构化分析+事件关联+预测建议
+
+### 深入分析
+
+深度分析目标是：从广度和深度两方面提升分析质量，确保结论可靠、可直接指引投资。
+
+核心要求:
+
+- 利用其他alpha skill，多角度地对新闻进行深入分析
+- 每步分析后，应该考虑该步分析结果是否有其他需考虑的方向，如有，再进行深入分析
+
+多角度分析包括但不限于：板块趋势、资金流向、技术指标、基本面分析、政策影响、历史对比、行业链条、风险因素、关联标的等。
+
 ## CLI 工具
 
-数据源列表见 [references/data-sources.md](references/data-sources.md)。
+用于本地记录、搜索新闻事件，沉淀积累。
 
 **调用方式**：
 ```bash
@@ -22,54 +69,184 @@ cd ~/.openclaw/workspace/skills/OpenClaw-Alpha
 uv run python -m openclaw_alpha.news.cli <command> [options]
 ```
 
-| 命令 | Options | 说明 | 返回参数 |
-|------|---------|------|----------|
-| `fetch-news` | `--source`（默认 cls_global）, `--limit`, `--keyword`, `--date`, `--data-dir` | 拉取新闻并落盘，幂等跳过已存在 | total, saved, skipped, news[] (含 news_id, news_dir, title, link, content) |
-| `update-news` | `news_id`, `--summary`, `--analysis`, `--event-id`, `--review`, `--data-dir` | 更新新闻字段；--summary 生成 embedding；--analysis 自动提取 entities；--event-id 双向关联事件；--review 追加到 analysis.reviews[] | 无 |
-| `search-similar` | `news_id`, `--top`, `--data-dir` | 向量搜索相似历史新闻（需先有 summary） | results[] (含 news_id, event_id, score, summary) |
-| `search-keyword` | `keyword`, `--top`, `--data-dir` | 基于 entities 的 BM25 关键词搜索 | results[] (含 news_id, summary, entities, score) |
-| `get-news` | `news_id`, `--fields`, `--data-dir` | 查看新闻详情；始终含 news_dir | news_id, title, summary, content, news_dir 等 |
-| `get-event` | `event_id`, `--data-dir` | 查看事件信息 | event_id, title, status, news_ids, created_at 等 |
-| `list-events` | `--status`（ongoing/closed）, `--limit`, `--data-dir` | 列出事件，按 updated_at 降序 | events[] |
-| `create-event` | `news_id`, `--title`, `--data-dir` | 创建事件并双向关联首条新闻 | event_id, title, news_id |
-| `close-event` | `event_id`, `--data-dir` | 关闭事件（更新 status=closed） | 无 |
+### fetch-news — 拉取新闻并落盘
 
-## 写入闭环
+| Option | 说明 |
+|---------|------|
+| `--source` | 新闻源（默认 `cls_global`，见下方数据源列表） |
+| `--symbol` | 股票代码（仅 `stock` 数据源） |
+| `--keyword` | 关键词筛选（匹配标题和内容） |
+| `--date` | 日期筛选（YYYY-MM-DD） |
+| `--limit` | 返回数量（默认 20） |
+| `--data-dir` | 数据根目录（默认 `data/`） |
 
-**分析即写入 — 每次分析都应通过 CLI 把结果存下来。**
+**数据源列表**：
 
+| Source | 来源 | 类型 | 特点 | 推荐度 |
+|--------|------|------|------|:------:|
+| `cls_global` | 财联社 | AKShare | 实时、快速、覆盖广 | ⭐⭐⭐ |
+| `cls_important` | 财联社 | AKShare | 重点精选，数量少 | ⭐⭐ |
+| `stock` | 东方财富 | AKShare | 按股票代码获取个股新闻（需 `--symbol`） | ⭐⭐ |
+| `cls_telegraph` | 财联社电报 | RSSHub | 实时快讯，响应快 | ⭐⭐⭐ |
+| `jin10` | 金十数据 | RSSHub | 专业金融资讯，更新频繁 | ⭐⭐⭐ |
+| `wallstreetcn_hot` | 华尔街见闻热榜 | RSSHub | 最热文章，市场关注度 | ⭐⭐⭐ |
+| `wallstreetcn_news` | 华尔街见闻资讯 | RSSHub | 全球市场资讯，专业深度 | ⭐⭐⭐ |
+| `yicai_brief` | 第一财经 | RSSHub | 权威财经媒体，覆盖广 | ⭐⭐ |
+| `36kr_news` | 36氪 | RSSHub | 科技财经资讯，投资视角 | ⭐⭐ |
+
+**行为**：幂等，已存在的新闻（news_id 目录已创建）自动跳过。
+
+**返回**：`{source, total, saved, skipped, news[]}`
+- `news_id`、`news_dir`（数据目录绝对路径）、`title`、`link`、`content`
+- `content` 仅在 `saved: true` 时返回
+
+**数据根目录**：默认 `runtime/data/`（通过 `--data-dir` 可指定）
+
+**注意事项**：
+- AKShare 接口可能有频率限制
+- RSSHub 依赖公共实例，偶尔不稳定，失败时换其他源
+- 优先用 AKShare，RSSHub 做补充
+
+### update-news — 更新新闻字段
+
+| Option | 说明 |
+|---------|------|
+| `news_id` | 新闻 ID（位置参数，必填） |
+| `--summary` | 新闻概括（自动生成 embedding 并写入 Milvus） |
+| `--analysis` | 结构化分析 JSON（含 prediction） |
+| `--event-id` | 关联事件 ID（双向关联，同时追加到 event.json.news_ids） |
+| `--review` | 回顾 JSON（追加到 analysis.reviews[]） |
+| `--data-dir` | 数据根目录（默认 `data/`） |
+
+**返回**：`{news_id, updated}`
+
+**--analysis JSON 格式**：
+```json
+{
+  "related_sectors": ["板块1", "板块2"],
+  "related_companies": [
+    {"name": "公司名", "listed": true, "code": "000001"}
+  ],
+  "worth_deep_analysis": true,
+  "prediction": {
+    "summary": "预测概述",
+    "targets": [
+      {
+        "type": "sector",
+        "name": "石油开采",
+        "direction": "up",
+        "confidence": "high",
+        "timeframe": "1-3天",
+        "reasoning": "理由"
+      }
+    ]
+  }
+}
 ```
-分析一条新闻但不写入  =  一次性分析，无法积累
-分析一条新闻并写入    =  对知识库的贡献，后续分析可检索
+`direction`: up/down/neutral，`confidence`: high/medium/low
+
+**--review JSON 格式**：
+```json
+{
+  "summary": "回顾总结",
+  "target_updates": [
+    {"name": "石油开采", "actual_change": "+3.2%", "status": "accurate"}
+  ]
+}
 ```
+`status`: accurate/inaccurate/accurate_then_fading/missed/pending
 
-**写入重要**：
-- `--summary` → 生成 embedding → Milvus 入库 → search-similar 可命中
-- `--analysis` → 提取 entities → BM25 索引 → search-keyword 可找到
-- 越多新闻写入，后续分析上下文越丰富
+**行为**：多参数同时传入时，先全部写入 news.json，最后统一 sync Milvus 一次。
 
-## 使用场景
+---
 
-### 事件追踪
+### search-similar — 向量搜索相似新闻
 
-分析时通过 `search-similar` 查找相似新闻 → 按事件分组 → LLM 判断归属已有事件或新建事件 → 写入 prediction → 定期 review 验证预测。设计详见 `docs/design/news/event-tracking.md`。
+| Option | 说明 |
+|---------|------|
+| `news_id` | 源新闻 ID（位置参数，必填） |
+| `--top` | 返回数量（默认 10） |
+| `--data-dir` | 数据根目录（默认 `data/`） |
 
-### 快速分析
+**前提**：源新闻必须已通过 `--summary` 生成 embedding。
 
-系统化评估新闻价值，识别板块和标的。参考 [任务模板](tasks/quick-news-analysis.md) 了解产出要求。
+**返回**：`{results[]}`
+- `news_id`、`event_id`、`score`、`summary`
 
-### 手动分析
+---
 
-用户给一条新闻或 URL → 用 `fetch-news` 或 `get-news` 获取数据 → 分析 → `update-news` 写入结果。
+### search-keyword — 关键词搜索相似新闻
 
-### 追踪线索
+| Option | 说明 |
+|---------|------|
+| `keyword` | 搜索关键词（位置参数，必填） |
+| `--top` | 返回数量（默认 10） |
+| `--data-dir` | 数据根目录（默认 `data/`） |
 
-`search-similar` 或 `search-keyword` 搜索历史 → `get-news` 查看详情 → 结合新信息形成判断。
+**返回**：`{results[]}`
+- `news_id`、`summary`、`entities`、`score`
 
-## 分析原则
+---
 
-- **投资视角**：不是新闻摘要，是"这对投资有什么影响"
-- **预期差优先**：市场共识外的信息才有超额收益
-- **多维度交叉**：新闻 + 板块趋势 + 资金流向，单一维度不可靠
-- **时效敏感**：新闻价值递减，尽快分析
-- **风险意识**：新闻驱动多为短期机会，注意追高风险
+### get-news — 获取新闻详情
+
+| Option | 说明 |
+|---------|------|
+| `news_id` | 新闻 ID（位置参数，必填） |
+| `--fields` | 指定字段（逗号分隔），始终含 `news_dir` |
+| `--data-dir` | 数据根目录（默认 `data/`） |
+
+**返回**：news_id、title、summary、content（通过 `--fields` 时读取）、news_dir 等
+
+---
+
+### get-event — 获取事件信息
+
+| Option | 说明 |
+|---------|------|
+| `event_id` | 事件 ID（位置参数，必填） |
+| `--data-dir` | 数据根目录（默认 `data/`） |
+
+**返回**：event 对象（event_id, title, status, news_ids, created_at, updated_at）
+
+---
+
+### list-events — 列出事件
+
+| Option | 说明 |
+|---------|------|
+| `--status` | 过滤状态：`ongoing`（进行中）或 `closed`（已关闭） |
+| `--limit` | 返回数量（默认 50） |
+| `--data-dir` | 数据根目录（默认 `data/`） |
+
+**返回**：按 `updated_at` 降序的 events[]
+
+---
+
+### create-event — 创建事件并关联首条新闻
+
+| Option | 说明 |
+|---------|------|
+| `news_id` | 首条关联新闻 ID（位置参数，必填） |
+| `--title` | 事件标题（必填） |
+| `--data-dir` | 数据根目录（默认 `data/`） |
+
+**行为**：生成 event_id（`evt_{timestamp}_{random4}`），创建 `runtime/data/events/{event_id}/event.json`，同时更新 news.json 的 event_id 字段。幂等。
+
+**返回**：event 对象（event_id, title, status, news_ids, created_at, updated_at）
+
+---
+
+### close-event — 关闭事件
+
+| Option | 说明 |
+|---------|------|
+| `event_id` | 事件 ID（位置参数，必填） |
+| `--data-dir` | 数据根目录（默认 `data/`） |
+
+**行为**：更新 event.json status 为 `closed`。已关闭的事件重复调用会报错。
+
+**返回**：更新后的 event 对象（status=closed）
+
+---
+

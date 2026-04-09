@@ -6,7 +6,7 @@ from pathlib import Path
 import yaml
 from pydantic import BaseModel
 
-from openclaw_alpha.core.path_utils import get_workspace_dir
+from openclaw_alpha.core.path_utils import get_runtime_dir
 
 
 class RecipientConfig(BaseModel):
@@ -44,13 +44,13 @@ class FeedbackConfig(BaseModel):
     cron: CronConfig = CronConfig()
 
     # 目录配置
-    feedback_new_dir: str = "workspace/feedback/new"  # 待处理反馈
-    feedback_done_dir: str = "workspace/feedback/done"  # 已处理反馈
+    feedback_new_dir: str = "runtime/feedback/new"  # 待处理反馈
+    feedback_done_dir: str = "runtime/feedback/done"  # 已处理反馈
 
 
 def get_feedback_config_path() -> Path:
     """获取用户反馈处理模块配置文件路径"""
-    return get_workspace_dir() / "feedback" / "config.yaml"
+    return get_runtime_dir() / "feedback" / "config.yaml"
 
 
 def load_feedback_config(config_path: Path | None = None) -> FeedbackConfig:

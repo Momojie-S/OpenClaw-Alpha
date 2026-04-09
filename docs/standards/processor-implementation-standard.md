@@ -191,7 +191,7 @@ class MyProcessor:
 ### 保存路径
 
 ```
-{workspace}/.openclaw_alpha/{skill_name}/{YYYY-MM-DD}/{processor_name}.{ext}
+runtime/.openclaw_alpha/{skill_name}/{YYYY-MM-DD}/{processor_name}.{ext}
 ```
 
 **优点**：

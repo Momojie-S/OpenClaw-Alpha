@@ -127,8 +127,15 @@ def _cmd_list_events(args):
 
 def _cmd_trigger(args):
     """触发快速分析调试流程：拉取 → 扫描待分析 → 提交 cron → 等待结果。"""
+    from openclaw_alpha.backend.logger import setup_logging
+    setup_logging(log_level="DEBUG")
+    import logging
+    logger = logging.getLogger("news.trigger")
+    logger.info(f"=== trigger 开始 (limit={args.limit}) ===")
+
     from openclaw_alpha.backend.quick_news.jobs import fetch_all_quick_news
     asyncio.run(fetch_all_quick_news(limit=args.limit))
+    logger.info("=== trigger 完成 ===")
     _output({"triggered": True, "limit": args.limit})
 
 

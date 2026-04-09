@@ -307,7 +307,7 @@ uv run --env-file .env python -m openclaw_alpha.backend.feedback.submit_feedback
 - 新反馈到达时
 - 反馈处理完成时
 
-**配置位置**：`workspace/feedback/config.yaml`
+**配置位置**：`runtime/feedback/config.yaml`
 
 ```yaml
 delivery:

@@ -252,22 +252,27 @@ async def _poll_job_completion(
     """
     logger.info(f"开始轮询任务完成状态: {cron_result.job_id}（超时 {timeout_seconds}s）")
     start = time.monotonic()
+    poll_count = 0
 
     # 等待 3 秒让任务启动
     await asyncio.sleep(3)
 
     while (time.monotonic() - start) < timeout_seconds:
+        poll_start = time.monotonic()
         try:
             response = await client.call_tool(
                 "cron",
                 {"action": "runs", "jobId": cron_result.job_id},
                 timeout=10.0,
             )
+            poll_elapsed = time.monotonic() - poll_start
+            logger.info(f"轮询 HTTP 调用: job_id={cron_result.job_id}, poll_count={poll_count+1}, poll_elapsed={poll_elapsed:.2f}s")
 
             if response.get("ok"):
                 # cron.runs 返回格式: result.details.entries[]
                 details = response.get("result", {}).get("details", {})
                 entries = details.get("entries", [])
+                logger.info(f"轮询响应: ok=True, entries_count={len(entries)}")
 
                 if entries:
                     latest = entries[0]  # 最新的 run 记录
@@ -275,6 +280,8 @@ async def _poll_job_completion(
                     duration_ms = latest.get("durationMs", 0)
                     session_id = latest.get("sessionId")
                     session_key = latest.get("sessionKey")
+
+                    logger.info(f"轮询结果: status={run_status}, durationMs={duration_ms}, sessionId={session_id}")
 
                     if run_status in ("ok", "error"):
                         # 填充 session 信息
@@ -297,11 +304,13 @@ async def _poll_job_completion(
                             return True
 
         except Exception as e:
-            logger.debug(f"轮询异常（继续）: {e}")
+            poll_elapsed = time.monotonic() - poll_start if 'poll_start' in locals() else 0
+            logger.error(f"轮询异常 (poll_count={poll_count+1}, elapsed={poll_elapsed:.2f}s): {type(e).__name__}: {e}")
 
         await asyncio.sleep(10)
+        poll_count += 1
 
-    logger.error(f"任务轮询超时: {cron_result.job_id}")
+    logger.error(f"任务轮询超时: job_id={cron_result.job_id}, total_polls={poll_count}, elapsed={time.monotonic() - start:.1f}s")
     return False
 
 

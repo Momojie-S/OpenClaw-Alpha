@@ -10,10 +10,11 @@ from typing import Any, Optional
 
 from openclaw_alpha.core.embedding import get_embedder
 from openclaw_alpha.core.milvus import get_client
+from openclaw_alpha.core.path_utils import get_runtime_dir
 from openclaw_alpha.news.fetcher import fetch as fetcher_fetch, NewsItem
 from openclaw_alpha.news.store import ensure_collection
 
-_DEFAULT_DATA_DIR = Path("data")
+_DEFAULT_DATA_DIR = get_runtime_dir() / "data"
 
 
 def _news_dir(news_id: str, data_dir: Path | None = None) -> Path:
@@ -75,6 +76,7 @@ def _save_news_item(item: NewsItem, data_dir: Path | None = None) -> bool:
         "published": f"{item.date}T{item.time or '00:00:00'}" if item.date else "",
         "created_at": int(time.time()),
         "updated_at": int(time.time()),
+        "analysis_status": "pending",  # 新增：标记为待分析
     }
     _write_json(news_json_path, news_data)
 
@@ -154,6 +156,7 @@ async def fetch_and_save(
                 "title": item.title,
                 "link": item.url or "",
                 "content": content,
+                "analysis_status": "pending",  # 新增：标记为待分析
                 "saved": True,
                 "skipped": False,
             })

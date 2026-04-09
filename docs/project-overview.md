@@ -5,7 +5,7 @@ OpenClaw-Alpha 是一个股票金融数据获取和分析的 Python 技能模块
 ## 交付与使用
 
 **安装方式**：
-1. Clone 到 OpenClaw agent 的 `workspace/skills/` 目录
+1. Clone 到 OpenClaw agent 的 `runtime/skills/` 目录
 2. 在 OpenClaw 配置中注册 `OpenClaw-Alpha/skills/` 目录
 3. 主 SKILL.md 和子 skill 自动发现注册
 
@@ -64,7 +64,7 @@ OpenClaw-Alpha/
 │               ├── __init__.py
 │               └── {scenario}_processor.py
 │
-├── workspace/                      # 📁 运行时工作目录（状态、输出）
+├── runtime/                      # 📁 运行时工作目录（状态、输出）
 │   ├── quick_news/                 # 快讯任务状态
 │   ├── quick_news_analysis/        # 快讯分析输出
 │   │   └── {date}/{task_id}/       # 按日期和任务ID组织
@@ -119,8 +119,8 @@ OpenClaw-Alpha/
 | 配置项 | 文件路径 | 说明 |
 |--------|----------|------|
 | 新闻分析 | `src/openclaw_alpha/backend/quick_news/config.py` | `QuickNewsConfig.agent_id` 指定分析任务的 agent；`RecipientConfig` 控制推送目标 |
-| 新闻分析运行时 | `workspace/quick_news/config.yaml` | 可覆盖默认配置（如启用/关闭、间隔、模型等） |
-| 用户反馈 | `workspace/feedback/config.yaml` | 反馈模块配置 |
+| 新闻分析运行时 | `runtime/quick_news/config.yaml` | 可覆盖默认配置（如启用/关闭、间隔、模型等） |
+| 用户反馈 | `runtime/feedback/config.yaml` | 反馈模块配置 |
 | 环境变量 | `.env` | API Key 等敏感配置 |
 
 ## 核心概念

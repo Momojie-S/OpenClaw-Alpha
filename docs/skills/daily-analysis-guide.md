@@ -191,7 +191,7 @@ uv run --env-file .env python skills/news_driven_investment/scripts/news_process
 
 ## 数据存储
 
-所有分析结果保存在 `{workspace}/.openclaw_alpha/` 目录：
+所有分析结果保存在 `runtime/.openclaw_alpha/` 目录：
 
 ```
 .openclaw_alpha/

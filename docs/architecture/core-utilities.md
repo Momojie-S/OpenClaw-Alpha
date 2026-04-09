@@ -23,21 +23,21 @@ OpenClaw-Alpha 的核心工具模块，提供路径管理、数据处理等基�
 | `get_cache_dir()` | 缓存目录 | `~/.openclaw_alpha/cache` |
 | `get_log_dir()` | 日志目录 | `~/.openclaw_alpha/logs` |
 | `get_skills_dir()` | Skills 目录 | `{root}/skills` |
-| `get_workspace_dir()` | 项目 workspace 目录 | `{root}/workspace` |
+| `get_workspace_dir()` | 项目 runtime 目录 | `runtime` |
 | `get_task_template_path(skill, task)` | 任务模板路径 | `{root}/skills/{skill}/tasks/{task}.md` |
-| `get_news_analysis_task_dir(date, id)` | 新闻分析任务目录 | `{workspace}/news_analysis/{date}/{id}` |
+| `get_news_analysis_task_dir(date, id)` | 新闻分析任务目录 | `runtime/news_analysis/{date}/{id}` |
 | `ensure_dir(path)` | 确保目录存在 | Path 对象 |
 
 #### 命名规范
 
 | 术语 | 说明 | 示例 |
 |------|------|------|
-| **workspace** | 项目级工作目录 | `{project_root}/workspace/` |
-| **task_dir** | 任务级工作目录 | `{workspace}/news_analysis/{date}/{news_id}/` |
+| **runtime** | 项目级工作目录 | `{project_root}/runtime/` |
+| **task_dir** | 任务级工作目录 | `{runtime}/news_analysis/{date}/{news_id}/` |
 
 **说明**：
-- workspace 是项目级目录，用于存放各种任务的工作数据
-- task_dir 根据任务类型不同，保存在 workspace 下的不同子目录
+- runtime 是项目级目录，用于存放各种任务的工作数据
+- task_dir 根据任务类型不同，保存在 runtime 下的不同子目录
 
 #### 路径定位策略
 
@@ -56,7 +56,7 @@ OPENCLAW_ALPHA_ROOT=/home/momojie/.openclaw/workspace/skills/OpenClaw-Alpha
 from openclaw_alpha.core.path_utils import (
     get_project_root,
     get_cache_dir,
-    get_workspace_dir,
+    get_runtime_dir,
     get_news_analysis_task_dir,
     get_task_template_path,
     ensure_dir,
@@ -70,20 +70,20 @@ root = get_project_root()
 cache = get_cache_dir()
 # -> /home/momojie/.openclaw_alpha/cache
 
-# 获取 workspace 目录
-workspace = get_workspace_dir()
-# -> {root}/workspace
+# 获取 runtime 目录
+workspace = get_runtime_dir()
+# -> {root}/runtime
 
 # 获取新闻分析任务目录
 task_dir = get_news_analysis_task_dir("2026-03-11", "abc123")
-# -> {workspace}/news_analysis/2026-03-11/abc123
+# -> {runtime}/news_analysis/2026-03-11/abc123
 
 # 获取任务模板路径
 template = get_task_template_path("news_driven_investment", "quick-news-analysis")
 # -> {root}/skills/news_driven_investment/tasks/quick-news-analysis.md
 
 # 确保目录存在
-ensure_dir(workspace)
+ensure_dir(runtime)
 ```
 
 #### 设计原则
@@ -120,7 +120,7 @@ output_path = get_output_path(
     date="2026-03-11",
     ext="json"
 )
-# -> {workspace}/.openclaw_alpha/industry_trend/2026-03-11/concept_heat.json
+# -> runtime/.openclaw_alpha/industry_trend/2026-03-11/concept_heat.json
 
 # 读取输出
 data = load_output(

@@ -6,7 +6,7 @@ from pathlib import Path
 import yaml
 from pydantic import BaseModel
 
-from openclaw_alpha.core.path_utils import get_workspace_dir
+from openclaw_alpha.core.path_utils import get_runtime_dir
 
 
 class RecipientConfig(BaseModel):
@@ -47,7 +47,7 @@ class QuickNewsConfig(BaseModel):
 
 def get_quick_news_config_path() -> Path:
     """获取新闻快速分析配置文件路径"""
-    return get_workspace_dir() / "quick_news" / "config.yaml"
+    return get_runtime_dir() / "quick_news" / "config.yaml"
 
 
 def load_quick_news_config(config_path: Path | None = None) -> QuickNewsConfig:

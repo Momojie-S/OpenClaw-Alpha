@@ -136,8 +136,8 @@ def submit_feedback(
             # 从当前文件路径向上查找
             project_root = Path(__file__).parent.parent.parent.parent.parent
 
-        # 确定反馈目录（新的 workspace/feedback/new 结构）
-        feedback_dir = project_root / "workspace" / "feedback" / "new"
+        # 确定反馈目录（新的 runtime/feedback/new 结构）
+        feedback_dir = project_root / "runtime" / "feedback" / "new"
         feedback_dir.mkdir(parents=True, exist_ok=True)
 
         # 构造反馈 JSON

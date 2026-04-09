@@ -25,7 +25,7 @@ uv run --env-file {baseDir}/../.env --directory {baseDir}/.. python src/openclaw
 #### 目录结构
 
 ```
-{workspace}/.openclaw_alpha/
+runtime/.openclaw_alpha/
 └── <SKILL名称>/
     └── YYYY-MM-DD/
         ├── progress.md    # 进度追踪

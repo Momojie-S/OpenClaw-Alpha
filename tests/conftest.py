@@ -24,15 +24,14 @@ if str(src_dir) not in sys.path:
 
 @pytest.fixture
 def temp_workspace(tmp_path, monkeypatch):
-    """创建临时工作空间并设置环境变量
+    """临时工作空间（已废弃，不再使用 OPENCLAW_AGENT_WORKSPACE）
 
     Args:
         tmp_path: pytest 内置的临时目录 fixture
         monkeypatch: pytest 的 monkeypatch fixture
 
     Yields:
-        临时工作空间路径
+        临时工作空间路径（供测试创建文件）
     """
-    # 设置环境变量指向临时目录
-    monkeypatch.setenv("OPENCLAW_AGENT_WORKSPACE", str(tmp_path))
+    # 不再设置 OPENCLAW_AGENT_WORKSPACE，直接使用 get_runtime_dir()
     yield tmp_path

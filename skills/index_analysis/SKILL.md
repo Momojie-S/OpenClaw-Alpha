@@ -29,7 +29,7 @@ uv run --env-file .env python -m openclaw_alpha.skills.index_analysis.index_proc
 
 ### 运行记录
 
-所有运行记录保存在 `{workspace}/.openclaw_alpha/index_analysis/{YYYY-MM-DD}/` 目录。
+所有运行记录保存在 `runtime/.openclaw_alpha/index_analysis/{YYYY-MM-DD}/` 目录。
 
 ## 分析步骤
 

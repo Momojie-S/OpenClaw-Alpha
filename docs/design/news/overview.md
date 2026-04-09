@@ -97,7 +97,7 @@ src/openclaw_alpha/
     └── embedding/           # 向量生成
 ```
 
-**配置文件**：`workspace/quick_news/config.yaml`
+**配置文件**：`runtime/quick_news/config.yaml`
 
 ---
 

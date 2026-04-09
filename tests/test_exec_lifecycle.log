@@ -1,0 +1,23 @@
+2026-04-09 09:42:16,631 [INFO] HTTP Request: POST http://127.0.0.1:18789/tools/invoke "HTTP/1.1 200 OK"
+2026-04-09 09:42:16,632 [INFO] 任务创建: a8ef260d-bf4d-4967-bfe6-45e1341bd597
+2026-04-09 09:42:18,157 [INFO] HTTP Request: POST http://127.0.0.1:18789/tools/invoke "HTTP/1.1 200 OK"
+2026-04-09 09:42:18,159 [INFO] 任务已触发: enqueued=True
+2026-04-09 09:42:18,159 [INFO] 开始轮询（最长 300s，间隔 10s）
+2026-04-09 09:42:19,964 [INFO] HTTP Request: POST http://127.0.0.1:18789/tools/invoke "HTTP/1.1 200 OK"
+2026-04-09 09:42:19,966 [INFO] 轮询 #1 (2s): 无 entries
+2026-04-09 09:42:32,599 [INFO] HTTP Request: POST http://127.0.0.1:18789/tools/invoke "HTTP/1.1 200 OK"
+2026-04-09 09:42:32,600 [INFO] 轮询 #2 (14s): 无 entries
+2026-04-09 09:42:44,316 [INFO] HTTP Request: POST http://127.0.0.1:18789/tools/invoke "HTTP/1.1 200 OK"
+2026-04-09 09:42:44,317 [INFO] 轮询 #3 (26s): 无 entries
+2026-04-09 09:42:56,549 [INFO] HTTP Request: POST http://127.0.0.1:18789/tools/invoke "HTTP/1.1 200 OK"
+2026-04-09 09:42:56,550 [INFO] 轮询 #4 (38s): 无 entries
+2026-04-09 09:43:11,041 [INFO] HTTP Request: POST http://127.0.0.1:18789/tools/invoke "HTTP/1.1 200 OK"
+2026-04-09 09:43:11,042 [INFO] 轮询 #5 (53s): status=ok
+2026-04-09 09:43:12,810 [INFO] HTTP Request: POST http://127.0.0.1:18789/tools/invoke "HTTP/1.1 200 OK"
+2026-04-09 09:43:12,812 [INFO] ===== 结果 =====
+2026-04-09 09:43:12,812 [INFO] 完成: True
+2026-04-09 09:43:12,812 [INFO] 轮询次数: 5
+2026-04-09 09:43:12,812 [INFO] 总耗时: 52.9s
+2026-04-09 09:43:12,812 [INFO] 最后错误: None
+2026-04-09 09:43:12,813 [INFO] 结果已写入: tests/test_exec_lifecycle_result.json
+2026-04-09 09:43:12,813 [INFO] ✅ 进程在整个轮询期间存活，exec 未杀进程

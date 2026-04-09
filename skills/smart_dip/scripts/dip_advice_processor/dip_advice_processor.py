@@ -171,7 +171,10 @@ def format_text(result: dict[str, Any]) -> str:
 
 def get_output_path(skill_name: str, processor_name: str, date: str, ext: str = "json") -> Path:
     """获取输出文件路径"""
-    return Path(f".openclaw_alpha/{skill_name}/{date}/{processor_name}.{ext}")
+    from openclaw_alpha.core.path_utils import get_runtime_dir
+
+    output_dir = get_runtime_dir() / "processor_data" / skill_name / date
+    return output_dir / f"{processor_name}.{ext}"
 
 
 async def main():

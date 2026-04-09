@@ -45,7 +45,7 @@
 
 ```
 {project_root}/
-└── workspace/
+└── runtime/
     └── feedback/
         ├── config.yaml           # 配置
         ├── new/                  # 待处理反馈
@@ -112,7 +112,7 @@ src/openclaw_alpha/backend/feedback/
   "submitted_at": "2026-03-10T10:00:00+08:00",
   "content": "反馈原文内容...",
   "status": "processing",
-  "task_dir": "workspace/feedback/tasks/2026-03-17/abc123",
+  "task_dir": "runtime/feedback/tasks/2026-03-17/abc123",
   "job_id": "cron_job_id",
   "session_id": "xxx",
   "context_path": "/path/to/session/file.jsonl",
@@ -133,7 +133,7 @@ src/openclaw_alpha/backend/feedback/
   "submitted_at": "2026-03-10T10:00:00+08:00",
   "content": "反馈原文内容...",
   "status": "completed",
-  "task_dir": "workspace/feedback/tasks/2026-03-17/abc123",
+  "task_dir": "runtime/feedback/tasks/2026-03-17/abc123",
   "job_id": "cron_job_id",
   "session_id": "xxx",
   "context_path": "/path/to/session/file.jsonl",
@@ -230,7 +230,7 @@ Backend 定时扫描（jobs.py）
 
 1. **更新状态为 processing**：设置 `status = "processing"`，写回 JSON 文件
 
-2. **创建任务目录**：`workspace/feedback/tasks/{date}/{id}/`
+2. **创建任务目录**：`runtime/feedback/tasks/{date}/{id}/`
 
 3. **触发 Agent Session**：构造任务消息（包含反馈内容），提交 cron 任务
 
@@ -335,7 +335,7 @@ Backend 轮询检测 JSON 文件的 `status` 是否变为 `completed`。
 - 新反馈到达时
 - 反馈处理完成时
 
-**配置位置**：`workspace/feedback/config.yaml`
+**配置位置**：`runtime/feedback/config.yaml`
 
 ```yaml
 delivery:
@@ -399,7 +399,7 @@ curl -X POST "http://localhost:8000/api/feedback/trigger?limit=0"
 
 ## 配置
 
-**路径**：`workspace/feedback/config.yaml`
+**路径**：`runtime/feedback/config.yaml`
 
 ```yaml
 enabled: true

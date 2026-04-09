@@ -55,9 +55,9 @@ def get_log_dir() -> Path:
     获取日志目录
 
     Returns:
-        日志目录路径（~/.openclaw_alpha/logs）
+        日志目录路径（{project_root}/runtime/logs/）
     """
-    return get_config_dir() / "logs"
+    return get_runtime_dir() / "logs"
 
 
 def get_skills_dir() -> Path:
@@ -70,16 +70,31 @@ def get_skills_dir() -> Path:
     return get_project_root() / "skills"
 
 
-def get_workspace_dir() -> Path:
+def get_runtime_dir() -> Path:
     """
-    获取项目 workspace 目录
+    获取项目 runtime 目录
 
-    workspace 是项目级的工作目录，用于存放各种任务的工作数据。
+    runtime 是项目级的运行时目录，用于存放各种任务的工作数据。
 
     Returns:
-        workspace 目录路径（{project_root}/workspace/）
+        runtime 目录路径（{project_root}/runtime/）
     """
-    return get_project_root() / "workspace"
+    return get_project_root() / "runtime"
+
+
+def get_workspace_dir() -> Path:
+    """
+    获取项目 workspace 目录（已废弃，使用 get_runtime_dir）
+
+    Deprecated: 保留以兼容旧代码，建议迁移到 get_runtime_dir
+    """
+    import warnings
+    warnings.warn(
+        "get_workspace_dir() 已废弃，请使用 get_runtime_dir()",
+        DeprecationWarning,
+        stacklevel=2
+    )
+    return get_runtime_dir()
 
 
 def get_task_template_path(skill_name: str, task_name: str) -> Path:
@@ -105,9 +120,9 @@ def get_quick_news_analysis_task_dir(date: str, news_id: str) -> Path:
         news_id: 新闻 ID
 
     Returns:
-        任务目录路径（{workspace_dir}/quick_news_analysis/{date}/{news_id}）
+        任务目录路径（{runtime_dir}/quick_news_analysis/{date}/{news_id}）
     """
-    return get_workspace_dir() / "quick_news_analysis" / date / news_id
+    return get_runtime_dir() / "quick_news_analysis" / date / news_id
 
 
 def get_news_archive_dir(route_id: str, date: str) -> Path:
@@ -119,9 +134,9 @@ def get_news_archive_dir(route_id: str, date: str) -> Path:
         date: 日期（YYYY-MM-DD）
 
     Returns:
-        新闻存档目录路径（{workspace_dir}/news/{route_id}/{date}）
+        新闻存档目录路径（{runtime_dir}/news/{route_id}/{date}）
     """
-    return get_workspace_dir() / "news" / route_id / date
+    return get_runtime_dir() / "news" / route_id / date
 
 
 def ensure_dir(path: Path) -> Path:

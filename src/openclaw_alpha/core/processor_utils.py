@@ -2,9 +2,10 @@
 """Processor 工具函数"""
 
 import json
-import os
 from pathlib import Path
 from typing import Any
+
+from openclaw_alpha.core.path_utils import get_runtime_dir
 
 
 def get_output_path(
@@ -24,17 +25,12 @@ def get_output_path(
     Returns:
         输出文件的完整路径
     """
-    # 优先使用环境变量，否则使用当前工作目录
-    workspace = os.getenv("OPENCLAW_AGENT_WORKSPACE")
-    if not workspace:
-        workspace = os.getcwd()
-
     if date is None:
         from datetime import datetime
 
         date = datetime.now().strftime("%Y-%m-%d")
 
-    output_dir = Path(workspace) / ".openclaw_alpha" / skill_name / date
+    output_dir = get_runtime_dir() / "processor_data" / skill_name / date
     return output_dir / f"{processor_name}.{ext}"
 
 

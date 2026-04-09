@@ -10,6 +10,7 @@ import logging
 import time
 from pathlib import Path
 
+from ...core.path_utils import get_runtime_dir
 from ..scheduler import Scheduler
 from .config import QuickNewsConfig, load_quick_news_config
 from .task_executor import submit_analysis
@@ -24,7 +25,7 @@ _ROUTE_TO_SOURCE = {
     "/yicai/brief": "yicai_brief",
 }
 
-_DEFAULT_DATA_DIR = Path("data")
+_DEFAULT_DATA_DIR = get_runtime_dir() / "data"
 
 
 def _scan_pending_news(data_dir: Path | None = None) -> list[dict]:
@@ -50,7 +51,7 @@ def _scan_pending_news(data_dir: Path | None = None) -> list[dict]:
             continue
 
         status = data.get("analysis_status")
-        if status in (None, "failed"):
+        if status in (None, "failed", "pending"):
             pending.append(data)
 
     # 旧新闻优先（created_at 升序）
@@ -73,7 +74,7 @@ async def fetch_all_sources() -> dict:
     for route, source_name in _ROUTE_TO_SOURCE.items():
         try:
             logger.info(f"拉取新闻源: {source_name} ({route})")
-            result = await fetch_and_save(source=source_name, limit=100)
+            result = await fetch_and_save(source=source_name, limit=100, data_dir=_DEFAULT_DATA_DIR)
             saved = result.get("saved", 0)
             skipped = result.get("skipped", 0)
             total_saved += saved
@@ -184,7 +185,10 @@ async def _send_summary_notification(count: int, elapsed_seconds: float) -> None
     recipients = config.delivery.recipients
 
     if not recipients:
+        logger.info("无通知接收人，跳过汇总通知")
         return
+
+    logger.info(f"准备发送汇总通知: {len(recipients)} 个接收人")
 
     mins = int(elapsed_seconds // 60)
     secs = int(elapsed_seconds % 60)
