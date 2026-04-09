@@ -24,14 +24,25 @@ Backend 后续: 读取结果 → 通知 → 触发深度分析（可选）
 3. 逐个触发 Agent Session 分析
 ```
 
-### Agent 分析流程（v2）
+### Agent 分析流程（v3）
 
 ```
 1. update-news --summary        → 概括 + 自动 embedding + Milvus 入库
 2. search-similar               → 查找相似历史新闻
-3. 分析板块、公司、影响方向
-4. update-news --analysis       → 写入 3 字段结构化分析（自动提取 entities）
-5. report.md（可选）+ worth_deep_analysis 判断
+3. 事件关联
+   ├─ 搜索结果按 event_id 分组
+   ├─ LLM 判断：归属已有事件 or 新事件？
+   ├─ 新事件：create-event + update-news --event-id
+   └─ 已有事件：update-news --event-id + 更新 event.news_ids
+4. 读事件历史（仅关联到已有事件时）
+   ├─ 读事件的 responses/ 目录
+   └─ 了解：之前市场反应了什么
+5. 分析 + 预测
+   ├─ 结合历史市场反应做分析
+   ├─ 生成 prediction（板块 + 个股）
+   └─ 写入 prediction.md
+6. update-news --analysis       → 写入结构化分析（自动提取 entities）
+7. report.md（可选）+ worth_deep_analysis 判断
 ```
 
 ### Backend 后续处理
@@ -99,6 +110,7 @@ src/openclaw_alpha/core/
 data/news/{news_id}/
 ├── news.json        # 元数据 + summary + analysis + entities + session
 ├── content.md       # 新闻原文
+├── prediction.md    # 预测内容（markdown）
 └── summary_vector.json   # {"vector": [...]} (1024d)
 ```
 

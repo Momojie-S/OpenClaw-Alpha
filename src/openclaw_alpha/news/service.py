@@ -182,7 +182,6 @@ def update_news(
     summary: str | None = None,
     analysis: dict | None = None,
     event_id: str | None = None,
-    review: dict | None = None,
     data_dir: Path | None = None,
 ) -> dict:
     """更新新闻字段，统一 sync 一次。"""
@@ -223,10 +222,6 @@ def update_news(
             )
             event["updated_at"] = now
             _write_json(event_path, event)
-
-    # --review: 追加到 analysis.reviews[]
-    if review is not None:
-        news.setdefault("analysis", {}).setdefault("reviews", []).append(review)
 
     news["updated_at"] = int(time.time())
     write_news_json(news_id, news, data_dir)
@@ -325,7 +320,7 @@ def get_news(
         news["news_dir"] = nd
         return news
 
-    result = {"news_dir": nd}
+    result = {}
     for f in fields:
         if f == "content":
             content = read_content(news_id, data_dir)

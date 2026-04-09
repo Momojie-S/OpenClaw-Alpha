@@ -50,7 +50,23 @@ class TestCLIBasic:
         assert "error" in data
 
     def test_create_event_stub(self, tmp_path):
-        r = _run("create-event", "any_id", "--data-dir", str(tmp_path))
+        # 先创建新闻
+        news_dir = tmp_path / "news" / "any_id"
+        news_dir.mkdir(parents=True, exist_ok=True)
+        (news_dir / "news.json").write_text(
+            json.dumps({
+                "news_id": "any_id",
+                "title": "测试新闻",
+                "source": "test",
+                "link": "",
+                "published": "",
+                "created_at": 1234567890,
+                "updated_at": 1234567890
+            }),
+            encoding="utf-8"
+        )
+
+        r = _run("create-event", "any_id", "--title", "测试事件", "--data-dir", str(tmp_path))
         assert r.returncode == 0
         data = json.loads(r.stdout)
-        assert "message" in data
+        assert "event_id" in data

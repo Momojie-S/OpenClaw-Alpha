@@ -30,16 +30,12 @@ def _cmd_update_news(args):
     analysis = None
     if args.analysis:
         analysis = json.loads(args.analysis)
-    review = None
-    if args.review:
-        review = json.loads(args.review)
 
     result = service.update_news(
         news_id=args.news_id,
         summary=args.summary,
         analysis=analysis,
         event_id=args.event_id,
-        review=review,
         data_dir=Path(args.data_dir) if args.data_dir else None,
     )
     if "error" in result:
@@ -167,7 +163,6 @@ def main():
     p.add_argument("--summary")
     p.add_argument("--analysis")
     p.add_argument("--event-id")
-    p.add_argument("--review", help="追加 review JSON")
     _add_common_args(p)
     p.set_defaults(func=_cmd_update_news)
 

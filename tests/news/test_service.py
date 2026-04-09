@@ -149,7 +149,7 @@ class TestUpdateNews:
         assert result["updated"] is True
         news = json.loads((data_dir / "news" / "cls_001" / "news.json").read_text())
         assert news["summary"] == "新摘要"
-        emb = json.loads((data_dir / "news" / "cls_001" / "embedding.json").read_text())
+        emb = json.loads((data_dir / "news" / "cls_001" / "summary_vector.json").read_text())
         assert len(emb["vector"]) == 1024
 
     def test_update_analysis(self, data_dir):
@@ -172,6 +172,19 @@ class TestUpdateNews:
         mock_embedder.embed.return_value = [0.1] * 1024
         analysis = {"related_sectors": ["芯片"], "related_companies": [], "worth_deep_analysis": True}
 
+        # 创建 event.json 以避免提前返回错误
+        event_dir = data_dir / "events" / "evt_1"
+        event_dir.mkdir(parents=True, exist_ok=True)
+        event_json = event_dir / "event.json"
+        event_json.write_text(json.dumps({
+            "event_id": "evt_1",
+            "title": "测试事件",
+            "status": "ongoing",
+            "news_ids": [],
+            "created_at": "2026-04-09T00:00:00+08:00",
+            "updated_at": "2026-04-09T00:00:00+08:00"
+        }), encoding="utf-8")
+
         with patch("openclaw_alpha.news.service.get_embedder", return_value=mock_embedder), \
              patch("openclaw_alpha.news.service._sync_to_milvus") as mock_sync:
             update_news("cls_001", summary="s", analysis=analysis, event_id="evt_1", data_dir=data_dir)
@@ -188,7 +201,7 @@ class TestSearchSimilar:
         _create_news(data_dir, "cls_001")
         result = search_similar("cls_001", data_dir=data_dir)
         assert "error" in result
-        assert "no embedding" in result["error"]
+        assert "no summary_vector" in result["error"]
 
 
 class TestGetNews:

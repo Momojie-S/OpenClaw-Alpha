@@ -35,7 +35,8 @@ metadata:
 3. 对当前新闻进行分析，使用CLI工具记录，以下内容为必要记录项:
     - analysis，结构化的分析结果
     - event-id，关联已有事件或者新建事件
-4. 分析过程中，如果调研到市场情况没有在历史新闻的review中反映记录，则需要追加review记录。
+    - prediction.md，预测内容（markdown）
+4. 如果关联到已有事件，读取事件的 `responses/` 目录了解历史市场反应。
 5. 分析过程中，应该持续更新 `report.md` 记录
 
 ### 分析原则
@@ -113,9 +114,8 @@ uv run python -m openclaw_alpha.news.cli <command> [options]
 |---------|------|
 | `news_id` | 新闻 ID（位置参数，必填） |
 | `--summary` | 新闻概括（自动生成 embedding 并写入 Milvus） |
-| `--analysis` | 结构化分析 JSON（含 prediction） |
+| `--analysis` | 结构化分析 JSON（不含 prediction） |
 | `--event-id` | 关联事件 ID（双向关联，同时追加到 event.json.news_ids） |
-| `--review` | 回顾 JSON（追加到 analysis.reviews[]） |
 | `--data-dir` | 数据根目录（默认 `data/`） |
 
 **返回**：`{news_id, updated}`
@@ -127,34 +127,11 @@ uv run python -m openclaw_alpha.news.cli <command> [options]
   "related_companies": [
     {"name": "公司名", "listed": true, "code": "000001"}
   ],
-  "worth_deep_analysis": true,
-  "prediction": {
-    "summary": "预测概述",
-    "targets": [
-      {
-        "type": "sector",
-        "name": "石油开采",
-        "direction": "up",
-        "confidence": "high",
-        "timeframe": "1-3天",
-        "reasoning": "理由"
-      }
-    ]
-  }
+  "worth_deep_analysis": true
 }
 ```
-`direction`: up/down/neutral，`confidence`: high/medium/low
 
-**--review JSON 格式**：
-```json
-{
-  "summary": "回顾总结",
-  "target_updates": [
-    {"name": "石油开采", "actual_change": "+3.2%", "status": "accurate"}
-  ]
-}
-```
-`status`: accurate/inaccurate/accurate_then_fading/missed/pending
+**prediction 保存**：预测内容保存为 markdown 文件 `data/news/{news_id}/prediction.md`。
 
 **行为**：多参数同时传入时，先全部写入 news.json，最后统一 sync Milvus 一次。
 
