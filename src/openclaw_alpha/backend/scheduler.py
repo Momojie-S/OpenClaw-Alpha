@@ -6,6 +6,7 @@ from typing import Callable
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.interval import IntervalTrigger
+from apscheduler.triggers.cron import CronTrigger
 
 from .config import SchedulerConfig
 
@@ -73,6 +74,39 @@ class Scheduler:
             misfire_grace_time=1,  # 错过 1 秒就跳过
         )
         logger.info(f"已添加间隔任务: {job_id}，间隔: {minutes} 分钟")
+
+    def add_daily_job(
+        self,
+        func: Callable,
+        job_id: str,
+        *,
+        time_str: str = "08:00",
+        replace_existing: bool = True,
+    ) -> None:
+        """
+        添加每日定时任务
+
+        Args:
+            func: 任务函数
+            job_id: 任务 ID
+            time_str: 每日执行时间（HH:MM，东八区）
+            replace_existing: 是否替换已存在的任务
+        """
+        if not self.scheduler:
+            logger.warning("调度器未启动，无法添加任务")
+            return
+
+        hour, minute = time_str.split(":")
+        self.scheduler.add_job(
+            func,
+            trigger=CronTrigger(hour=int(hour), minute=int(minute), timezone="Asia/Shanghai"),
+            id=job_id,
+            replace_existing=replace_existing,
+            max_instances=1,
+            coalesce=True,
+            misfire_grace_time=60,
+        )
+        logger.info(f"已添加每日任务: {job_id}，执行时间: {time_str}")
 
     def remove_job(self, job_id: str) -> None:
         """

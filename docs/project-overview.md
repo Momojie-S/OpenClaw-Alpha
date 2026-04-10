@@ -30,6 +30,7 @@ OpenClaw-Alpha/
 │   ├── core/                       # 通用基础设施
 │   │   ├── fetcher.py              # 数据获取框架
 │   │   ├── data_source.py          # 数据源注册
+│   │   ├── settings.py             # ⚙️ 统一配置管理（.env + config.json）
 │   │   ├── registry.py             # 全局注册表
 │   │   ├── milvus/                 # 🗄️ Milvus 连接管理
 │   │   │   ├── __init__.py
@@ -65,6 +66,7 @@ OpenClaw-Alpha/
 │               └── {scenario}_processor.py
 │
 ├── runtime/                      # 📁 运行时工作目录（状态、输出）
+│   ├── config.json               # ⚙️ 统一配置（功能参数 + 调度配置）
 │   ├── quick_news/                 # 快讯任务状态
 │   ├── quick_news_analysis/        # 快讯分析输出
 │   │   └── {date}/{task_id}/       # 按日期和任务ID组织
@@ -72,7 +74,6 @@ OpenClaw-Alpha/
 │   │       └── analysis.json       # 分析结果
 │   ├── news_analysis/              # 新闻分析输出
 │   └── feedback/                   # 用户反馈处理
-│       ├── config.yaml             # 反馈模块配置
 │       ├── new/                    # 待处理反馈
 │       ├── done/                   # 已处理反馈
 │       └── tasks/                  # 任务目录（progress.md）
@@ -118,10 +119,11 @@ OpenClaw-Alpha/
 
 | 配置项 | 文件路径 | 说明 |
 |--------|----------|------|
-| 新闻分析 | `src/openclaw_alpha/backend/quick_news/config.py` | `QuickNewsConfig.agent_id` 指定分析任务的 agent；`RecipientConfig` 控制推送目标 |
-| 新闻分析运行时 | `runtime/quick_news/config.yaml` | 可覆盖默认配置（如启用/关闭、间隔、模型等） |
-| 用户反馈 | `runtime/feedback/config.yaml` | 反馈模块配置 |
-| 环境变量 | `.env` | API Key 等敏感配置 |
+| **统一配置** | `runtime/config.json` | 所有模块的功能参数和调度配置（quick_news, feedback, event_review, iteration_loop） |
+| **凭据** | `.env` | API Key、Token 等敏感配置（TUSHARE_TOKEN, DASHSCOPE_API_KEY, MILVUS_URI, MILVUS_TOKEN） |
+| **路径覆盖** | `.env` | `OPENCLAW_ALPHA_ROOT` 覆盖项目根目录 |
+
+> 详细说明见 [核心工具模块 - settings](docs/architecture/core-utilities.md)
 
 ## 核心概念
 

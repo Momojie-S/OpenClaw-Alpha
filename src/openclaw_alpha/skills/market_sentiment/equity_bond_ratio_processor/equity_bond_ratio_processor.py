@@ -108,7 +108,7 @@ class EquityBondRatioProcessor:
 
             import tushare as ts
 
-            token = os.environ.get("TUSHARE_TOKEN")
+            token = settings.tushare_token
             if not token:
                 print("未找到 TUSHARE_TOKEN")
                 return []
@@ -310,7 +310,7 @@ class EquityBondRatioProcessor:
 
                 import tushare as ts
 
-                token = os.environ.get("TUSHARE_TOKEN")
+                token = settings.tushare_token
                 if token:
                     pro = ts.pro_api(token)
                     df = pro.index_dailybasic(

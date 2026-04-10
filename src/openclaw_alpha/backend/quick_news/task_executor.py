@@ -341,3 +341,70 @@ def load_quick_news_config():
     """延迟导入避免循环依赖。"""
     from .config import load_quick_news_config
     return load_quick_news_config()
+
+
+def load_review_task_template() -> str:
+    """加载事件回顾任务模板。"""
+    template_path = get_task_template_path(
+        skill_name="news_driven_investment",
+        task_name="event-reviews",
+    )
+
+    if not template_path.exists():
+        raise FileNotFoundError(f"回顾任务模板不存在: {template_path}")
+
+    return template_path.read_text(encoding="utf-8")
+
+
+def build_review_message(event_id: str, event_dir: str) -> str:
+    """构造事件回顾任务消息。"""
+    template = load_review_task_template()
+
+    message = f"""{template}
+
+---
+
+## 本次任务参数
+
+- **EVENT_ID**: `{event_id}`
+- **EVENT_DIR**: `{event_dir}`"""
+
+    return message
+
+
+async def submit_event_review(
+    event_id: str,
+    agent_id: str = "main",
+    model: str | None = None,
+) -> bool:
+    """提交事件回顾任务。"""
+    from openclaw_alpha.core.path_utils import get_runtime_dir
+
+    event_dir = get_runtime_dir() / "data" / "events" / event_id
+
+    if not (event_dir / "event.json").exists():
+        logger.error(f"事件不存在: {event_id}")
+        return False
+
+    try:
+        message = build_review_message(event_id, str(event_dir))
+    except FileNotFoundError as e:
+        logger.error(f"加载回顾模板失败: {e}")
+        return False
+
+    cron_result = await submit_cron_task(
+        message=message,
+        name=f"event-review-{event_id}",
+        timeout_seconds=600,
+        delete_after_run=True,
+        thinking="low",
+        agent_id=agent_id,
+        model=model,
+        session_poll_timeout_seconds=600,
+    )
+
+    if not cron_result.success:
+        logger.error(f"事件回顾任务失败: {event_id} - {cron_result.error}")
+        return False
+
+    return True

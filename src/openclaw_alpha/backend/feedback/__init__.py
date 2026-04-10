@@ -8,12 +8,11 @@
 - 流程文档：docs/workflow/feedback-workflow.md
 """
 
-from .config import FeedbackConfig, get_feedback_config_path, load_feedback_config
+from .config import FeedbackConfig, load_feedback_config
 from .models import FeedbackItem, FeedbackQuery
 
 __all__ = [
     "FeedbackConfig",
-    "get_feedback_config_path",
     "load_feedback_config",
     "FeedbackItem",
     "FeedbackQuery",

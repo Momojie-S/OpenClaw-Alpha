@@ -5,29 +5,18 @@
 统一管理项目路径，避免到处硬编码路径。
 """
 
-import os
 from pathlib import Path
+
+from openclaw_alpha.core.settings import settings
 
 
 def get_project_root() -> Path:
-    """
-    获取项目根目录
-
-    优先级：
-    1. 环境变量 OPENCLAW_ALPHA_ROOT
-    2. 从包路径推断（向上4级）
+    """获取项目根目录
 
     Returns:
-        项目根目录路径
+        项目根目录路径（由 settings 统一管理）
     """
-    # 优先使用环境变量
-    env_root = os.getenv("OPENCLAW_ALPHA_ROOT")
-    if env_root:
-        return Path(env_root)
-
-    # Fallback: 从当前文件推断
-    # path_utils.py -> core -> openclaw_alpha -> src -> 项目根
-    return Path(__file__).parent.parent.parent.parent
+    return settings.project_root
 
 
 def get_config_dir() -> Path:

@@ -35,7 +35,7 @@ class MarketSentimentProcessor:
         import tushare as ts
         import os
 
-        pro = ts.pro_api(os.getenv("TUSHARE_TOKEN"))
+        pro = ts.pro_api(settings.tushare_token)
         date_str = date.replace("-", "")
 
         # 获取当日行情

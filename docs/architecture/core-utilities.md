@@ -1,12 +1,68 @@
 # 核心工具模块
 
-> 更新日期：2026-03-12
+> 更新日期：2026-04-10
 
-OpenClaw-Alpha 的核心工具模块，提供路径管理、数据处理等基础功能。
+OpenClaw-Alpha 的核心工具模块，提供统一配置、路径管理、数据处理等基础功能。
 
 ---
 
 ## 模块列表
+
+### settings - 统一配置管理
+
+**位置**：`src/openclaw_alpha/core/settings.py`
+
+**用途**：统一配置入口，合并 `.env` 凭据和 `runtime/config.json` 功能配置。
+
+#### 配置结构
+
+```.env                     → 凭据（TUSHARE_TOKEN, DASHSCOPE_API_KEY, MILVUS_URI, MILVUS_TOKEN）
+runtime/config.json      → 功能参数 + 调度配置（quick_news, feedback, event_review, iteration_loop）
+```
+
+#### 凭据属性
+
+| 属性 | 环境变量 | 类型 | 必填 | 默认值 |
+|------|----------|------|------|--------|
+| `tushare_token` | `TUSHARE_TOKEN` | str | ✓ | - |
+| `tushare_credit` | `TUSHARE_CREDIT` | int | ✗ | 0 |
+| `dashscope_api_key` | `DASHSCOPE_API_KEY` | str | ✓ | - |
+| `milvus_uri` | `MILVUS_URI` | str | ✓ | - |
+| `milvus_token` | `MILVUS_TOKEN` | str | ✓ | - |
+
+#### 功能配置属性
+
+| 属性 | config.json 节 | 类型 |
+|------|-----------------|------|
+| `quick_news` | `quick_news` | dict |
+| `feedback` | `feedback` | dict |
+| `event_review` | `event_review` | dict |
+| `project_root` | - | Path（支持 `OPENCLAW_ALPHA_ROOT` 覆盖） |
+
+#### 使用示例
+
+```python
+from openclaw_alpha.core.settings import settings
+
+# 读取凭据
+token = settings.tushare_token
+
+# 读取模块配置
+cfg = settings.quick_news
+enabled = cfg.get("enabled", True)
+interval = cfg.get("interval_minutes", 30)
+
+# 项目根目录
+root = settings.project_root
+```
+
+#### 设计原则
+
+1. **凭据与功能分离**：敏感信息只存 `.env`，不进 JSON
+2. **零新依赖**：标准库 `json` + `os.getenv()`，无 pydantic-settings
+3. **必填校验**：首次访问必填属性时抛出 `ValueError`
+
+---
 
 ### path_utils - 路径管理工具
 

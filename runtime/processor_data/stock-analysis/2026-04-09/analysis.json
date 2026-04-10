@@ -1,0 +1,27 @@
+{
+  "code": "601857.SH",
+  "name": "中国石油",
+  "date": "2026-04-09",
+  "price": {
+    "open": 12.02,
+    "high": 12.22,
+    "low": 12.01,
+    "close": 12.1,
+    "pre_close": 11.98,
+    "change": 0.12,
+    "pct_change": 1.0017
+  },
+  "volume": {
+    "volume": 187144663.0,
+    "amount": 2262853270.0,
+    "turnover_rate": 0.0
+  },
+  "market_cap": {
+    "total": 0.0,
+    "circulation": 0.0
+  },
+  "analysis": {
+    "activity": "不活跃",
+    "trend": "持平"
+  }
+}

@@ -1,12 +1,9 @@
 # -*- coding: utf-8 -*-
 """Iteration Loop 配置"""
 
-from pathlib import Path
-
-import yaml
 from pydantic import BaseModel
 
-from openclaw_alpha.core.path_utils import get_runtime_dir
+from openclaw_alpha.core.settings import settings
 
 
 class DevTasksConfig(BaseModel):
@@ -23,27 +20,9 @@ class IterationLoopConfig(BaseModel):
     dev_tasks: DevTasksConfig = DevTasksConfig()
 
 
-def get_config_path() -> Path:
-    """获取配置文件路径"""
-    return get_runtime_dir() / "iteration_loop" / "config.yaml"
-
-
-def load_iteration_config(config_path: Path | None = None) -> IterationLoopConfig:
-    """
-    加载 Iteration Loop 配置
-
-    Args:
-        config_path: 配置文件路径（None 则使用默认路径）
-
-    Returns:
-        配置对象
-    """
-    config_path = config_path or get_config_path()
-
-    if not config_path.exists():
+def load_iteration_config() -> IterationLoopConfig:
+    """加载 Iteration Loop 配置（从 settings 读取）"""
+    data = settings._data.get("iteration_loop", {})
+    if not data:
         return IterationLoopConfig()
-
-    with open(config_path, encoding="utf-8") as f:
-        data = yaml.safe_load(f) or {}
-
     return IterationLoopConfig(**data)

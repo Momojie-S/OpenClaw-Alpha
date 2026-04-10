@@ -1,0 +1,693 @@
+{
+  "date": "2026-04-09",
+  "category": "L1",
+  "weights": {
+    "pct_change": 0.35,
+    "turnover_rate": 0.3,
+    "volume_ratio": 0.35
+  },
+  "boards": [
+    {
+      "name": "电子",
+      "code": "801080.SI",
+      "level": "L1",
+      "date": "2026-04-09",
+      "metrics": {
+        "close": 6944.5,
+        "pct_change": 0.49,
+        "amount": 41600479.0,
+        "turnover_rate": 5.853582508841341,
+        "float_mv": 710684080.0,
+        "volume_ratio": 19.521257191277346
+      },
+      "heat_index": 86.8,
+      "scores": {
+        "pct_change": 30.24,
+        "turnover_rate": 21.57,
+        "volume_ratio": 35.0
+      },
+      "trend": "新",
+      "heat_change": null
+    },
+    {
+      "name": "通信",
+      "code": "801770.SI",
+      "level": "L1",
+      "date": "2026-04-09",
+      "metrics": {
+        "close": 6577.79,
+        "pct_change": 1.01,
+        "amount": 20135898.0,
+        "turnover_rate": 7.851315237459916,
+        "float_mv": 256465285.0,
+        "volume_ratio": 9.448882635109253
+      },
+      "heat_index": 81.79,
+      "scores": {
+        "pct_change": 35.0,
+        "turnover_rate": 30.0,
+        "volume_ratio": 16.79
+      },
+      "trend": "新",
+      "heat_change": null
+    },
+    {
+      "name": "机械设备",
+      "code": "801890.SI",
+      "level": "L1",
+      "date": "2026-04-09",
+      "metrics": {
+        "close": 2251.51,
+        "pct_change": -0.28,
+        "amount": 16462386.0,
+        "turnover_rate": 5.617186139278417,
+        "float_mv": 293071755.0,
+        "volume_ratio": 7.725066605316817
+      },
+      "heat_index": 57.42,
+      "scores": {
+        "pct_change": 23.18,
+        "turnover_rate": 20.57,
+        "volume_ratio": 13.67
+      },
+      "trend": "新",
+      "heat_change": null
+    },
+    {
+      "name": "电力设备",
+      "code": "801730.SI",
+      "level": "L1",
+      "date": "2026-04-09",
+      "metrics": {
+        "close": 10680.03,
+        "pct_change": -0.57,
+        "amount": 22866685.0,
+        "turnover_rate": 4.955149729744075,
+        "float_mv": 461473139.0,
+        "volume_ratio": 10.730319691677682
+      },
+      "heat_index": 57.4,
+      "scores": {
+        "pct_change": 20.52,
+        "turnover_rate": 17.77,
+        "volume_ratio": 19.1
+      },
+      "trend": "新",
+      "heat_change": null
+    },
+    {
+      "name": "石油石化",
+      "code": "801960.SI",
+      "level": "L1",
+      "date": "2026-04-09",
+      "metrics": {
+        "close": 3024.21,
+        "pct_change": 0.89,
+        "amount": 2847617.0,
+        "turnover_rate": 4.528590980966371,
+        "float_mv": 62880861.0,
+        "volume_ratio": 1.33626018679385
+      },
+      "heat_index": 51.99,
+      "scores": {
+        "pct_change": 33.9,
+        "turnover_rate": 15.97,
+        "volume_ratio": 2.11
+      },
+      "trend": "新",
+      "heat_change": null
+    },
+    {
+      "name": "基础化工",
+      "code": "801030.SI",
+      "level": "L1",
+      "date": "2026-04-09",
+      "metrics": {
+        "close": 4828.8,
+        "pct_change": -0.19,
+        "amount": 10982654.0,
+        "turnover_rate": 4.64358044311588,
+        "float_mv": 236512625.0,
+        "volume_ratio": 5.153671749231804
+      },
+      "heat_index": 49.48,
+      "scores": {
+        "pct_change": 24.01,
+        "turnover_rate": 16.46,
+        "volume_ratio": 9.02
+      },
+      "trend": "新",
+      "heat_change": null
+    },
+    {
+      "name": "有色金属",
+      "code": "801050.SI",
+      "level": "L1",
+      "date": "2026-04-09",
+      "metrics": {
+        "close": 9184.08,
+        "pct_change": -0.64,
+        "amount": 13642714.0,
+        "turnover_rate": 4.623477287105987,
+        "float_mv": 295074749.0,
+        "volume_ratio": 6.401919765900777
+      },
+      "heat_index": 47.53,
+      "scores": {
+        "pct_change": 19.88,
+        "turnover_rate": 16.37,
+        "volume_ratio": 11.28
+      },
+      "trend": "新",
+      "heat_change": null
+    },
+    {
+      "name": "环保",
+      "code": "801970.SI",
+      "level": "L1",
+      "date": "2026-04-09",
+      "metrics": {
+        "close": 2109.63,
+        "pct_change": -0.36,
+        "amount": 2207783.0,
+        "turnover_rate": 5.210220493282686,
+        "float_mv": 42374080.0,
+        "volume_ratio": 1.0360145075620375
+      },
+      "heat_index": 42.87,
+      "scores": {
+        "pct_change": 22.45,
+        "turnover_rate": 18.85,
+        "volume_ratio": 1.57
+      },
+      "trend": "新",
+      "heat_change": null
+    },
+    {
+      "name": "轻工制造",
+      "code": "801140.SI",
+      "level": "L1",
+      "date": "2026-04-09",
+      "metrics": {
+        "close": 2435.18,
+        "pct_change": -0.99,
+        "amount": 2754022.0,
+        "turnover_rate": 6.259955699233853,
+        "float_mv": 43994273.0,
+        "volume_ratio": 1.2923402101316195
+      },
+      "heat_index": 41.99,
+      "scores": {
+        "pct_change": 16.68,
+        "turnover_rate": 23.28,
+        "volume_ratio": 2.04
+      },
+      "trend": "新",
+      "heat_change": null
+    },
+    {
+      "name": "建筑装饰",
+      "code": "801720.SI",
+      "level": "L1",
+      "date": "2026-04-09",
+      "metrics": {
+        "close": 2256.04,
+        "pct_change": -0.94,
+        "amount": 4221857.0,
+        "turnover_rate": 5.4954028070796666,
+        "float_mv": 76825251.0,
+        "volume_ratio": 1.9811299846281722
+      },
+      "heat_index": 40.47,
+      "scores": {
+        "pct_change": 17.13,
+        "turnover_rate": 20.05,
+        "volume_ratio": 3.28
+      },
+      "trend": "新",
+      "heat_change": null
+    },
+    {
+      "name": "计算机",
+      "code": "801750.SI",
+      "level": "L1",
+      "date": "2026-04-09",
+      "metrics": {
+        "close": 4952.35,
+        "pct_change": -1.69,
+        "amount": 12986465.0,
+        "turnover_rate": 5.09012478950877,
+        "float_mv": 255130582.0,
+        "volume_ratio": 6.093971256208891
+      },
+      "heat_index": 39.32,
+      "scores": {
+        "pct_change": 10.26,
+        "turnover_rate": 18.34,
+        "volume_ratio": 10.72
+      },
+      "trend": "新",
+      "heat_change": null
+    },
+    {
+      "name": "钢铁",
+      "code": "801040.SI",
+      "level": "L1",
+      "date": "2026-04-09",
+      "metrics": {
+        "close": 2720.53,
+        "pct_change": -0.33,
+        "amount": 1572317.0,
+        "turnover_rate": 4.399284146867071,
+        "float_mv": 35740292.0,
+        "volume_ratio": 0.7378185367340993
+      },
+      "heat_index": 39.18,
+      "scores": {
+        "pct_change": 22.72,
+        "turnover_rate": 15.43,
+        "volume_ratio": 1.03
+      },
+      "trend": "新",
+      "heat_change": null
+    },
+    {
+      "name": "汽车",
+      "code": "801880.SI",
+      "level": "L1",
+      "date": "2026-04-09",
+      "metrics": {
+        "close": 7601.38,
+        "pct_change": -0.46,
+        "amount": 6693461.0,
+        "turnover_rate": 3.3211251893811538,
+        "float_mv": 201541966.0,
+        "volume_ratio": 3.140943970399583
+      },
+      "heat_index": 37.78,
+      "scores": {
+        "pct_change": 21.53,
+        "turnover_rate": 10.87,
+        "volume_ratio": 5.38
+      },
+      "trend": "新",
+      "heat_change": null
+    },
+    {
+      "name": "国防军工",
+      "code": "801740.SI",
+      "level": "L1",
+      "date": "2026-04-09",
+      "metrics": {
+        "close": 1890.2,
+        "pct_change": -0.79,
+        "amount": 6273995.0,
+        "turnover_rate": 4.066917927287987,
+        "float_mv": 154269034.0,
+        "volume_ratio": 2.944107206356641
+      },
+      "heat_index": 37.55,
+      "scores": {
+        "pct_change": 18.51,
+        "turnover_rate": 14.02,
+        "volume_ratio": 5.02
+      },
+      "trend": "新",
+      "heat_change": null
+    },
+    {
+      "name": "医药生物",
+      "code": "801150.SI",
+      "level": "L1",
+      "date": "2026-04-09",
+      "metrics": {
+        "close": 8180.26,
+        "pct_change": -1.57,
+        "amount": 13548729.0,
+        "turnover_rate": 4.271441518150555,
+        "float_mv": 317193363.0,
+        "volume_ratio": 6.357816779559629
+      },
+      "heat_index": 37.44,
+      "scores": {
+        "pct_change": 11.36,
+        "turnover_rate": 14.89,
+        "volume_ratio": 11.2
+      },
+      "trend": "新",
+      "heat_change": null
+    },
+    {
+      "name": "建筑材料",
+      "code": "801710.SI",
+      "level": "L1",
+      "date": "2026-04-09",
+      "metrics": {
+        "close": 5958.48,
+        "pct_change": -0.72,
+        "amount": 1925874.0,
+        "turnover_rate": 4.507107794885937,
+        "float_mv": 42729708.0,
+        "volume_ratio": 0.9037271342955948
+      },
+      "heat_index": 36.36,
+      "scores": {
+        "pct_change": 19.15,
+        "turnover_rate": 15.88,
+        "volume_ratio": 1.33
+      },
+      "trend": "新",
+      "heat_change": null
+    },
+    {
+      "name": "传媒",
+      "code": "801760.SI",
+      "level": "L1",
+      "date": "2026-04-09",
+      "metrics": {
+        "close": 804.71,
+        "pct_change": -2.24,
+        "amount": 6250179.0,
+        "turnover_rate": 6.51245747942917,
+        "float_mv": 95972665.0,
+        "volume_ratio": 2.9329314152974217
+      },
+      "heat_index": 34.57,
+      "scores": {
+        "pct_change": 5.22,
+        "turnover_rate": 24.35,
+        "volume_ratio": 5.0
+      },
+      "trend": "新",
+      "heat_change": null
+    },
+    {
+      "name": "公用事业",
+      "code": "801160.SI",
+      "level": "L1",
+      "date": "2026-04-09",
+      "metrics": {
+        "close": 2563.38,
+        "pct_change": -0.98,
+        "amount": 4520660.0,
+        "turnover_rate": 3.9740423562802913,
+        "float_mv": 113754701.0,
+        "volume_ratio": 2.1213449617808453
+      },
+      "heat_index": 33.93,
+      "scores": {
+        "pct_change": 16.77,
+        "turnover_rate": 13.63,
+        "volume_ratio": 3.53
+      },
+      "trend": "新",
+      "heat_change": null
+    },
+    {
+      "name": "纺织服饰",
+      "code": "801130.SI",
+      "level": "L1",
+      "date": "2026-04-09",
+      "metrics": {
+        "close": 1665.4,
+        "pct_change": -1.09,
+        "amount": 989139.0,
+        "turnover_rate": 3.73605098324407,
+        "float_mv": 26475522.0,
+        "volume_ratio": 0.4641590020375218
+      },
+      "heat_index": 28.92,
+      "scores": {
+        "pct_change": 15.76,
+        "turnover_rate": 12.63,
+        "volume_ratio": 0.54
+      },
+      "trend": "新",
+      "heat_change": null
+    },
+    {
+      "name": "煤炭",
+      "code": "801950.SI",
+      "level": "L1",
+      "date": "2026-04-09",
+      "metrics": {
+        "close": 3180.64,
+        "pct_change": -0.57,
+        "amount": 1081864.0,
+        "turnover_rate": 2.1764690936033357,
+        "float_mv": 49707299.0,
+        "volume_ratio": 0.5076707263390904
+      },
+      "heat_index": 27.18,
+      "scores": {
+        "pct_change": 20.52,
+        "turnover_rate": 6.04,
+        "volume_ratio": 0.62
+      },
+      "trend": "新",
+      "heat_change": null
+    },
+    {
+      "name": "房地产",
+      "code": "801180.SI",
+      "level": "L1",
+      "date": "2026-04-09",
+      "metrics": {
+        "close": 2014.9,
+        "pct_change": -1.17,
+        "amount": 1557081.0,
+        "turnover_rate": 3.3395394347669924,
+        "float_mv": 46625621.0,
+        "volume_ratio": 0.7306689586110613
+      },
+      "heat_index": 27.0,
+      "scores": {
+        "pct_change": 15.03,
+        "turnover_rate": 10.95,
+        "volume_ratio": 1.02
+      },
+      "trend": "新",
+      "heat_change": null
+    },
+    {
+      "name": "家用电器",
+      "code": "801110.SI",
+      "level": "L1",
+      "date": "2026-04-09",
+      "metrics": {
+        "close": 8594.89,
+        "pct_change": -1.02,
+        "amount": 2515379.0,
+        "turnover_rate": 2.4726459658971165,
+        "float_mv": 101728231.0,
+        "volume_ratio": 1.180355649090916
+      },
+      "heat_index": 25.52,
+      "scores": {
+        "pct_change": 16.4,
+        "turnover_rate": 7.29,
+        "volume_ratio": 1.83
+      },
+      "trend": "新",
+      "heat_change": null
+    },
+    {
+      "name": "农林牧渔",
+      "code": "801010.SI",
+      "level": "L1",
+      "date": "2026-04-09",
+      "metrics": {
+        "close": 2822.51,
+        "pct_change": -1.28,
+        "amount": 1916928.0,
+        "turnover_rate": 2.9652674322314647,
+        "float_mv": 64646041.0,
+        "volume_ratio": 0.8995291738145829
+      },
+      "heat_index": 24.71,
+      "scores": {
+        "pct_change": 14.02,
+        "turnover_rate": 9.37,
+        "volume_ratio": 1.32
+      },
+      "trend": "新",
+      "heat_change": null
+    },
+    {
+      "name": "交通运输",
+      "code": "801170.SI",
+      "level": "L1",
+      "date": "2026-04-09",
+      "metrics": {
+        "close": 2263.27,
+        "pct_change": -1.53,
+        "amount": 2591213.0,
+        "turnover_rate": 2.636910769105021,
+        "float_mv": 98266996.0,
+        "volume_ratio": 1.2159411772730153
+      },
+      "heat_index": 21.61,
+      "scores": {
+        "pct_change": 11.73,
+        "turnover_rate": 7.99,
+        "volume_ratio": 1.9
+      },
+      "trend": "新",
+      "heat_change": null
+    },
+    {
+      "name": "社会服务",
+      "code": "801210.SI",
+      "level": "L1",
+      "date": "2026-04-09",
+      "metrics": {
+        "close": 8437.95,
+        "pct_change": -1.94,
+        "amount": 1035226.0,
+        "turnover_rate": 3.8372543859323973,
+        "float_mv": 26978300.0,
+        "volume_ratio": 0.4857855842740965
+      },
+      "heat_index": 21.6,
+      "scores": {
+        "pct_change": 7.97,
+        "turnover_rate": 13.05,
+        "volume_ratio": 0.58
+      },
+      "trend": "新",
+      "heat_change": null
+    },
+    {
+      "name": "综合",
+      "code": "801230.SI",
+      "level": "L1",
+      "date": "2026-04-09",
+      "metrics": {
+        "close": 4485.51,
+        "pct_change": -2.0,
+        "amount": 355725.0,
+        "turnover_rate": 3.9766004076930686,
+        "float_mv": 8945455.0,
+        "volume_ratio": 0.16692594367404123
+      },
+      "heat_index": 21.06,
+      "scores": {
+        "pct_change": 7.42,
+        "turnover_rate": 13.64,
+        "volume_ratio": 0.0
+      },
+      "trend": "新",
+      "heat_change": null
+    },
+    {
+      "name": "食品饮料",
+      "code": "801120.SI",
+      "level": "L1",
+      "date": "2026-04-09",
+      "metrics": {
+        "close": 15802.34,
+        "pct_change": -1.01,
+        "amount": 2087621.0,
+        "turnover_rate": 1.1752541766999172,
+        "float_mv": 177631447.0,
+        "volume_ratio": 0.9796278177208394
+      },
+      "heat_index": 19.78,
+      "scores": {
+        "pct_change": 16.49,
+        "turnover_rate": 1.81,
+        "volume_ratio": 1.47
+      },
+      "trend": "新",
+      "heat_change": null
+    },
+    {
+      "name": "银行",
+      "code": "801780.SI",
+      "level": "L1",
+      "date": "2026-04-09",
+      "metrics": {
+        "close": 3975.02,
+        "pct_change": -0.86,
+        "amount": 1848616.0,
+        "turnover_rate": 0.7455223745495948,
+        "float_mv": 247962511.0,
+        "volume_ratio": 0.8674733861576538
+      },
+      "heat_index": 19.13,
+      "scores": {
+        "pct_change": 17.87,
+        "turnover_rate": 0.0,
+        "volume_ratio": 1.27
+      },
+      "trend": "新",
+      "heat_change": null
+    },
+    {
+      "name": "商贸零售",
+      "code": "801200.SI",
+      "level": "L1",
+      "date": "2026-04-09",
+      "metrics": {
+        "close": 2066.1,
+        "pct_change": -2.26,
+        "amount": 1528019.0,
+        "turnover_rate": 3.4254633268246604,
+        "float_mv": 44607659.0,
+        "volume_ratio": 0.7170314527426096
+      },
+      "heat_index": 17.35,
+      "scores": {
+        "pct_change": 5.04,
+        "turnover_rate": 11.31,
+        "volume_ratio": 0.99
+      },
+      "trend": "新",
+      "heat_change": null
+    },
+    {
+      "name": "非银金融",
+      "code": "801790.SI",
+      "level": "L1",
+      "date": "2026-04-09",
+      "metrics": {
+        "close": 1767.05,
+        "pct_change": -2.06,
+        "amount": 3735131.0,
+        "turnover_rate": 1.5460348791613918,
+        "float_mv": 241594226.0,
+        "volume_ratio": 1.7527310898057917
+      },
+      "heat_index": 13.12,
+      "scores": {
+        "pct_change": 6.87,
+        "turnover_rate": 3.38,
+        "volume_ratio": 2.87
+      },
+      "trend": "新",
+      "heat_change": null
+    },
+    {
+      "name": "美容护理",
+      "code": "801980.SI",
+      "level": "L1",
+      "date": "2026-04-09",
+      "metrics": {
+        "close": 3962.27,
+        "pct_change": -2.81,
+        "amount": 367766.0,
+        "turnover_rate": 3.607658792617447,
+        "float_mv": 10194035.0,
+        "volume_ratio": 0.17257625019671782
+      },
+      "heat_index": 12.09,
+      "scores": {
+        "pct_change": 0.0,
+        "turnover_rate": 12.08,
+        "volume_ratio": 0.01
+      },
+      "trend": "新",
+      "heat_change": null
+    }
+  ]
+}

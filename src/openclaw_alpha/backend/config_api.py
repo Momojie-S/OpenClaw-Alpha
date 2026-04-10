@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
 """配置管理 API 路由"""
 
+import json
 import logging
 from typing import Any
+from pathlib import Path
 
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
@@ -11,18 +13,30 @@ from openclaw_alpha.backend.iteration_loop.config import (
     IterationLoopConfig,
     DevTasksConfig,
     load_iteration_config,
-    get_config_path as get_iteration_config_path,
 )
 from openclaw_alpha.backend.feedback.config import (
     FeedbackConfig,
     load_feedback_config,
-    get_feedback_config_path,
 )
-import yaml
+from openclaw_alpha.core.settings import settings
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/config", tags=["config"])
+
+
+def _get_config_path() -> Path:
+    return settings.project_root / "runtime" / "config.json"
+
+
+def _load_config_json() -> dict:
+    return json.loads(_get_config_path().read_text(encoding="utf-8"))
+
+
+def _save_config_json(data: dict) -> None:
+    _get_config_path().write_text(
+        json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
+    )
 
 
 # ============ Models ============
@@ -48,12 +62,9 @@ class FeedbackConfigUpdate(BaseModel):
 
 @router.get("/iteration-loop", response_model=IterationLoopConfig)
 async def get_iteration_loop_config():
-    """
-    获取 Iteration Loop 配置
-    """
+    """获取 Iteration Loop 配置"""
     try:
-        config = load_iteration_config()
-        return config
+        return load_iteration_config()
     except Exception as e:
         logger.error(f"获取 Iteration Loop 配置失败: {e}")
         raise HTTPException(status_code=500, detail=f"获取配置失败: {str(e)}")
@@ -61,39 +72,23 @@ async def get_iteration_loop_config():
 
 @router.put("/iteration-loop", response_model=IterationLoopConfig)
 async def update_iteration_loop_config(update: IterationLoopConfigUpdate):
-    """
-    更新 Iteration Loop 配置（部分更新）
-
-    支持更新：
-    - enabled: 主开关
-    - interval_minutes: 执行间隔（分钟）
-    - dev_tasks.enabled: 开发任务开关
-    """
+    """更新 Iteration Loop 配置（部分更新）"""
     try:
-        # 读取现有配置
-        config_path = get_iteration_config_path()
-        current_config = load_iteration_config()
+        data = _load_config_json()
+        il = data.get("iteration_loop", {})
 
-        # 转换为字典
-        config_dict = current_config.model_dump()
-
-        # 合并更新
         if update.enabled is not None:
-            config_dict["enabled"] = update.enabled
+            il["enabled"] = update.enabled
         if update.interval_minutes is not None:
-            config_dict["interval_minutes"] = update.interval_minutes
+            il["interval_minutes"] = update.interval_minutes
         if update.dev_tasks is not None:
-            config_dict["dev_tasks"] = update.dev_tasks.model_dump()
+            il["dev_tasks"] = update.dev_tasks.model_dump()
 
-        # 写入文件
-        config_path.parent.mkdir(parents=True, exist_ok=True)
-        with open(config_path, "w", encoding="utf-8") as f:
-            yaml.dump(config_dict, f, allow_unicode=True, default_flow_style=False)
+        data["iteration_loop"] = il
+        _save_config_json(data)
 
-        logger.info(f"Iteration Loop 配置已更新: {config_path}")
-
-        # 返回更新后的配置
-        return IterationLoopConfig(**config_dict)
+        logger.info("Iteration Loop 配置已更新")
+        return IterationLoopConfig(**il)
 
     except Exception as e:
         logger.error(f"更新 Iteration Loop 配置失败: {e}", exc_info=True)
@@ -105,12 +100,9 @@ async def update_iteration_loop_config(update: IterationLoopConfigUpdate):
 
 @router.get("/feedback", response_model=FeedbackConfig)
 async def get_feedback_config():
-    """
-    获取 Feedback 配置
-    """
+    """获取 Feedback 配置"""
     try:
-        config = load_feedback_config()
-        return config
+        return load_feedback_config()
     except Exception as e:
         logger.error(f"获取 Feedback 配置失败: {e}")
         raise HTTPException(status_code=500, detail=f"获取配置失败: {str(e)}")
@@ -118,36 +110,21 @@ async def get_feedback_config():
 
 @router.put("/feedback", response_model=FeedbackConfig)
 async def update_feedback_config(update: FeedbackConfigUpdate):
-    """
-    更新 Feedback 配置（部分更新）
-
-    支持更新：
-    - enabled: 主开关
-    - interval_minutes: 执行间隔（分钟）
-    """
+    """更新 Feedback 配置（部分更新）"""
     try:
-        # 读取现有配置
-        config_path = get_feedback_config_path()
-        current_config = load_feedback_config()
+        data = _load_config_json()
+        fb = data.get("feedback", {})
 
-        # 转换为字典
-        config_dict = current_config.model_dump()
-
-        # 合并更新
         if update.enabled is not None:
-            config_dict["enabled"] = update.enabled
+            fb["enabled"] = update.enabled
         if update.interval_minutes is not None:
-            config_dict["interval_minutes"] = update.interval_minutes
+            fb["interval_minutes"] = update.interval_minutes
 
-        # 写入文件
-        config_path.parent.mkdir(parents=True, exist_ok=True)
-        with open(config_path, "w", encoding="utf-8") as f:
-            yaml.dump(config_dict, f, allow_unicode=True, default_flow_style=False)
+        data["feedback"] = fb
+        _save_config_json(data)
 
-        logger.info(f"Feedback 配置已更新: {config_path}")
-
-        # 返回更新后的配置
-        return FeedbackConfig(**config_dict)
+        logger.info("Feedback 配置已更新")
+        return FeedbackConfig(**fb)
 
     except Exception as e:
         logger.error(f"更新 Feedback 配置失败: {e}", exc_info=True)

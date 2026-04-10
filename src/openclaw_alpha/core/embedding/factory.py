@@ -1,9 +1,9 @@
 """Embedding 工厂：按环境变量自动选择实现。"""
 
-import os
 from typing import Union
 
 from openclaw_alpha.core.embedding.base import Embedder
+from openclaw_alpha.core.settings import settings
 
 _embedder: Embedder | None = None
 
@@ -21,7 +21,7 @@ def get_embedder() -> Embedder:
     if _embedder is not None:
         return _embedder
 
-    api_key = os.environ.get("DASHSCOPE_API_KEY")
+    api_key = settings.dashscope_api_key
     if api_key:
         from openclaw_alpha.core.embedding.dashscope import DashScopeEmbedder
 
@@ -29,7 +29,6 @@ def get_embedder() -> Embedder:
         return _embedder
 
     raise ValueError("未配置 embedding 服务 API Key（需要 DASHSCOPE_API_KEY）")
-
 
 def _reset() -> None:
     """重置单例（仅供测试使用）。"""

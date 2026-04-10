@@ -42,7 +42,7 @@ Backend服务可以使用以下命令启动 `uv run --env-file .env`，其提供
 
 #### 相关配置:
 
-- 新闻分析配置: {project_root}/runtime/quick_news/config.yaml
+- 功能配置: {project_root}/runtime/config.json
 
 ```
 
@@ -65,25 +65,46 @@ cp .env.sample .env
 | `TUSHARE_CREDIT` | Tushare 积分要求 | 根据接口需求设置，默认 5000 |
 | `PYTHONPATH` | Python 模块搜索路径 | 已通过 pyproject.toml 配置，无需设置 |
 
-## Backend配置
+## 功能配置
 
-配置过程中，应该和用户咨询相关值是什么
+```bash
+cd <project-root>
+cp runtime/config.json.example runtime/config.json
+```
 
-### 新闻分析配置
+编辑 `runtime/config.json`。所有模块功能配置统一在此文件中，凭据（Token 等）请放在 `.env` 中。
 
-**路径**：`runtime/quick_news/config.yaml`
+### 配置结构
 
-**说明**：新闻快速分析的定时采集和推送配置
+```json
+{
+  "defaults": {
+    "agent_id": "main",          // 公共 agent ID
+    "model": "...",               // 公共模型
+    "delivery": { "recipients": [] }  // 公共推送配置
+  },
+  "quick_news": { ... },
+  "feedback": { ... },
+  "event_review": { ... },
+  "iteration_loop": { ... }
+}
+```
 
-**配置项**：
+### defaults（公共默认值）
 
-| 字段 | 说明 | 默认值 |
-|------|------|--------|
-| `enabled` | 是否启用 | true |
-| `interval_minutes` | 采集间隔（分钟） | 30 |
-| `agent_id` | 分析 agent ID | main |
-| `model` | 模型 | null（使用默认） |
-| `delivery.recipients[]` | 接收人列表 | [{name: "Momojie"}] |
-| `delivery.channel` | 推送渠道 | wecom |
-| `cron.agent_turn_timeout_seconds` | Agent 超时（秒） | 900 |
-| `cron.session_poll_timeout_seconds` | 轮询超时（秒） | 900 |
+模块未设置 `agent_id`/`model`/`delivery` 时，自动从 `defaults` 继承。
+
+| 字段 | 说明 |
+|------|------|
+| `agent_id` | 执行 agent ID |
+| `model` | 模型标识 |
+| `delivery.recipients[]` | 推送接收人列表 |
+
+### 模块配置
+
+| 模块 | 说明 | 特有字段 |
+|------|------|----------|
+| `quick_news` | 新闻定时采集分析 | `enabled`, `interval_minutes`, `cron.*` |
+| `feedback` | 用户反馈处理 | `enabled`, `feedback_new_dir`, `feedback_done_dir`, `cron.*` |
+| `event_review` | 公告事件回顾 | `enabled`, `schedule_time`, `concurrency` |
+| `iteration_loop` | 迭代循环 | `enabled`, `interval_minutes`, `dev_tasks.*` |

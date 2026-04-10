@@ -324,11 +324,11 @@ data/events/{event_id}/
 
 ### 概述
 
-定时回顾由 Backend 调度，Agent 通过 CLI 写入闭环完成回顾。
+定时回顾由 Backend 调度，Agent 直接写文件闭环完成回顾。
 
 ```
-Backend 调度: 扫描事件 → 筛选新闻 → 触发 Agent Session
-Agent 执行:   查市场数据 → 评价预测 → CLI写入
+Backend 调度: 扫描 ongoing 事件 → 逐个触发 Agent Session
+Agent 执行:   读历史→查市场数据→评价预测→写 responses/{date}.md
 Backend 后续: 读取结果 → 通知
 ```
 
@@ -372,8 +372,9 @@ Agent 完成后 Backend 轮询事件目录：
 
 ```
 src/openclaw_alpha/backend/quick_news/
-├── jobs.py          # 定时任务：review_all_ongoing_events, review_event, submit_news_review
-└── task_executor.py # 构造market response任务消息
+├── jobs.py                  # 定时任务：review_all_ongoing_events
+├── task_executor.py         # submit_event_review 构造回顾任务消息
+└── event_review_config.py   # 回顾配置加载
 ```
 
 Backend 职责：只管调度和触发，不做market response也不查询市场数据。
@@ -391,7 +392,7 @@ src/openclaw_alpha/news/
 
 ### 任务模板
 
-**路径**：`skills/news_driven_investment/tasks/news-review.md`
+**路径**：`skills/news_driven_investment/tasks/event-reviews.md`
 
 任务模板说明回顾目标、输入信息、markdown 格式、要求。Agent 在任务中自主决定如何获取市场数据（调用其他 skill），最终直接写文件 `data/events/{event_id}/responses/{date}.md`。详细内容见文件本身。
 
@@ -399,13 +400,14 @@ src/openclaw_alpha/news/
 
 ### 配置
 
-在 `runtime/quick_news/config.yaml` 中新增回顾配置：
+独立配置文件 `runtime/config/event-review.yaml`：
 
 ```yaml
-review:
-  enabled: true
-  interval_hours: 24              # 回顾间隔
-  review_interval_days: 7         # 两次回顾最小间隔
+enabled: true
+schedule_time: "08:00"    # 每日回顾时间（HH:MM，东八区）
+concurrency: 1            # 并行回顾的事件数量
+agent_id: main            # 执行回顾的 Agent ID
+model: null               # 模型覆盖
 ```
 
 ---

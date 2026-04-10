@@ -5,6 +5,7 @@ import argparse
 import asyncio
 import json
 import os
+from openclaw_alpha.core.settings import settings
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Optional
@@ -439,7 +440,7 @@ class MarketTimingProcessor:
         Returns:
             涨跌家数统计
         """
-        pro = ts.pro_api(os.getenv("TUSHARE_TOKEN"))
+        pro = ts.pro_api(settings.tushare_token)
         date_str = date.replace("-", "")
 
         # 获取当日行情
@@ -480,7 +481,7 @@ class MarketTimingProcessor:
         historical_data = []
 
         # 获取交易日历
-        pro = ts.pro_api(os.getenv("TUSHARE_TOKEN"))
+        pro = ts.pro_api(settings.tushare_token)
         cal_df = pro.trade_cal(
             start_date=(end_dt - timedelta(days=days * 2)).strftime("%Y%m%d"),
             end_date=end_date.strftime("%Y%m%d"),

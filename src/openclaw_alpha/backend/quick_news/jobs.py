@@ -10,9 +10,10 @@ import logging
 import time
 from pathlib import Path
 
-from ...core.path_utils import get_runtime_dir
+from ...core.path_utils import get_runtime_dir, get_task_template_path
 from ..scheduler import Scheduler
 from .config import QuickNewsConfig, load_quick_news_config
+from .event_review_config import load_event_review_config
 from .task_executor import submit_analysis
 
 logger = logging.getLogger(__name__)
@@ -212,6 +213,54 @@ async def _send_summary_notification(count: int, elapsed_seconds: float) -> None
             logger.error(f"汇总通知发送异常: {recipient.name} - {e}")
 
 
+async def review_all_ongoing_events() -> dict:
+    """扫描所有 ongoing 事件，逐个触发回顾任务。"""
+    from openclaw_alpha.news.service import list_events as svc_list_events
+    from .task_executor import submit_event_review
+
+    review_config = load_event_review_config()
+
+    if not review_config.enabled:
+        logger.info("事件回顾已禁用")
+        return {"reviewed": 0, "skipped": 0}
+
+    result = svc_list_events(status="ongoing", limit=1000)
+    events = result.get("events", [])
+
+    if not events:
+        logger.info("无 ongoing 事件需要回顾")
+        return {"reviewed": 0, "skipped": 0}
+
+    logger.info(f"发现 {len(events)} 个 ongoing 事件待回顾")
+
+    reviewed = 0
+    skipped = 0
+    for event in events:
+        event_id = event.get("event_id")
+        if not event_id:
+            skipped += 1
+            continue
+
+        try:
+            success = await submit_event_review(
+                event_id=event_id,
+                agent_id=review_config.agent_id,
+                model=review_config.model,
+            )
+            if success:
+                reviewed += 1
+                logger.info(f"事件回顾完成: {event_id}")
+            else:
+                skipped += 1
+                logger.warning(f"事件回顾失败: {event_id}")
+        except Exception as e:
+            skipped += 1
+            logger.error(f"事件回顾异常: {event_id} - {e}")
+
+    logger.info(f"事件回顾完成: reviewed={reviewed}, skipped={skipped}")
+    return {"reviewed": reviewed, "skipped": skipped}
+
+
 def setup_quick_news_jobs(scheduler: Scheduler) -> None:
     """注册新闻模块定时任务。"""
     from functools import partial
@@ -229,3 +278,13 @@ def setup_quick_news_jobs(scheduler: Scheduler) -> None:
     )
 
     logger.info(f"新闻任务已注册，间隔: {config.interval_minutes} 分钟")
+
+    # 注册事件回顾定时任务
+    review_config = load_event_review_config()
+    if review_config.enabled:
+        scheduler.add_daily_job(
+            review_all_ongoing_events,
+            job_id="event-review-daily",
+            time_str=review_config.schedule_time,
+        )
+        logger.info(f"事件回顾任务已注册，每日 {review_config.schedule_time}")

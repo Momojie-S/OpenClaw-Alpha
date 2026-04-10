@@ -1,12 +1,11 @@
 # -*- coding: utf-8 -*-
 """Tushare 数据源实现"""
 
-import os
-
 import tushare as ts
 
 from openclaw_alpha.core.data_source import DataSource
 from openclaw_alpha.core.exceptions import MissingConfigError
+from openclaw_alpha.core.settings import settings
 
 
 class TushareDataSource(DataSource):
@@ -30,25 +29,14 @@ class TushareDataSource(DataSource):
     def credit(self) -> int:
         """用户积分
 
-        从环境变量 TUSHARE_CREDIT 读取，未配置时默认为 0。
-
         Returns:
             用户积分
         """
-        credit_str = os.getenv("TUSHARE_CREDIT", "0")
-        try:
-            return int(credit_str)
-        except ValueError:
-            return 0
+        return settings.tushare_credit
 
     async def initialize(self) -> None:
         """初始化 Tushare Pro 客户端"""
-        token = os.getenv("TUSHARE_TOKEN")
-        if not token:
-            raise MissingConfigError(
-                "tushare",
-                ["TUSHARE_TOKEN"],
-            )
+        token = settings.tushare_token
         self._client = ts.pro_api(token)
 
     async def close(self) -> None:
