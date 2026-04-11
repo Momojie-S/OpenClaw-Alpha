@@ -8,6 +8,27 @@
 
 ---
 
+## 命令总览
+
+| 命令 | 调用者 | 用途 |
+|------|--------|------|
+| `fetch-news` | Agent | 拉取新闻并落盘 |
+| `update-news` | Agent | 更新新闻字段（summary/analysis/event-id） |
+| `search-similar` | Agent | 向量搜索相似新闻 |
+| `search-keyword` | Agent | 关键词搜索新闻 |
+| `get-news` | Agent | 获取新闻详情 |
+| `create-event` | Agent | 创建事件并关联新闻 |
+| `get-event` | Agent | 获取事件详情 |
+| `close-event` | Agent | 关闭事件 |
+| `trigger` | 开发调试 | 触发快速分析流程（待改名） |
+
+**CLI 暴露原则**：只有 Agent 在分析流程中主动调用的才暴露为 CLI 命令。Backend 内部使用的直接调 service，不暴露 CLI。
+
+**已移除**：
+- `list-events` — 仅在 backend 代码中使用，直接调 `service.list_events()`，不暴露 CLI。
+
+---
+
 ## fetch-news
 
 拉取新闻，复用 news fetcher 模块。
@@ -82,7 +103,7 @@ uv run --env-file .env python -m openclaw_alpha.news.cli update-news <news_id> \
 
 ## create-event
 
-创建新事件并关联新闻。**事件系统完整设计待后续统一规划，当前仅预留接口。**
+创建新事件并关联新闻。初始化 `needs_deep_analysis: false`、`deep_analysis: null`。
 
 ---
 
@@ -155,6 +176,22 @@ uv run --env-file .env python -m openclaw_alpha.news.cli get-event <event_id>
 ```
 
 - **event_id 不存在**：返回 `{"error": "event_id xxx not found"}`
+
+---
+
+## trigger（调试用）
+
+触发快速分析调试流程。**仅用于开发调试，后续改名为 `debug-quick-news`。**
+
+---
+
+## service 层补充说明
+
+以下能力仅在 service 层实现，不暴露 CLI：
+
+| 函数 | 调用者 | 用途 |
+|------|--------|------|
+| `list_events(needs_deep=True)` | Backend | 扫描需要深度分析的事件 |
 
 ---
 

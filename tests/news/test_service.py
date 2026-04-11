@@ -14,10 +14,12 @@ from openclaw_alpha.news.service import (
     search_keyword,
     get_news,
     get_event,
+    list_events,
     read_news_json,
     write_news_json,
     _build_entities,
     _save_news_item,
+    create_event,
 )
 from openclaw_alpha.news.fetcher.models import NewsItem
 
@@ -301,3 +303,87 @@ class TestAnalysisStatus:
         from openclaw_alpha.backend.quick_news.jobs import _scan_pending_news
         pending = _scan_pending_news(data_dir=data_dir)
         assert any(n["news_id"] == "old_news_001" for n in pending)
+
+
+class TestDeepAnalysisTrigger:
+    """深度分析触发机制测试。"""
+
+    def test_create_event_has_new_fields(self, data_dir):
+        """4.1 create_event 创建的事件包含新字段。"""
+        _create_news(data_dir, "cls_001")
+        result = create_event(title="测试事件", news_id="cls_001", data_dir=data_dir)
+        assert "error" not in result
+        assert result["needs_deep_analysis"] is False
+        assert result["deep_analysis"] is None
+
+    def test_update_news_sets_needs_deep(self, data_dir):
+        """4.2 关联新新闻后事件 needs_deep_analysis=True。"""
+        _create_news(data_dir, "cls_001")
+        _create_news(data_dir, "cls_002")
+
+        # 先创建事件
+        result = create_event(title="测试", news_id="cls_001", data_dir=data_dir)
+        event_id = result["event_id"]
+
+        # 关联第二条新闻
+        with patch("openclaw_alpha.news.service._sync_to_milvus"):
+            update_news("cls_002", event_id=event_id, data_dir=data_dir)
+
+        event = json.loads(
+            (data_dir / "events" / event_id / "event.json").read_text()
+        )
+        assert event["needs_deep_analysis"] is True
+
+    def test_duplicate_link_no_change(self, data_dir):
+        """4.2 重复关联不改变 needs_deep_analysis。"""
+        _create_news(data_dir, "cls_001")
+        result = create_event(title="测试", news_id="cls_001", data_dir=data_dir)
+        event_id = result["event_id"]
+
+        # 重复关联
+        with patch("openclaw_alpha.news.service._sync_to_milvus"):
+            update_news("cls_001", event_id=event_id, data_dir=data_dir)
+
+        event = json.loads(
+            (data_dir / "events" / event_id / "event.json").read_text()
+        )
+        assert event["needs_deep_analysis"] is False
+
+    def test_list_events_needs_deep(self, data_dir):
+        """4.3 list_events(needs_deep=True) 只返回标记为 true 且 ongoing 的事件。"""
+        _create_news(data_dir, "cls_001")
+        _create_news(data_dir, "cls_002")
+
+        # 事件1: ongoing, needs_deep=true
+        r1 = create_event(title="需要分析", news_id="cls_001", data_dir=data_dir)
+        evt1_id = r1["event_id"]
+        evt1_path = data_dir / "events" / evt1_id / "event.json"
+        evt1 = json.loads(evt1_path.read_text())
+        evt1["needs_deep_analysis"] = True
+        evt1_path.write_text(json.dumps(evt1), encoding="utf-8")
+
+        # 事件2: 确保不同秒创建，避免 event_id 碰撞
+        time.sleep(1.1)
+        _create_news(data_dir, "cls_003")
+        create_event(title="不需要", news_id="cls_003", data_dir=data_dir)
+
+        result = list_events(needs_deep=True, data_dir=data_dir)
+        events = result["events"]
+        assert len(events) == 1
+        assert events[0]["event_id"] == evt1_id
+
+    def test_old_event_not_returned(self, data_dir):
+        """4.4 旧事件（无新字段）在 needs_deep 过滤下不会被误返回。"""
+        _create_news(data_dir, "cls_001")
+        result = create_event(title="旧事件", news_id="cls_001", data_dir=data_dir)
+        event_id = result["event_id"]
+
+        # 模拟旧事件：移除新字段
+        evt_path = data_dir / "events" / event_id / "event.json"
+        evt = json.loads(evt_path.read_text())
+        del evt["needs_deep_analysis"]
+        del evt["deep_analysis"]
+        evt_path.write_text(json.dumps(evt), encoding="utf-8")
+
+        result = list_events(needs_deep=True, data_dir=data_dir)
+        assert len(result["events"]) == 0

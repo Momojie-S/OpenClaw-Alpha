@@ -304,5 +304,5 @@ uv run --env-file .env python skills/industry_trend/scripts/crowdedness_processo
 
 - [每日投资分析流程](daily-analysis-guide.md) - 快速上手指南
 - [项目概述](../project-overview.md)
-- [架构设计](../architecture/strategy-framework.md)
+- [架构设计](../design/architecture/strategy-framework.md)
 - [开发规范](../standards/development-standard.md)

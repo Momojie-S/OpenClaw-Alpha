@@ -49,26 +49,30 @@ async def run_iteration_cycle(project_root: Path | None = None) -> None:
             break
 
 
-def setup_iteration_jobs(scheduler, project_root: Path | None = None) -> None:
-    """
-    注册 Iteration Loop 定时任务
-
-    Args:
-        scheduler: 调度器实例
-        project_root: 项目根目录
-    """
-    from functools import partial
-
+def register_iteration_tasks(registry, scheduler, project_root: Path | None = None) -> None:
+    """注册 Iteration Loop 任务到队列和调度器。"""
     config = load_iteration_config()
 
     if not config.enabled:
         logger.info("Iteration Loop 已禁用，跳过任务注册")
         return
 
+    async def iteration_loop_entry():
+        await run_iteration_cycle(project_root=project_root)
+
+    registry.register("iteration_loop", iteration_loop_entry, priority=3)
+
     scheduler.add_interval_job(
-        partial(run_iteration_cycle, project_root=project_root),
-        job_id="iteration-loop",
+        lambda: asyncio.create_task(_enqueue_safe("iteration_loop")),
+        job_id="trigger-iteration-loop",
         minutes=config.interval_minutes,
     )
 
     logger.info(f"Iteration Loop 已注册，间隔: {config.interval_minutes} 分钟")
+
+
+async def _enqueue_safe(task_type: str) -> None:
+    """安全入队。"""
+    from ..task_queue import _global_queue
+    if _global_queue:
+        await _global_queue.enqueue(task_type)

@@ -10,6 +10,8 @@ from pydantic import BaseModel
 from .config import load_config
 from .logger import setup_logging
 from .scheduler import Scheduler
+from .task_queue import TaskQueue, TaskRegistry, _global_queue
+from openclaw_alpha.core.path_utils import get_runtime_dir
 from openclaw_alpha.openclaw.gateway_client import (
     get_gateway_client,
     close_gateway_client,
@@ -20,6 +22,8 @@ logger = logging.getLogger(__name__)
 
 # 全局调度器
 scheduler: Scheduler | None = None
+# 全局任务队列
+task_queue: TaskQueue | None = None
 
 
 @asynccontextmanager
@@ -39,20 +43,32 @@ async def lifespan(app: FastAPI):
         logger.warning(f"Gateway 客户端连接失败: {e}（将在需要时重连）")
 
     # 启动调度器
-    global scheduler
+    global scheduler, task_queue
     scheduler = Scheduler(config.scheduler)
     scheduler.start()
 
+    # 创建任务队列和注册表
+    registry = TaskRegistry()
+    runtime_dir = get_runtime_dir()
+    task_queue = TaskQueue(config.task_queue, registry, runtime_dir)
+
+    # 设置全局引用（供 scheduler trigger lambda 使用）
+    import openclaw_alpha.backend.task_queue as tq_module
+    tq_module._global_queue = task_queue
+
     # 注册模块任务
     if config.modules.get("quick_news", {}).get("enabled"):
-        from .quick_news.jobs import setup_quick_news_jobs
+        from .quick_news.jobs import register_quick_news_tasks
 
-        setup_quick_news_jobs(scheduler)
+        register_quick_news_tasks(registry, scheduler)
 
-    # 注册 Iteration Loop 任务（项目自我迭代）
-    from .iteration_loop.jobs import setup_iteration_jobs
+    # 注册 Iteration Loop 任务
+    from .iteration_loop.jobs import register_iteration_tasks
 
-    setup_iteration_jobs(scheduler)
+    register_iteration_tasks(registry, scheduler)
+
+    # 启动 worker
+    await task_queue.start()
 
     logger.info(f"服务已启动，监听 {config.host}:{config.port}")
 
@@ -60,6 +76,8 @@ async def lifespan(app: FastAPI):
 
     # 关闭时
     logger.info("服务关闭中...")
+    if task_queue:
+        await task_queue.stop()
     if scheduler:
         scheduler.shutdown()
 

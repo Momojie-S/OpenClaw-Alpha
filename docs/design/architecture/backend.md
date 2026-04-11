@@ -1,15 +1,17 @@
-# Web 服务架构设计
+# 后端服务架构设计
 
 ## 目标
 
-为 OpenClaw-Alpha 提供 Web 服务能力，支持：
-- 定时任务调度（内置 APScheduler）
+为 OpenClaw-Alpha 提供后端服务能力，支持：
+- 统一任务队列（优先级调度 + 单并发约束）
+- 定时任务调度（内置 APScheduler，只做触发）
 - 扩展的服务模块（新闻订阅、后续其他模块）
 
 ## 技术栈
 
 - **框架**：FastAPI
-- **调度**：APScheduler（AsyncIOScheduler）
+- **调度**：APScheduler（AsyncIOScheduler，纯触发器）
+- **任务队列**：asyncio.PriorityQueue + 单 worker 协程
 - **配置**：YAML 文件
 - **日志**：统一日志模块
 
@@ -28,7 +30,8 @@ src/openclaw_alpha/backend/
 ├── main.py                    # FastAPI 入口 + 调度器初始化
 ├── config.py                  # 配置加载
 ├── logger.py                  # 统一日志模块
-├── scheduler.py               # APScheduler 封装
+├── scheduler.py               # APScheduler 封装（纯触发）
+├── task_queue.py              # TaskQueue + TaskRegistry
 └── {module}/                  # 各功能模块
     ├── __init__.py
     ├── router.py              # FastAPI 路由
@@ -111,6 +114,10 @@ log_level: "INFO"
 scheduler:
   enabled: true
   timezone: "Asia/Shanghai"
+
+task_queue:
+  enabled: true
+  persistence_path: "task_queue.json"
 
 # 各模块配置（按模块扩展）
 modules:
@@ -195,11 +202,20 @@ uv run --env-file .env uvicorn openclaw_alpha.backend.main:app --reload --port 8
 **模块注册**（在 `main.py` 中）：
 
 ```python
-from .news import router as news_router, setup_news_jobs
+from .quick_news.jobs import register_quick_news_tasks
+from .iteration_loop.jobs import register_iteration_tasks
 
-app.include_router(news_router, prefix="/api/v1/news")
-setup_news_jobs(scheduler)
+# 注册任务类型和调度触发
+register_quick_news_tasks(registry, scheduler)
+register_iteration_tasks(registry, scheduler)
+
+# 启动任务队列 worker
+await task_queue.start()
 ```
+
+## 任务队列架构
+
+详见 [任务队列设计文档](../task-queue.md)。
 
 ## 待办
 

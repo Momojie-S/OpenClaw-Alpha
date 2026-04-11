@@ -51,12 +51,25 @@ metadata:
 
 ### 深入分析
 
-深度分析目标是：从广度和深度两方面提升分析质量，确保结论可靠、可直接指引投资。
+深度分析以**事件**为单位，对快速分析标记为重要的事件进行多维度深入分析。
 
-核心要求:
+### 触发机制
+
+详细设计见 [deep-analysis.md](../../docs/design/news/deep-analysis.md)。
+
+简要流程:
+
+1. 快速分析中 `worth_deep_analysis=true` 的新闻关联到事件时，事件 `needs_deep_analysis` 置为 true
+2. 快速分析全部完成后，收集所有需要深度分析的事件
+3. 判断依据：`len(news_ids) > deep_analysis.analyzed_news_count`
+4. 逐事件执行深度分析，基于事件全部新闻（不仅是新增的）
+5. 分析完成后 backend 自动更新 `analyzed_news_count` 和 `needs_deep_analysis`
+
+### 分析要求
 
 - 利用其他alpha skill，多角度地对新闻进行深入分析
 - 每步分析后，应该考虑该步分析结果是否有其他需考虑的方向，如有，再进行深入分析
+- 分析报告存放在 `runtime/data/events/{event_id}/deep_analysis/{date}.md`
 
 多角度分析包括但不限于：板块趋势、资金流向、技术指标、基本面分析、政策影响、历史对比、行业链条、风险因素、关联标的等。
 
@@ -115,7 +128,7 @@ uv run python -m openclaw_alpha.news.cli <command> [options]
 | `news_id` | 新闻 ID（位置参数，必填） |
 | `--summary` | 新闻概括（自动生成 embedding 并写入 Milvus） |
 | `--analysis` | 结构化分析 JSON（不含 prediction） |
-| `--event-id` | 关联事件 ID（双向关联，同时追加到 event.json.news_ids） |
+| `--event-id` | 关联事件 ID（双向关联，同时追加到 event.json.news_ids，并置 needs_deep_analysis=true） |
 | `--data-dir` | 数据根目录（默认 `data/`） |
 
 **返回**：`{news_id, updated}`
@@ -187,16 +200,6 @@ uv run python -m openclaw_alpha.news.cli <command> [options]
 **返回**：event 对象（event_id, title, status, news_ids, created_at, updated_at）
 
 ---
-
-### list-events — 列出事件
-
-| Option | 说明 |
-|---------|------|
-| `--status` | 过滤状态：`ongoing`（进行中）或 `closed`（已关闭） |
-| `--limit` | 返回数量（默认 50） |
-| `--data-dir` | 数据根目录（默认 `data/`） |
-
-**返回**：按 `updated_at` 降序的 events[]
 
 ---
 

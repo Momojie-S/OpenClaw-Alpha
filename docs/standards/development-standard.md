@@ -145,7 +145,7 @@ workspace = cache_dir + "/my_task/2026-03-11"
 os.makedirs(workspace, exist_ok=True)
 ```
 
-**详细文档**：[核心工具模块 - path_utils](../architecture/core-utilities.md#path_utils---路径管理工具)
+**详细文档**：[核心工具模块 - path_utils](../design/architecture/core-utilities.md#path_utils---路径管理工具)
 
 ### 测试规范
 

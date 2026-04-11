@@ -26,8 +26,6 @@
   "feedback": {
     "enabled": false,
     "interval_minutes": 30,
-    "agent_id": "alpha",
-    "model": "openrouter/openrouter/hunter-alpha",
     "feedback_new_dir": "workspace/feedback/new",
     "feedback_done_dir": "workspace/feedback/done",
     "cron": {

@@ -1,6 +1,13 @@
 {
   "_comment": "OpenClaw-Alpha 功能配置（凭据请放在 .env 中，不要写在这里）",
 
+  "service": {
+    "_comment": "服务部署配置（原 service.yaml 已废弃）",
+    "host": "0.0.0.0",
+    "port": 8765,
+    "log_level": "INFO"
+  },
+
   "defaults": {
     "_comment": "模块公共默认值，模块未设置时自动继承",
     "agent_id": "main",
@@ -18,6 +25,18 @@
 
   "tushare": {
     "credit_limit": 5200
+  },
+
+  "scheduler": {
+    "_comment": "调度器 + 任务队列配置",
+    "enabled": true,
+    "timezone": "Asia/Shanghai",
+    "persistence_path": "task_queue.json",
+    "default_priorities": {
+      "event_review": 1,
+      "news_fetch": 2,
+      "iteration_loop": 3
+    }
   },
 
   "quick_news": {

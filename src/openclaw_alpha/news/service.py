@@ -221,6 +221,7 @@ def update_news(
                 {"news_id": news_id, "timestamp": now}
             )
             event["updated_at"] = now
+            event["needs_deep_analysis"] = True
             _write_json(event_path, event)
 
     news["updated_at"] = int(time.time())
@@ -361,6 +362,8 @@ def create_event(
         "title": title,
         "status": "ongoing",
         "news_ids": [{"news_id": news_id, "timestamp": now}],
+        "needs_deep_analysis": False,
+        "deep_analysis": None,
         "created_at": now,
         "updated_at": now,
     }
@@ -393,6 +396,7 @@ def close_event(
 def list_events(
     status: str | None = None,
     limit: int = 50,
+    needs_deep: bool = False,
     data_dir: Path | None = None,
 ) -> dict:
     """列出事件，按 updated_at 降序。"""
@@ -409,6 +413,9 @@ def list_events(
             continue
         if status and event.get("status") != status:
             continue
+        if needs_deep:
+            if not event.get("needs_deep_analysis") or event.get("status") == "closed":
+                continue
         events.append(event)
 
     # 按 updated_at 降序

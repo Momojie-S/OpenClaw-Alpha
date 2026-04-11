@@ -112,15 +112,6 @@ def _cmd_close_event(args):
     _output(result)
 
 
-def _cmd_list_events(args):
-    result = service.list_events(
-        status=args.status,
-        limit=args.limit,
-        data_dir=Path(args.data_dir) if args.data_dir else None,
-    )
-    _output(result)
-
-
 def _cmd_trigger(args):
     """触发快速分析调试流程：拉取 → 扫描待分析 → 提交 cron → 等待结果。"""
     from openclaw_alpha.backend.logger import setup_logging
@@ -206,14 +197,7 @@ def main():
     _add_common_args(p)
     p.set_defaults(func=_cmd_close_event)
 
-    # list-events
-    p = sub.add_parser("list-events", help="列出事件")
-    p.add_argument("--status", choices=["ongoing", "closed"], help="过滤状态")
-    p.add_argument("--limit", type=int, default=50, help="返回数量")
-    _add_common_args(p)
-    p.set_defaults(func=_cmd_list_events)
-
-    # trigger (调试)
+    # trigger (调试) - TODO: 改名为 debug-quick-news
     p = sub.add_parser("trigger", help="触发快速分析（调试用）")
     p.add_argument("--limit", type=int, default=1, help="处理新闻数量（默认 1）")
     _add_common_args(p)

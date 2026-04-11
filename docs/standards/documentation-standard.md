@@ -14,9 +14,10 @@
 
 ```
 docs/
-├── architecture/           # 架构设计
-│   ├── strategy-framework.md
-│   └── signal-backtest-framework.md
+├── design/                 # 设计文档
+│   ├── architecture/       # 技术架构
+│   │   ├── strategy-framework.md
+│   │   └── signal-backtest-framework.md
 ├── knowledge/              # 投资知识体系（Obsidian 风格）
 │   ├── README.md           # Map of Content
 │   ├── fundamentals/       # 基础概念

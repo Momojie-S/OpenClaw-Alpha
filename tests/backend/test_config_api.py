@@ -36,10 +36,13 @@ def fake_config(tmp_path):
         # 清除 settings 缓存使其重新加载
         import openclaw_alpha.core.settings as s
 
-        old = s.settings._config
+        old_root = s.settings._root
+        old_config = s.settings._config
+        s.settings._root = tmp_path
         s.settings._config = None
         yield
-        s.settings._config = old
+        s.settings._root = old_root
+        s.settings._config = old_config
 
 
 class TestIterationLoopConfigAPI:

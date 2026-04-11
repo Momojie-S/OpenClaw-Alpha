@@ -79,11 +79,11 @@ OpenClaw-Alpha/
 │       └── tasks/                  # 任务目录（progress.md）
 │
 ├── docs/                           # 项目文档
-│   ├── architecture/               # 架构设计（技术实现）
-│   │   ├── core-utilities.md       # 核心工具模块（路径管理等）
-│   │   ├── strategy-framework.md   # 策略框架设计
-│   │   └── ...
-│   ├── design/                     # 业务设计（公式、权重、规则）
+│   ├── design/                     # 设计文档（技术架构 + 业务设计）
+│   │   ├── architecture/           # 技术架构（目录结构、API、类设计）
+│   │   │   ├── backend.md          # 后端服务架构（调度、定时任务）
+│   │   │   └── ...
+│   │   └── news/                   # 新闻系统业务设计
 │   ├── knowledge/                  # 投资知识体系（理论底座）
 │   ├── openclaw/                   # 🔧 OpenClaw 高级用法调研（见下方说明）
 │   ├── references/                 # API 参考文档
@@ -119,17 +119,17 @@ OpenClaw-Alpha/
 
 | 配置项 | 文件路径 | 说明 |
 |--------|----------|------|
-| **统一配置** | `runtime/config.json` | 所有模块的功能参数和调度配置（quick_news, feedback, event_review, iteration_loop） |
+| **统一配置** | `runtime/config.json` | 所有模块的功能参数、调度配置和服务部署配置 |
 | **凭据** | `.env` | API Key、Token 等敏感配置（TUSHARE_TOKEN, DASHSCOPE_API_KEY, MILVUS_URI, MILVUS_TOKEN） |
 | **路径覆盖** | `.env` | `OPENCLAW_ALPHA_ROOT` 覆盖项目根目录 |
 
-> 详细说明见 [核心工具模块 - settings](docs/architecture/core-utilities.md)
+> 详细说明见 [配置设计文档](docs/design/setting.md)
 
 ## 核心概念
 
 ### 后端服务
 
-基于 OpenClaw Gateway 的定时任务系统，实现自动化任务调度。
+基于 OpenClaw Gateway 的定时任务系统，实现自动化任务调度。架构详见 [后端服务架构设计](docs/design/architecture/backend.md)。
 
 **新闻分析流程**：
 ```

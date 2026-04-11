@@ -20,6 +20,13 @@ class SchedulerConfig(BaseModel):
     timezone: str = "Asia/Shanghai"
 
 
+class TaskQueueConfig(BaseModel):
+    """任务队列配置"""
+
+    enabled: bool = True
+    persistence_path: str = "task_queue.json"  # 相对 runtime dir
+
+
 class ModuleConfig(BaseModel):
     """模块配置"""
 
@@ -33,6 +40,7 @@ class ServiceConfig(BaseModel):
     port: int = 8765
     log_level: str = "INFO"
     scheduler: SchedulerConfig = SchedulerConfig()
+    task_queue: TaskQueueConfig = TaskQueueConfig()
     modules: dict[str, Any] = {}
 
 

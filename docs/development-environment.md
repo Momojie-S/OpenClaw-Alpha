@@ -115,4 +115,4 @@ OPENCLAW_ALPHA_ROOT=/path/to/OpenClaw-Alpha
 uv run --env-file .env python script.py
 ```
 
-**详细说明**：[核心工具模块 - path_utils](architecture/core-utilities.md#path_utils---路径管理工具)
+**详细说明**：[核心工具模块 - path_utils](design/architecture/core-utilities.md#path_utils---路径管理工具)

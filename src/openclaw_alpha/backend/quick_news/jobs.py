@@ -261,9 +261,9 @@ async def review_all_ongoing_events() -> dict:
     return {"reviewed": reviewed, "skipped": skipped}
 
 
-def setup_quick_news_jobs(scheduler: Scheduler) -> None:
-    """注册新闻模块定时任务。"""
-    from functools import partial
+def register_quick_news_tasks(registry: 'TaskRegistry', scheduler: Scheduler) -> None:
+    """注册新闻模块任务到队列和调度器。"""
+    from ..task_queue import TaskRegistry as TR
 
     config = load_quick_news_config()
 
@@ -271,20 +271,39 @@ def setup_quick_news_jobs(scheduler: Scheduler) -> None:
         logger.info("新闻模块已禁用，跳过任务注册")
         return
 
+    # 注册任务类型到 registry
+    async def news_fetch_entry():
+        await fetch_all_quick_news(limit=0)
+
+    registry.register("news_fetch", news_fetch_entry, priority=2)
+
+    # 注册事件回顾任务
+    review_config = load_event_review_config()
+    if review_config.enabled:
+        async def event_review_entry():
+            await review_all_ongoing_events()
+
+        registry.register("event_review", event_review_entry, priority=1)
+
+        scheduler.add_daily_job(
+            lambda: asyncio.create_task(_enqueue_safe("event_review")),
+            job_id="trigger-event-review",
+            time_str=review_config.schedule_time,
+        )
+        logger.info(f"事件回顾任务已注册，每日 {review_config.schedule_time}")
+
+    # 注册调度触发
     scheduler.add_interval_job(
-        partial(fetch_all_quick_news, limit=0),
-        job_id="news-fetch-all",
+        lambda: asyncio.create_task(_enqueue_safe("news_fetch")),
+        job_id="trigger-news-fetch",
         minutes=config.interval_minutes,
     )
 
     logger.info(f"新闻任务已注册，间隔: {config.interval_minutes} 分钟")
 
-    # 注册事件回顾定时任务
-    review_config = load_event_review_config()
-    if review_config.enabled:
-        scheduler.add_daily_job(
-            review_all_ongoing_events,
-            job_id="event-review-daily",
-            time_str=review_config.schedule_time,
-        )
-        logger.info(f"事件回顾任务已注册，每日 {review_config.schedule_time}")
+
+async def _enqueue_safe(task_type: str) -> None:
+    """安全入队，避免未初始化时报错。"""
+    from ..task_queue import _global_queue
+    if _global_queue:
+        await _global_queue.enqueue(task_type)

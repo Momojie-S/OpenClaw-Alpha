@@ -118,6 +118,11 @@
     {"news_id": "wallstreetcn_3769266", "timestamp": "2026-04-04T12:17:36+08:00"},
     {"news_id": "jin10_xxx", "timestamp": "2026-04-05T18:00:00+08:00"}
   ],
+  "needs_deep_analysis": true,
+  "deep_analysis": {
+    "analyzed_news_count": 1,
+    "analyzed_at": "2026-04-09T08:00:00+08:00"
+  },
   "created_at": "2026-04-04T12:17:36+08:00",
   "updated_at": "2026-04-10T18:00:00+08:00"
 }
@@ -199,6 +204,8 @@ data/events/{event_id}/
 | `title` | 事件标题 | LLM 聚合判断，不是单条新闻标题 |
 | `status` | ongoing/closed | 事件生命周期状态 |
 | `news_ids` | 关联新闻（每项含 news_id 和 timestamp，均为 ISO 8601 字符串） | 串联关系本身 |
+| `needs_deep_analysis` | bool | 是否需要深度分析（详见 [deep-analysis.md](deep-analysis.md)） |
+| `deep_analysis` | object\|null | 深度分析版本追踪（详见 [deep-analysis.md](deep-analysis.md)） |
 | `created_at` | 创建时间（ISO 8601 字符串） | 事件诞生时间 |
 | `updated_at` | 最后更新（ISO 8601 字符串） | 最后一条新闻关联时间 |
 
