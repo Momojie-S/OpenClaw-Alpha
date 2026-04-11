@@ -20,7 +20,7 @@
 | `create-event` | Agent | 创建事件并关联新闻 |
 | `get-event` | Agent | 获取事件详情 |
 | `close-event` | Agent | 关闭事件 |
-| `trigger` | 开发调试 | 触发快速分析流程（待改名） |
+| `debug-quick-news` | 开发调试 | 触发快速新闻分析（调试用） |
 
 **CLI 暴露原则**：只有 Agent 在分析流程中主动调用的才暴露为 CLI 命令。Backend 内部使用的直接调 service，不暴露 CLI。
 
@@ -179,9 +179,9 @@ uv run --env-file .env python -m openclaw_alpha.news.cli get-event <event_id>
 
 ---
 
-## trigger（调试用）
+## debug-quick-news（调试用）
 
-触发快速分析调试流程。**仅用于开发调试，后续改名为 `debug-quick-news`。**
+触发快速分析调试流程。**仅用于开发调试。**
 
 ---
 

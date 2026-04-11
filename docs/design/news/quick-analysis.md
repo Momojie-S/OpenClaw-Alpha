@@ -20,7 +20,7 @@ Backend 后续: 读取结果 → 通知 → 触发深度分析（可选）
 
 ```
 1. fetch_and_save() 拉取新闻并自动落盘（幂等）
-2. _scan_pending_news() 扫描待分析新闻（analysis_status 为空或 failed）
+2. _scan_pending_news() 扫描待分析新闻（analysis_status 为空、pending 或 failed）
 3. 逐个触发 Agent Session 分析
 ```
 
@@ -61,7 +61,7 @@ Agent 完成后 Backend 轮询 news.json 的 `analysis` 字段：
 
 ```
 src/openclaw_alpha/backend/quick_news/
-├── jobs.py          # 定时任务：fetch + scan + trigger
+├── jobs.py          # 定时任务：fetch + scan
 ├── task_executor.py # 提交 cron + 等待结果 + 通知
 └── config.py        # 配置
 ```
@@ -153,10 +153,10 @@ cron:
 |------|--------|--------|------|
 | limit | int | 1 | 全局最多处理多少条新闻 |
 
-### CLI trigger
+### CLI debug-quick-news
 
 ```bash
-python -m openclaw_alpha.news.cli trigger [--limit N]
+python -m openclaw_alpha.news.cli debug-quick-news [--limit N]
 ```
 
 功能同 API，直接在 CLI 触发快速分析流程（拉取 → 扫描 → 提交 cron → 等待结果）。

@@ -112,17 +112,17 @@ def _cmd_close_event(args):
     _output(result)
 
 
-def _cmd_trigger(args):
+def _cmd_debug_quick_news(args):
     """触发快速分析调试流程：拉取 → 扫描待分析 → 提交 cron → 等待结果。"""
     from openclaw_alpha.backend.logger import setup_logging
     setup_logging(log_level="DEBUG")
     import logging
-    logger = logging.getLogger("news.trigger")
-    logger.info(f"=== trigger 开始 (limit={args.limit}) ===")
+    logger = logging.getLogger("news.debug-quick-news")
+    logger.info(f"=== debug-quick-news 开始 (limit={args.limit}) ===")
 
     from openclaw_alpha.backend.quick_news.jobs import fetch_all_quick_news
     asyncio.run(fetch_all_quick_news(limit=args.limit))
-    logger.info("=== trigger 完成 ===")
+    logger.info("=== debug-quick-news 完成 ===")
     _output({"triggered": True, "limit": args.limit})
 
 
@@ -197,11 +197,11 @@ def main():
     _add_common_args(p)
     p.set_defaults(func=_cmd_close_event)
 
-    # trigger (调试) - TODO: 改名为 debug-quick-news
-    p = sub.add_parser("trigger", help="触发快速分析（调试用）")
+    # debug-quick-news (调试)
+    p = sub.add_parser("debug-quick-news", help="调试：触发快速新闻分析")
     p.add_argument("--limit", type=int, default=1, help="处理新闻数量（默认 1）")
     _add_common_args(p)
-    p.set_defaults(func=_cmd_trigger)
+    p.set_defaults(func=_cmd_debug_quick_news)
 
     args = parser.parse_args()
     try:

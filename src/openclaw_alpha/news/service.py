@@ -199,10 +199,16 @@ def update_news(
         )
         news["summary"] = summary
 
-    # --analysis: 更新 analysis + entities
+    # --analysis: 更新 analysis + entities + 同步事件深度标记
     if analysis is not None:
         news["analysis"] = analysis
         news["entities"] = _build_entities(analysis)
+        worth_deep = analysis.get("worth_deep_analysis", False)
+        news["worth_deep_analysis"] = worth_deep
+        # 同步已关联事件的 needs_deep_analysis
+        eid = news.get("event_id") or event_id
+        if eid:
+            update_event_needs_deep(eid, worth_deep, data_dir)
 
     # --event-id: 双向关联
     if event_id is not None:
@@ -221,7 +227,7 @@ def update_news(
                 {"news_id": news_id, "timestamp": now}
             )
             event["updated_at"] = now
-            event["needs_deep_analysis"] = True
+            event["needs_deep_analysis"] = event.get("needs_deep_analysis", False) or news.get("worth_deep_analysis", True)
             _write_json(event_path, event)
 
     news["updated_at"] = int(time.time())
@@ -362,7 +368,7 @@ def create_event(
         "title": title,
         "status": "ongoing",
         "news_ids": [{"news_id": news_id, "timestamp": now}],
-        "needs_deep_analysis": False,
+        "needs_deep_analysis": news.get("worth_deep_analysis", False),
         "deep_analysis": None,
         "created_at": now,
         "updated_at": now,
@@ -432,3 +438,13 @@ def get_event(
     if event is None:
         return {"error": f"event_id {event_id} not found"}
     return event
+
+
+def update_event_needs_deep(event_id: str, needs_deep: bool, data_dir: Path | None = None) -> None:
+    """更新事件的 needs_deep_analysis 字段。"""
+    event_path = _event_dir(event_id, data_dir) / "event.json"
+    event = _read_json(event_path)
+    if event and event.get("needs_deep_analysis") != needs_deep:
+        event["needs_deep_analysis"] = needs_deep
+        event["updated_at"] = _now_iso()
+        _write_json(event_path, event)

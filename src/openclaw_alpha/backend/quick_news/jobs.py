@@ -52,7 +52,7 @@ def _scan_pending_news(data_dir: Path | None = None) -> list[dict]:
             continue
 
         status = data.get("analysis_status")
-        if status in (None, "failed"):
+        if status in (None, "failed", "pending"):
             pending.append(data)
 
     # 旧新闻优先（created_at 升序）

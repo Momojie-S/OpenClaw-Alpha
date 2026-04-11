@@ -5,7 +5,7 @@ from .config import QuickNewsConfig, load_quick_news_config
 from .jobs import (
     fetch_all_quick_news,
     fetch_all_sources,
-    setup_quick_news_jobs,
+    register_quick_news_tasks,
 )
 from .task_executor import (
     build_message,
@@ -20,7 +20,7 @@ __all__ = [
     # 定时任务
     "fetch_all_quick_news",
     "fetch_all_sources",
-    "setup_quick_news_jobs",
+    "register_quick_news_tasks",
     # 任务执行器
     "load_task_template",
     "build_message",

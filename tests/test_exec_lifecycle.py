@@ -2,7 +2,7 @@
 """
 测试：验证 exec 进程在轮询期间是否会被杀掉
 
-模拟 news trigger 的行为：
+模拟 news debug-quick-news 的行为：
 1. exec 启动进程（yieldMs=30s, timeout=900s）
 2. 进程做短暂的初始化工作（~5s）
 3. 进程进入长时间轮询循环（每10秒一次，持续5分钟）

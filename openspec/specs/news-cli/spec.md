@@ -180,3 +180,21 @@ Backend 通过 import 调用 news/service.py 的函数，不走 subprocess CLI�
 ### Requirement: 错误统一格式
 
 所有错误以 `{"error": "message"}` 格式返回，CLI 以 exit code 1 退出。
+
+### Requirement: debug-quick-news 调试命令
+
+CLI 提供 `debug-quick-news` 子命令，用于开发调试快速新闻分析流程。
+
+- 命令格式: `python -m openclaw_alpha.news.cli debug-quick-news [--limit N]`
+- 参数 `--limit`: 处理新闻数量，默认 1
+- 行为：调用 `fetch_all_quick_news(limit=N)`
+- 输出: `{"triggered": true, "limit": N}`
+
+#### Scenario: 调用 debug-quick-news 命令
+- **WHEN** 用户执行 `python -m openclaw_alpha.news.cli debug-quick-news --limit 5`
+- **THEN** 系统调用 `fetch_all_quick_news(limit=5)`
+- **AND** 输出 `{"triggered": true, "limit": 5}`
+
+#### Scenario: 旧命令名不可用
+- **WHEN** 用户执行 `python -m openclaw_alpha.news.cli trigger`
+- **THEN** 系统报错未知子命令
