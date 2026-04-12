@@ -5,7 +5,7 @@ OpenClaw-Alpha 是一个股票金融数据获取和分析的 Python 技能模块
 ## 交付与使用
 
 **安装方式**：
-1. Clone 到 OpenClaw agent 的 `runtime/skills/` 目录
+1. Clone 到 OpenClaw agent 的 `workspace/skills/` 目录
 2. 在 OpenClaw 配置中注册 `OpenClaw-Alpha/skills/` 目录
 3. 主 SKILL.md 和子 skill 自动发现注册
 
@@ -18,13 +18,11 @@ OpenClaw-Alpha 是一个股票金融数据获取和分析的 Python 技能模块
 
 ```
 OpenClaw-Alpha/
-├── skills/                         # SKILL 文档目录（只放 SKILL.md 和 docs）
+├── skills/                         # SKILL 文档目录（只放 SKILL.md、docs、tasks）
 │   └── {skill_name}/
 │       ├── SKILL.md                # 能力说明 + 分析指引（对外）
+│       ├── tasks/                  # 任务模板（Agent session prompt）
 │       └── docs/                   # 开发文档（对内）
-│           ├── spec.md             # 需求文档
-│           ├── design.md           # 设计文档
-│           └── decisions.md        # 调研/决策记录
 │
 ├── src/openclaw_alpha/
 │   ├── core/                       # 通用基础设施
@@ -32,73 +30,71 @@ OpenClaw-Alpha/
 │   │   ├── data_source.py          # 数据源注册
 │   │   ├── settings.py             # ⚙️ 统一配置管理（.env + config.json）
 │   │   ├── registry.py             # 全局注册表
-│   │   ├── milvus/                 # 🗄️ Milvus 连接管理
-│   │   │   ├── __init__.py
-│   │   │   └── client.py           # get_client(), close()
-│   │   └── embedding/              # 🧮 向量生成服务（工厂模式）
-│   │       ├── __init__.py
-│   │       ├── base.py             # Embedder 抽象基类
-│   │       ├── dashscope.py        # 百炼 text-embedding-v4 (1024d)
-│   │       └── factory.py          # get_embedder() 工厂
+│   │   ├── code_converter/         # 证券代码转换
+│   │   ├── milvus/                 # 🗄️ Milvus 向量数据库服务
+│   │   ├── embedding/              # 🧮 向量生成服务（工厂模式）
+│   │   └── ...
 │   ├── data_sources/               # 数据源实现（Tushare, AKShare）
-│   ├── openclaw/                   # 🔧 OpenClaw 框架工具（路径、cron 等）
-│   ├── news/                       # 📰 新闻条目存储
-│   │   ├── __init__.py
-│   │   └── store.py                # insert_news(), ensure_collection()
+│   ├── openclaw/                   # 🔧 OpenClaw 框架工具
+│   │   ├── gateway_client.py       # Gateway HTTP 客户端（发消息、cron）
+│   │   ├── cron_utils.py           # Cron 任务管理
+│   │   └── path_utils.py           # 路径工具
+│   ├── rsshub/                     # RSSHub 数据获取
+│   ├── news/                       # 📰 新闻模块（CLI + 服务层）
+│   │   ├── cli.py                  # CLI 入口（fetch-news, update-news, debug-*）
+│   │   ├── service.py              # 服务层（CRUD + 事件管理）
+│   │   ├── store.py                # Milvus 存储
+│   │   └── fetcher/                # 新闻数据获取（AKShare, RSSHub）
 │   ├── backend/                    # 🚀 后端服务（定时任务、调度器）
-│   │   ├── __init__.py
 │   │   ├── main.py                 # 服务入口
-│   │   ├── scheduler.py            # 调度器（轮询任务状态）
+│   │   ├── scheduler.py            # APScheduler 调度器
+│   │   ├── task_queue.py           # 任务队列（优先级调度）
 │   │   ├── config.py               # 服务配置
+│   │   ├── config_api.py           # 配置 API
 │   │   ├── logger.py               # 日志配置
-│   │   ├── quick_news/             # 快讯分析任务
-│   │   └── feedback/               # 用户反馈处理模块
-│   └── skills/                     # Skill 代码目录
-│       └── {skill_name}/
-│           ├── __init__.py
-│           ├── {data_type}_fetcher/
-│           │   ├── __init__.py
-│           │   ├── {data_type}_fetcher.py
-│           │   ├── tushare.py
-│           │   └── akshare.py
-│           └── {scenario}_processor/
-│               ├── __init__.py
-│               └── {scenario}_processor.py
+│   │   ├── quick_news/             # 新闻分析任务
+│   │   │   ├── jobs.py             # 任务入口（快速分析 + 深度分析 + 事件回顾）
+│   │   │   ├── task_executor.py    # Agent session 提交
+│   │   │   └── config.py           # 配置（间隔、模型、通知接收人）
+│   │   ├── feedback/               # 用户反馈处理
+│   │   └── iteration_loop/         # 开发迭代循环
+│   │       ├── jobs.py             # 开发任务调度
+│   │       └── feedback/           # 反馈子模块
+│   ├── skills/                     # Skill 代码目录
+│   │   └── {skill_name}/
+│   │       ├── {data_type}_fetcher/ # 数据获取（多数据源实现）
+│   │       └── {scenario}_processor/ # 数据加工（大模型调用入口）
+│   └── utils/                      # 通用工具
+│       └── trading_calendar.py     # 交易日历
 │
-├── runtime/                      # 📁 运行时工作目录（状态、输出）
-│   ├── config.json               # ⚙️ 统一配置（功能参数 + 调度配置）
-│   ├── quick_news/                 # 快讯任务状态
-│   ├── quick_news_analysis/        # 快讯分析输出
-│   │   └── {date}/{task_id}/       # 按日期和任务ID组织
-│   │       ├── news.json           # 原始新闻数据
-│   │       └── analysis.json       # 分析结果
-│   ├── news_analysis/              # 新闻分析输出
-│   └── feedback/                   # 用户反馈处理
-│       ├── new/                    # 待处理反馈
-│       ├── done/                   # 已处理反馈
-│       └── tasks/                  # 任务目录（progress.md）
+├── runtime/                        # 📁 运行时工作目录（git 忽略）
+│   ├── config.json                 # ⚙️ 运行时配置
+│   ├── data/                       # 新闻 & 事件数据
+│   │   ├── news/{news_id}/         # 新闻详情 + 分析结果
+│   │   └── events/{event_id}/      # 事件 + 深度分析报告
+│   ├── processor_data/             # Processor 缓存输出
+│   ├── logs/                       # 服务日志
+│   └── feedback/                   # 反馈数据
+│
+├── openspec/                       # 📋 OpenSpec 规格管理
+│   ├── specs/                      # 主规格文档
+│   └── changes/                    # 变更管理
+│       └── archive/                # 已归档变更
 │
 ├── docs/                           # 项目文档
-│   ├── design/                     # 设计文档（技术架构 + 业务设计）
-│   │   ├── architecture/           # 技术架构（目录结构、API、类设计）
-│   │   │   ├── backend.md          # 后端服务架构（调度、定时任务）
-│   │   │   └── ...
-│   │   └── news/                   # 新闻系统业务设计
-│   ├── knowledge/                  # 投资知识体系（理论底座）
-│   ├── openclaw/                   # 🔧 OpenClaw 高级用法调研（见下方说明）
-│   ├── references/                 # API 参考文档
-│   │   ├── akshare/
-│   │   ├── rsshub/
-│   │   └── tushare/
+│   ├── design/                     # 设计文档
+│   │   ├── architecture/           # 技术架构
+│   │   ├── news/                   # 新闻系统设计
+│   │   └── iteration-loop/         # 迭代循环设计
+│   ├── knowledge/                  # 投资知识体系
+│   ├── skills/                     # 投资分析框架
+│   ├── references/                 # API 参考
 │   ├── research/                   # 调研文档
-│   ├── skills/                     # 投资分析框架（实践方法）
 │   └── standards/                  # 开发规范
 │
 ├── tests/                          # 测试
-│   └── skills/{skill_name}/
-│
-├── pyproject.toml                  # 包配置
-└── .env                            # 环境变量配置
+├── pyproject.toml                   # 包配置
+└── .env                             # 环境变量配置
 ```
 
 **分离关注点**：
@@ -110,10 +106,8 @@ OpenClaw-Alpha/
 - `docs/knowledge/` - 投资知识体系，理论底座（概念、定义、公式）
 - `docs/skills/` - 投资分析框架，实践方法（流程、决策逻辑）
 
-**OpenClaw 高级用法**：
-- `docs/openclaw/` - OpenClaw 框架高级用法的调研结果
-- 包含 cron、sessions 等功能的深入研究和使用技巧
-- 用于指导项目中使用 OpenClaw 框架的最佳实践
+**OpenClaw 用法**：
+- `docs/openclaw/` - 记录OpenClaw相关内容
 
 ## 常用配置
 
@@ -133,8 +127,11 @@ OpenClaw-Alpha/
 
 **新闻分析流程**：
 ```
-RSS 拉取 → 过滤已处理 → Agent 快速分析 → 高价值新闻 → 深度分析
+RSS 拉取 → 过滤已处理 → Agent 快速分析 → 高价值新闻关联事件 → 深度分析 → 通知
 ```
+- 快速分析：批量处理，筛选值得深挖的新闻
+- 深度分析：以事件为单位，多维度交叉分析（板块趋势 + 资金流向 + 技术指标等）
+- 分析完成后自动发送通知
 详见 [新闻分析系统设计](docs/design/news/overview.md)。
 
 **用户反馈处理流程**（Iteration Loop 子模块）：
@@ -148,12 +145,15 @@ RSS 拉取 → 过滤已处理 → Agent 快速分析 → 高价值新闻 → �
 基于 Milvus 向量数据库的新闻事件跟踪，支持语义去重和关联。
 
 ```
-新闻 → embedding → Milvus(news_items collection) → 本地文件系统(详情)
+新闻 → summary → embedding → Milvus(news_items collection) → 相似搜索
+      → 本地文件系统(news/{news_id}/, events/{event_id}/)
 ```
 
 - `core/milvus/` — 连接管理（单例）
-- `core/embedding/` — 向量生成（工厂模式，支持多 provider）
-- `news/` — 新闻存储（insert_news 入口，自动建表）
+- `core/embedding/` — 向量生成（工厂模式，DashScope）
+- `news/store.py` — 新闻存储（insert_news 入口）
+- `news/service.py` — 服务层（CRUD + 向量搜索）
+- `news/cli.py` — CLI 工具（调试、手动操作）
 
 详见 [事件追踪系统设计](docs/design/news/event-tracking.md)。
 
