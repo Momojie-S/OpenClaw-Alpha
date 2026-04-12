@@ -4,13 +4,16 @@
 
 ```
 OpenClaw-Alpha/
-├── skills/                         # SKILL 文档目录（只放 SKILL.md 和 docs）
+├── skills/                         # SKILL 文档目录（只放 SKILL.md 和 tasks）
 │   └── {skill_name}/
 │       ├── SKILL.md                # 能力说明 + 分析指引（对外）
-│       └── docs/                   # 开发文档（对内）
-│           ├── spec.md             # 需求文档（业务视角）
-│           ├── design.md           # 设计文档（技术视角）
-│           └── decisions.md        # 关键决策/调研记录
+│       └── tasks/                  # 任务模板（Agent session prompt）
+│
+├── docs/design/skills/             # Skill 设计文档（集中管理）
+│   └── {skill_name}/
+│       ├── spec.md                 # 需求文档（业务视角）
+│       ├── design.md               # 设计文档（技术视角）
+│       └── decisions.md            # 关键决策/调研记录
 │
 ├── src/openclaw_alpha/
 │   ├── core/                       # 框架核心
@@ -36,7 +39,8 @@ OpenClaw-Alpha/
 ```
 
 **分离关注点**：
-- `skills/{skill_name}/` - 只放文档（SKILL.md + docs/）
+- `skills/{skill_name}/` - 只放文档（SKILL.md + tasks/）
+- `docs/design/skills/{skill_name}/` - 放设计文档（spec + design + decisions）
 - `src/openclaw_alpha/skills/{skill_name}/` - 放代码（fetcher + processor）
 - `src/openclaw_alpha/` - 通过 pyproject.toml 注册为包，所有代码统一导入
 
