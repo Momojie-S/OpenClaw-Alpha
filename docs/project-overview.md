@@ -77,9 +77,6 @@ OpenClaw-Alpha/
 │   └── feedback/                   # 反馈数据
 │
 ├── openspec/                       # 📋 OpenSpec 规格管理
-│   ├── specs/                      # 主规格文档
-│   └── changes/                    # 变更管理
-│       └── archive/                # 已归档变更
 │
 ├── docs/                           # 项目文档
 │   ├── design/                     # 设计文档
@@ -98,18 +95,6 @@ OpenClaw-Alpha/
 └── .env                             # 环境变量配置
 ```
 
-**分离关注点**：
-- `skills/{skill_name}/` - 只放文档（SKILL.md + tasks/）
-- `src/openclaw_alpha/skills/{skill_name}/` - 放代码（fetcher + processor）
-- `src/openclaw_alpha/` - 通过 pyproject.toml 注册为包，所有代码统一导入
-
-**知识 vs 框架**：
-- `docs/knowledge/` - 投资知识体系，理论底座（概念、定义、公式）
-- `docs/skills/` - 投资分析框架，实践方法（流程、决策逻辑）
-
-**OpenClaw 用法**：
-- `docs/openclaw/` - 记录OpenClaw相关内容
-
 ## 常用配置
 
 | 配置项 | 文件路径 | 说明 |
@@ -124,7 +109,7 @@ OpenClaw-Alpha/
 
 ### 后端服务
 
-基于 OpenClaw Gateway 的定时任务系统，实现自动化任务调度。架构详见 [后端服务架构设计](docs/design/architecture/backend.md)。
+基于 OpenClaw Gateway 的定时任务系统，实现自动化任务调度。架构详见 [后端服务架构设计](docs/design/backend/backend.md)。
 
 **新闻分析流程**：
 ```
@@ -149,12 +134,6 @@ RSS 拉取 → 过滤已处理 → Agent 快速分析 → 高价值新闻关联�
 新闻 → summary → embedding → Milvus(news_items collection) → 相似搜索
       → 本地文件系统(news/{news_id}/, events/{event_id}/)
 ```
-
-- `core/milvus/` — 连接管理（单例）
-- `core/embedding/` — 向量生成（工厂模式，DashScope）
-- `news/store.py` — 新闻存储（insert_news 入口）
-- `news/service.py` — 服务层（CRUD + 向量搜索）
-- `news/cli.py` — CLI 工具（调试、手动操作）
 
 详见 [事件追踪系统设计](docs/design/news/event-tracking.md)。
 

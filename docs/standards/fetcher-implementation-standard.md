@@ -231,7 +231,7 @@ Fetcher 基类的 `fetch()` 方法支持自动降级：按优先级尝试每个�
 - 确保参数命名一致（统一使用 `date`、`symbol`，在 FetchMethod 内部转换为 API 所需格式）
 
 **股票代码格式转换**：
-- 使用框架提供的代码转换器（见 [代码转换器设计](../design/architecture/code-converter-design.md)）
+- 使用框架提供的代码转换器（见 [代码转换器设计](../design/architecture/code-converter.md)）
 - 内部统一使用 6 位代码（如 `000001`）
 - FetchMethod 内部调用 `convert_code()` 转换为数据源所需格式
 
@@ -247,4 +247,4 @@ ts_code = convert_code(code, "tushare")  # → "000001.SZ"
 
 - [开发规范](development-standard.md) - Python 编码、测试规范
 - [Skill 实现规范](skill-implementation-standard.md) - 目录结构、命名规范、运行方式
-- [策略框架设计](../design/architecture/strategy-framework.md) - 架构设计
+- [策略框架设计](../design/backtest/strategy-framework.md) - 架构设计
