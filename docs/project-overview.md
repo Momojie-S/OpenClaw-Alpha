@@ -22,7 +22,6 @@ OpenClaw-Alpha/
 │   └── {skill_name}/
 │       ├── SKILL.md                # 能力说明 + 分析指引（对外）
 │       ├── tasks/                  # 任务模板（Agent session prompt）
-│       └── docs/                   # 开发文档（对内）
 │
 ├── src/openclaw_alpha/
 │   ├── core/                       # 通用基础设施
@@ -111,31 +110,21 @@ OpenClaw-Alpha/
 
 基于 OpenClaw Gateway 的定时任务系统，实现自动化任务调度。架构详见 [后端服务架构设计](docs/design/backend/backend.md)。
 
-**新闻分析流程**：
-```
-RSS 拉取 → 过滤已处理 → Agent 快速分析 → 高价值新闻关联事件 → 深度分析 → 通知
-```
-- 快速分析：批量处理，筛选值得深挖的新闻
-- 深度分析：以事件为单位，多维度交叉分析（板块趋势 + 资金流向 + 技术指标等）
-- 分析完成后自动发送通知
-详见 [新闻分析系统设计](docs/design/news/overview.md)。
+功能点:
 
-**用户反馈处理流程**（Iteration Loop 子模块）：
-```
-用户提交反馈 → Backend 定时扫描 → 触发 Agent Session → 分析决策 → 通知结果 → 归档
-```
-详见 [Iteration Loop 设计](docs/design/iteration-loop/overview.md)。
+- [任务队列与调度](docs/design/backend/task-queue.md)。包括以下内容:
+    - [新闻快速分析](docs/design/news/quick-analysis.md)
+    - [事件深度分析](docs/design/news/deep-analysis.md)
+    - [事件市场反应追踪](docs/design/news/event-tracking.md)
 
-### 事件跟踪系统
+### 新闻事件系统
 
-基于 Milvus 向量数据库的新闻事件跟踪，支持语义去重和关联。
+详见 [设计](docs/design/news/overview.md)。
 
-```
-新闻 → summary → embedding → Milvus(news_items collection) → 相似搜索
-      → 本地文件系统(news/{news_id}/, events/{event_id}/)
-```
+主要包括:
 
-详见 [事件追踪系统设计](docs/design/news/event-tracking.md)。
+- 定时拉取与分析
+- 本地记录与向量检索
 
 ### Fetcher（数据获取）
 - Fetcher（入口）：调度、选择可用的数据源实现

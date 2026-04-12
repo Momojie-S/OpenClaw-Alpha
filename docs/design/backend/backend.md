@@ -18,13 +18,6 @@
 ## 目录结构
 
 ```
-~/.openclaw_alpha/
-├── config/
-│   └── service.yaml           # 服务配置（端口、调度等）
-├── cache/                     # 各模块缓存（按模块划分子目录）
-└── logs/
-    └── alpha-service.log      # 服务日志
-
 src/openclaw_alpha/backend/
 ├── __init__.py
 ├── main.py                    # FastAPI 入口 + 调度器初始化
