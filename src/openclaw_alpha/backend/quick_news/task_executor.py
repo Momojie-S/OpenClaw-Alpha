@@ -119,7 +119,7 @@ async def submit_analysis(
         summary: 新闻内容
 
     Returns:
-        (success, worth_deep_analysis)
+        (success, worth_deep)
     """
     from datetime import datetime
 
@@ -187,7 +187,7 @@ async def submit_analysis(
                     analysis_found = True
                     analysis = news_data.get("analysis", {})
                     if isinstance(analysis, dict):
-                        worth_deep_analysis = analysis.get("worth_deep_analysis", False)
+                        worth_deep = analysis.get("worth_deep_analysis", False)
 
                     # 追加 session 追溯信息
                     news_data["session"] = {
@@ -405,6 +405,92 @@ async def submit_event_review(
 
     if not cron_result.success:
         logger.error(f"事件回顾任务失败: {event_id} - {cron_result.error}")
+        return False
+
+    return True
+
+
+def load_deep_analysis_template() -> str:
+    """加载深度分析任务模板。"""
+    template_path = get_task_template_path(
+        skill_name="news_driven_investment",
+        task_name="deep-news-analysis",
+    )
+
+    if not template_path.exists():
+        raise FileNotFoundError(f"深度分析模板不存在: {template_path}")
+
+    return template_path.read_text(encoding="utf-8")
+
+
+def build_deep_analysis_message(
+    event_id: str,
+    event_dir: str,
+    title: str,
+    news_list: list[dict],
+) -> str:
+    """构造深度分析任务消息。"""
+    template = load_deep_analysis_template()
+
+    news_lines = []
+    for i, n in enumerate(news_list, 1):
+        ntitle = n.get("title", "")
+        nsummary = n.get("summary", "")
+        line = f"{i}. {ntitle}"
+        if nsummary:
+            line += f"\n   概括：{nsummary[:100]}"
+        news_lines.append(line)
+
+    news_block = "\n".join(news_lines)
+
+    message = f"""{template}
+
+---
+
+## 本次任务参数
+
+- **EVENT_ID**: `{event_id}`
+- **EVENT_DIR**: `{event_dir}`
+- **事件标题**: {title}
+- **关联新闻数**: {len(news_list)}
+
+---
+
+## 关联新闻列表
+
+{news_block}"""
+
+    return message
+
+
+async def submit_deep_analysis(
+    event_id: str,
+    event_dir: str,
+    title: str,
+    news_list: list[dict],
+) -> bool:
+    """提交事件深度分析任务。"""
+    config = load_quick_news_config()
+
+    try:
+        message = build_deep_analysis_message(event_id, event_dir, title, news_list)
+    except FileNotFoundError as e:
+        logger.error(f"加载深度分析模板失败: {e}")
+        return False
+
+    cron_result = await submit_cron_task(
+        message=message,
+        name=f"deep-analysis-{event_id}",
+        timeout_seconds=900,
+        delete_after_run=True,
+        thinking="low",
+        agent_id=config.agent_id,
+        model=config.model,
+        session_poll_timeout_seconds=900,
+    )
+
+    if not cron_result.success:
+        logger.error(f"深度分析任务失败: {event_id} - {cron_result.error}")
         return False
 
     return True

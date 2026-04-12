@@ -260,15 +260,15 @@ class TestAnalysisStatus:
         assert news["analysis_status"] == "pending"
 
     def test_set_done(self, data_dir):
-        """Backend 写入 done + worth_deep_analysis。"""
+        """Backend 写入 done。"""
         _create_news(data_dir, "cls_001")
         news = read_news_json("cls_001", data_dir=data_dir)
         news["analysis_status"] = "done"
-        news["worth_deep_analysis"] = True
+        news["analysis"] = {"worth_deep_analysis": True}
         write_news_json("cls_001", news, data_dir=data_dir)
         news = read_news_json("cls_001", data_dir=data_dir)
         assert news["analysis_status"] == "done"
-        assert news["worth_deep_analysis"] is True
+        assert news["analysis"]["worth_deep_analysis"] is True
 
     def test_set_failed(self, data_dir):
         """Backend 写入 failed。"""
@@ -282,7 +282,7 @@ class TestAnalysisStatus:
     def test_scan_pending(self, data_dir):
         """扫描待分析新闻：无 status 或 failed。"""
         _create_news(data_dir, "cls_001")  # 无 status → 待分析
-        _create_news(data_dir, "cls_002", {"analysis_status": "pending"})  # pending → 跳过
+        _create_news(data_dir, "cls_002", {"analysis_status": "pending"})  # pending → 待分析
         _create_news(data_dir, "cls_003", {"analysis_status": "done"})  # done → 跳过
         _create_news(data_dir, "cls_004", {"analysis_status": "failed"})  # failed → 可重试
 
@@ -290,7 +290,7 @@ class TestAnalysisStatus:
         pending = _scan_pending_news(data_dir=data_dir)
         ids = [n["news_id"] for n in pending]
         assert "cls_001" in ids
-        assert "cls_002" not in ids
+        assert "cls_002" in ids
         assert "cls_003" not in ids
         assert "cls_004" in ids
 
@@ -317,9 +317,14 @@ class TestDeepAnalysisTrigger:
         assert result["deep_analysis"] is None
 
     def test_update_news_sets_needs_deep(self, data_dir):
-        """4.2 关联新新闻后事件 needs_deep_analysis=True。"""
+        """4.2 关联 worth_deep_analysis=true 的新闻后事件 needs_deep_analysis=True。"""
         _create_news(data_dir, "cls_001")
         _create_news(data_dir, "cls_002")
+
+        # 给 cls_002 设置 analysis 标记值得深度分析
+        news_002 = json.loads((data_dir / "news" / "cls_002" / "news.json").read_text())
+        news_002["analysis"] = {"related_sectors": [], "related_companies": [], "worth_deep_analysis": True}
+        (data_dir / "news" / "cls_002" / "news.json").write_text(json.dumps(news_002))
 
         # 先创建事件
         result = create_event(title="测试", news_id="cls_001", data_dir=data_dir)

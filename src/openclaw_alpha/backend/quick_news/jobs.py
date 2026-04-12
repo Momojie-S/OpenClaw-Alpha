@@ -52,7 +52,7 @@ def _scan_pending_news(data_dir: Path | None = None) -> list[dict]:
             continue
 
         status = data.get("analysis_status")
-        if status in (None, "failed", "pending"):
+        if status in (None, "pending", "failed"):
             pending.append(data)
 
     # 旧新闻优先（created_at 升序）
@@ -147,7 +147,7 @@ async def fetch_all_quick_news(limit: int = 1) -> None:
         write_news_json(news_id, news_data)
 
         # 触发分析
-        success, worth_deep = await submit_analysis(
+        success, _worth_deep = await submit_analysis(
             news_id=news_id,
             title=title,
             link=news_data.get("link", ""),
@@ -158,13 +158,10 @@ async def fetch_all_quick_news(limit: int = 1) -> None:
         news_data = read_news_json(news_id) or news_data
         if success:
             news_data["analysis_status"] = "done"
-            # 从 analysis 中提取 worth_deep_analysis
-            analysis = news_data.get("analysis", {})
-            if isinstance(analysis, dict):
-                news_data["worth_deep_analysis"] = analysis.get("worth_deep_analysis", False)
             write_news_json(news_id, news_data)
             processed_count += 1
-            logger.info(f"分析完成: {news_id}, 值得深度分析: {news_data.get('worth_deep_analysis', False)}")
+            analysis = news_data.get("analysis", {})
+            logger.info(f"分析完成: {news_id}, 值得深度分析: {analysis.get('worth_deep_analysis', False) if isinstance(analysis, dict) else False}")
         else:
             news_data["analysis_status"] = "failed"
             write_news_json(news_id, news_data)
@@ -211,6 +208,38 @@ async def _send_summary_notification(count: int, elapsed_seconds: float) -> None
                 logger.warning(f"汇总通知发送失败: {recipient.name}")
         except Exception as e:
             logger.error(f"汇总通知发送异常: {recipient.name} - {e}")
+
+
+async def _send_deep_analysis_notification(event_id: str, title: str) -> None:
+    """发送深度分析完成通知。"""
+    from .task_executor import get_gateway_client
+
+    config = load_quick_news_config()
+    recipients = config.delivery.recipients
+
+    if not recipients:
+        logger.info("无通知接收人，跳过深度分析通知")
+        return
+
+    logger.info(f"准备发送深度分析通知: {event_id} ({title})")
+
+    message = f"📰 **深度分析完成**\n\n事件: {title}"
+
+    client = await get_gateway_client()
+    for recipient in recipients:
+        try:
+            result = await client.send_message(
+                channel=recipient.channel,
+                to=recipient.name,
+                message=message,
+                account_id=recipient.agent_id,
+            )
+            if result.get("ok"):
+                logger.info(f"深度分析通知已发送: {recipient.name}")
+            else:
+                logger.warning(f"深度分析通知发送失败: {recipient.name}")
+        except Exception as e:
+            logger.error(f"深度分析通知发送异常: {recipient.name} - {e}")
 
 
 async def review_all_ongoing_events() -> dict:
@@ -261,6 +290,95 @@ async def review_all_ongoing_events() -> dict:
     return {"reviewed": reviewed, "skipped": skipped}
 
 
+def _scan_deep_analysis_events() -> list[dict]:
+    """扫描需要深度分析的事件。
+
+    条件：status=ongoing AND needs_deep_analysis=true
+          AND len(news_ids) > (deep_analysis?.analyzed_news_count ?? 0)
+    """
+    from openclaw_alpha.news.service import list_events as svc_list_events
+
+    result = svc_list_events(status="ongoing", needs_deep=True, limit=1000)
+    events = result.get("events", [])
+
+    # 进一步过滤：有新新闻未分析
+    matched = []
+    for event in events:
+        news_ids = event.get("news_ids", [])
+        deep = event.get("deep_analysis")
+        analyzed_count = deep.get("analyzed_news_count", 0) if deep else 0
+        if len(news_ids) > analyzed_count:
+            matched.append(event)
+
+    return matched
+
+
+async def execute_deep_analysis() -> None:
+    """深度分析入口函数：扫描需深入的事件，逐个触发 Agent。"""
+    from openclaw_alpha.news.service import read_news_json
+    from .task_executor import submit_deep_analysis
+
+    events = _scan_deep_analysis_events()
+    if not events:
+        logger.info("无需深度分析的事件")
+        return
+
+    logger.info(f"发现 {len(events)} 个事件需要深度分析")
+
+    for event in events:
+        event_id = event["event_id"]
+        title = event.get("title", "")
+        news_ids = event.get("news_ids", [])
+
+        # 收集关联新闻信息
+        news_list = []
+        for n in news_ids:
+            nid = n.get("news_id") if isinstance(n, dict) else n
+            news_data = read_news_json(nid)
+            if news_data:
+                news_list.append(news_data)
+
+        # 触发深度分析
+        event_dir = str((_DEFAULT_DATA_DIR / "events" / event_id).resolve())
+        try:
+            success = await submit_deep_analysis(
+                event_id=event_id,
+                event_dir=event_dir,
+                title=title,
+                news_list=news_list,
+            )
+        except Exception as e:
+            logger.error(f"深度分析提交异常: {event_id} - {e}")
+            continue
+
+        if success:
+            # 更新 event.json
+            from openclaw_alpha.news.service import get_event
+            from openclaw_alpha.core.path_utils import get_runtime_dir
+
+            event_path = get_runtime_dir() / "data" / "events" / event_id / "event.json"
+            import json as _json
+            event_data = _json.loads(event_path.read_text(encoding="utf-8"))
+            event_data["needs_deep_analysis"] = False
+            event_data["deep_analysis"] = {
+                "analyzed_news_count": len(news_ids),
+                "analyzed_at": _now_iso(),
+            }
+            event_path.write_text(_json.dumps(event_data, ensure_ascii=False, indent=2), encoding="utf-8")
+            logger.info(f"深度分析完成: {event_id}")
+            # 发送深度分析完成通知
+            await _send_deep_analysis_notification(event_id, title)
+        else:
+            logger.warning(f"深度分析失败: {event_id}")
+
+
+def _now_iso() -> str:
+    """当前时间 ISO 8601（东八区）。"""
+    from datetime import datetime, timezone, timedelta
+    tz = timezone(timedelta(hours=8))
+    return datetime.now(tz).isoformat()
+
+
 def register_quick_news_tasks(registry: 'TaskRegistry', scheduler: Scheduler) -> None:
     """注册新闻模块任务到队列和调度器。"""
     from ..task_queue import TaskRegistry as TR
@@ -276,6 +394,12 @@ def register_quick_news_tasks(registry: 'TaskRegistry', scheduler: Scheduler) ->
         await fetch_all_quick_news(limit=0)
 
     registry.register("news_fetch", news_fetch_entry, priority=2)
+
+    # 注册深度分析任务
+    async def deep_analysis_entry():
+        await execute_deep_analysis()
+
+    registry.register("deep_analysis", deep_analysis_entry, priority=3)
 
     # 注册事件回顾任务
     review_config = load_event_review_config()
@@ -298,6 +422,14 @@ def register_quick_news_tasks(registry: 'TaskRegistry', scheduler: Scheduler) ->
         job_id="trigger-news-fetch",
         minutes=config.interval_minutes,
     )
+
+    # 深度分析调度触发
+    scheduler.add_interval_job(
+        lambda: asyncio.create_task(_enqueue_safe("deep_analysis")),
+        job_id="trigger-deep-analysis",
+        minutes=config.deep_analysis_interval_minutes,
+    )
+    logger.info(f"深度分析任务已注册，间隔: {config.deep_analysis_interval_minutes} 分钟")
 
     logger.info(f"新闻任务已注册，间隔: {config.interval_minutes} 分钟")
 

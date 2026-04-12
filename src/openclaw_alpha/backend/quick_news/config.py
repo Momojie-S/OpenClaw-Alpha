@@ -32,6 +32,7 @@ class QuickNewsConfig(BaseModel):
 
     enabled: bool = True
     interval_minutes: int = 30
+    deep_analysis_interval_minutes: int = 60
     agent_id: str = "main"
     model: str | None = None
     delivery: DeliveryConfig = DeliveryConfig()

@@ -112,6 +112,20 @@ def _cmd_close_event(args):
     _output(result)
 
 
+def _cmd_debug_deep_analysis(args):
+    """触发深度分析调试流程：扫描需深入事件 → 提交 cron → 等待结果。"""
+    from openclaw_alpha.backend.logger import setup_logging
+    setup_logging(log_level="DEBUG")
+    import logging
+    logger = logging.getLogger("news.debug-deep-analysis")
+    logger.info("=== debug-deep-analysis 开始 ===")
+
+    from openclaw_alpha.backend.quick_news.jobs import execute_deep_analysis
+    asyncio.run(execute_deep_analysis())
+    logger.info("=== debug-deep-analysis 完成 ===")
+    _output({"triggered": True})
+
+
 def _cmd_debug_quick_news(args):
     """触发快速分析调试流程：拉取 → 扫描待分析 → 提交 cron → 等待结果。"""
     from openclaw_alpha.backend.logger import setup_logging
@@ -202,6 +216,11 @@ def main():
     p.add_argument("--limit", type=int, default=1, help="处理新闻数量（默认 1）")
     _add_common_args(p)
     p.set_defaults(func=_cmd_debug_quick_news)
+
+    # debug-deep-analysis (调试)
+    p = sub.add_parser("debug-deep-analysis", help="调试：触发深度分析")
+    _add_common_args(p)
+    p.set_defaults(func=_cmd_debug_deep_analysis)
 
     args = parser.parse_args()
     try:

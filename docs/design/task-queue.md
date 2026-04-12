@@ -89,6 +89,19 @@ class TaskQueueConfig(BaseModel):
 ]
 ```
 
+## 任务注册表
+
+所有注册到任务队列的任务类型、优先级和所属模块：
+
+| task_type | 优先级 | 所属模块 | 模块文档 | 说明 |
+|-----------|--------|---------|---------|------|
+| `deep_analysis` | 3 (最高) | quick_news | [news/overview.md](news/overview.md) | 深度分析，定时扫描需深入的事件 |
+| `news_fetch` | 2 | quick_news | [news/overview.md](news/overview.md) | 快速分析（拉取 + 分析） |
+| `event_review` | 1 | quick_news | [news/event-tracking.md](news/event-tracking.md) | 事件回顾 |
+| `iteration_loop` | 3 | iteration_loop | [iteration-loop/overview.md](iteration-loop/overview.md) | 迭代循环 |
+
+优先级数字越大越优先。单并发 worker 按优先级顺序执行。
+
 ## 任务注册方式
 
 各模块调用 `register_*_tasks(registry, scheduler)`：
@@ -99,6 +112,7 @@ registry = TaskRegistry()
 task_queue = TaskQueue(config.task_queue, registry, runtime_dir)
 
 # 注册任务（入口函数无参数，内部固定参数）
+registry.register("deep_analysis", deep_analysis_entry, priority=3)
 registry.register("news_fetch", news_fetch_entry, priority=2)
 registry.register("event_review", event_review_entry, priority=1)
 registry.register("iteration_loop", iteration_loop_entry, priority=3)

@@ -39,7 +39,7 @@ class TestIntegration:
             news_id, summary="英伟达发布新一代GPU，性能提升显著", data_dir=tmp_path
         )
         assert result.get("updated") is True
-        assert service.read_embedding(news_id, tmp_path) is not None
+        assert service.read_summary_vector(news_id, tmp_path) is not None
 
         # 3. update-news --analysis
         analysis = {

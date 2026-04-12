@@ -4,6 +4,8 @@
 
 深度分析是新闻分析系统的第二层，以**事件**为单位，对快速分析标记为重要的事件进行多维度深入分析。
 
+作为 Backend 独立定时任务运行，通过任务队列调度（优先级高于快速分析）。详见 [任务队列设计](../task-queue.md)。
+
 ---
 
 ## 触发机制
@@ -45,10 +47,10 @@ event.status == "ongoing"
   每条新闻 → worth_deep_analysis=true
           → 关联事件时 event.needs_deep_analysis = true
 
-快速分析完成后:
-  list-events --needs-deep
-  过滤: len(news_ids) > analyzed_news_count
-  → 逐事件执行深度分析
+Backend 定时任务扫描:
+  扫描: status=ongoing AND needs_deep_analysis=true
+        AND len(news_ids) > (deep_analysis?.analyzed_news_count ?? 0)
+  → 逐事件提交 Agent Session
 
 深度分析（backend 自动更新）:
   分析完成后 → analyzed_news_count = len(news_ids)
@@ -88,12 +90,22 @@ runtime/data/events/{event_id}/
 
 ---
 
+## 任务调度
+
+深度分析作为独立的定时任务注册到 Backend 任务队列：
+
+- **task_type**: `deep_analysis`
+- **优先级**: 3（最高，高于快速分析的 2）
+- **调度**: APScheduler 定时触发入队
+- **入口函数**: `async def execute() -> None` — 内部扫描 + 逐事件触发
+
+详见 [任务队列设计](../task-queue.md) 的任务注册表。
+
 ## CLI 变更
 
 | 命令 | 变更 |
 |------|------|
 | `create-event` | 初始化 `needs_deep_analysis: false`, `deep_analysis: null` |
 | `update-news --event-id` | 关联到已有事件时自动置 `needs_deep_analysis: true` |
-| `list-events` | 新增 `--needs-deep` 过滤 |
 
 deep_analysis 字段的更新由 backend service 内部完成，不暴露 CLI。
