@@ -47,3 +47,8 @@ openspec/changes/
 
 # Runtime data
 data/
+
+# Runtime data
+runtime/logs/
+runtime/processor_data/
+runtime/data/
