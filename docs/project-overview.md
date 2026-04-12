@@ -30,6 +30,7 @@ OpenClaw-Alpha/
 │   │   ├── settings.py             # ⚙️ 统一配置管理（.env + config.json）
 │   │   ├── registry.py             # 全局注册表
 │   │   ├── code_converter/         # 证券代码转换
+│   │   ├── logger.py              # 日志配置（setup + get_logger）
 │   │   ├── milvus/                 # 🗄️ Milvus 向量数据库服务
 │   │   ├── embedding/              # 🧮 向量生成服务（工厂模式）
 │   │   └── ...
@@ -50,7 +51,6 @@ OpenClaw-Alpha/
 │   │   ├── task_queue.py           # 任务队列（优先级调度）
 │   │   ├── config.py               # 服务配置
 │   │   ├── config_api.py           # 配置 API
-│   │   ├── logger.py               # 日志配置
 │   │   ├── quick_news/             # 新闻分析任务
 │   │   │   ├── jobs.py             # 任务入口（快速分析 + 深度分析 + 事件回顾）
 │   │   │   ├── task_executor.py    # Agent session 提交

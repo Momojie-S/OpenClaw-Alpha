@@ -114,7 +114,7 @@ def _cmd_close_event(args):
 
 def _cmd_debug_deep_analysis(args):
     """触发深度分析调试流程：扫描需深入事件 → 提交 cron → 等待结果。"""
-    from openclaw_alpha.backend.logger import setup_logging
+    from openclaw_alpha.core.logger import setup_logging
     setup_logging(log_level="DEBUG")
     import logging
     logger = logging.getLogger("news.debug-deep-analysis")
@@ -128,7 +128,7 @@ def _cmd_debug_deep_analysis(args):
 
 def _cmd_debug_quick_news(args):
     """触发快速分析调试流程：拉取 → 扫描待分析 → 提交 cron → 等待结果。"""
-    from openclaw_alpha.backend.logger import setup_logging
+    from openclaw_alpha.core.logger import setup_logging
     setup_logging(log_level="DEBUG")
     import logging
     logger = logging.getLogger("news.debug-quick-news")

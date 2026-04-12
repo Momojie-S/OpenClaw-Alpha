@@ -3,7 +3,7 @@
 
 from .main import app, get_scheduler
 from .config import ServiceConfig, load_config
-from .logger import setup_logging, get_logger
+from openclaw_alpha.core.logger import setup_logging, get_logger  # noqa: re-export
 from .scheduler import Scheduler
 
 __all__ = [

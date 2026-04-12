@@ -8,7 +8,7 @@ from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 
 from .config import load_config
-from .logger import setup_logging
+from openclaw_alpha.core.logger import setup_logging
 from .scheduler import Scheduler
 from .task_queue import TaskQueue, TaskRegistry, _global_queue
 from openclaw_alpha.core.path_utils import get_runtime_dir
