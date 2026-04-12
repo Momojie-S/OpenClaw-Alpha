@@ -18,7 +18,7 @@ OpenClaw-Alpha 是一个股票金融数据获取和分析的 Python 技能模块
 
 ```
 OpenClaw-Alpha/
-├── skills/                         # SKILL 文档目录（只放 SKILL.md、docs、tasks）
+├── skills/                         # SKILL 文档目录（只放 SKILL.md 和 tasks）
 │   └── {skill_name}/
 │       ├── SKILL.md                # 能力说明 + 分析指引（对外）
 │       ├── tasks/                  # 任务模板（Agent session prompt）
@@ -83,6 +83,7 @@ OpenClaw-Alpha/
 │
 ├── docs/                           # 项目文档
 │   ├── design/                     # 设计文档
+│   ├── skills/                  # 各 skill 的设计文档（spec/design/decisions）
 │   │   ├── architecture/           # 技术架构
 │   │   ├── news/                   # 新闻系统设计
 │   │   └── iteration-loop/         # 迭代循环设计
@@ -98,7 +99,7 @@ OpenClaw-Alpha/
 ```
 
 **分离关注点**：
-- `skills/{skill_name}/` - 只放文档（SKILL.md + docs/）
+- `skills/{skill_name}/` - 只放文档（SKILL.md + tasks/）
 - `src/openclaw_alpha/skills/{skill_name}/` - 放代码（fetcher + processor）
 - `src/openclaw_alpha/` - 通过 pyproject.toml 注册为包，所有代码统一导入
 

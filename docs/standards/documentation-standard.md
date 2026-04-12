@@ -43,7 +43,7 @@ docs/
 └── project-overview.md     # 项目概述
 ```
 
-**注意**：skill 的开发文档放在 `skills/{skill_name}/docs/` 下，不在 `docs/skills/`。
+**注意**：skill 的开发文档放在 `docs/design/skills/{skill_name}/` 下。
 
 ---
 
