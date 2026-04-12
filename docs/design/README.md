@@ -1,14 +1,37 @@
-# Design - 业务设计文档
+# 设计文档
 
-业务规则、算法设计、数据模型定义。
+技术架构、业务规则、算法设计、数据模型定义。
 
-## 子目录
+## 索引
 
-| 目录 | 内容 |
+### 架构 ([architecture/](architecture/))
+
+| 文件 | 说明 |
 |------|------|
-| architecture/ | 技术架构（目录结构、API、类设计、数据流） |
-| design/ 根目录 | 业务设计（公式、权重、阈值、规则） |
+| [backend.md](architecture/backend.md) | 后端服务架构（调度、定时任务） |
+| [task-queue.md](architecture/task-queue.md) | 任务队列（优先级调度、去重） |
+| [setting.md](architecture/setting.md) | 统一配置管理（.env + config.json） |
+| [core-utilities.md](architecture/core-utilities.md) | 核心工具（路径、信号处理） |
+| [code-converter.md](architecture/code-converter.md) | 证券代码转换 |
+| [strategy-framework.md](architecture/strategy-framework.md) | 策略框架 |
+| [signal-backtest-framework.md](architecture/signal-backtest-framework.md) | 信号回测框架 |
 
-## 文档列表
+### 新闻系统 ([news/](news/))
 
-- [news-hotness.md](news-hotness.md) - 新闻热度分析（热度模型、榜单规则、触发条件）
+| 文件 | 说明 |
+|------|------|
+| [overview.md](news/overview.md) | 新闻系统总览 |
+| [news-fetcher.md](news/news-fetcher.md) | 新闻数据获取 |
+| [news-storage.md](news/news-storage.md) | 新闻存储 |
+| [news-cli.md](news/news-cli.md) | CLI 工具 |
+| [event-tracking.md](news/event-tracking.md) | 事件跟踪系统 |
+| [quick-analysis.md](news/quick-analysis.md) | 快速分析 |
+| [deep-analysis.md](news/deep-analysis.md) | 深度分析 |
+
+### 迭代循环 ([iteration-loop/](iteration-loop/))
+
+| 文件 | 说明 |
+|------|------|
+| [overview.md](iteration-loop/overview.md) | 迭代循环总览 |
+| [dev-tasks.md](iteration-loop/dev-tasks.md) | 开发任务调度 |
+| [feedback.md](iteration-loop/feedback.md) | 用户反馈处理 |

@@ -117,7 +117,7 @@ OpenClaw-Alpha/
 | **凭据** | `.env` | API Key、Token 等敏感配置（TUSHARE_TOKEN, DASHSCOPE_API_KEY, MILVUS_URI, MILVUS_TOKEN） |
 | **路径覆盖** | `.env` | `OPENCLAW_ALPHA_ROOT` 覆盖项目根目录 |
 
-> 详细说明见 [配置设计文档](docs/design/setting.md)
+> 详细说明见 [配置设计文档](docs/design/architecture/setting.md)
 
 ## 核心概念
 
