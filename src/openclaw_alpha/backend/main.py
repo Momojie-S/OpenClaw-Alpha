@@ -4,8 +4,7 @@
 import logging
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
+from fastapi import FastAPI
 
 from .config import load_config
 from openclaw_alpha.core.logger import setup_logging
@@ -109,31 +108,6 @@ def get_scheduler() -> Scheduler | None:
 # ============ API Models ============
 
 
-class TriggerQuickNewsResponse(BaseModel):
-    """触发新闻快速分析响应"""
-
-    success: bool
-    message: str
-    routes_processed: int
-    limit: int | None = None
-
-
-class TriggerFeedbackResponse(BaseModel):
-    """触发反馈处理响应"""
-
-    success: bool
-    message: str
-    total_feedback: int
-    processed: int
-
-
-class TriggerIterationResponse(BaseModel):
-    """触发 Iteration Loop 响应"""
-
-    success: bool
-    message: str
-
-
 # ============ API Endpoints ============
 
 
@@ -141,107 +115,3 @@ class TriggerIterationResponse(BaseModel):
 async def root():
     """健康检查"""
     return {"status": "ok", "service": "OpenClaw-Alpha Backend"}
-
-
-@app.post("/api/news/quick-analyse", response_model=TriggerQuickNewsResponse)
-async def trigger_quick_news_fetch(limit: int = 1):
-    """
-    手动触发新闻快速分析任务
-
-    立即执行一次所有配置的 RSS 路由拉取和分析任务
-
-    主要用途：调试
-
-    Query Parameters:
-        limit: 全局最多处理多少条新闻，默认 1（调试用）
-    """
-    try:
-        from .quick_news.jobs import fetch_all_quick_news, _ROUTE_TO_SOURCE
-        from .quick_news.config import load_quick_news_config
-
-        # 检查是否启用
-        config = load_quick_news_config()
-        if not config.enabled:
-            raise HTTPException(status_code=400, detail="新闻快速分析模块已禁用")
-
-        # 执行拉取任务
-        logger.info(f"手动触发新闻快速分析任务 (limit: {limit})")
-        await fetch_all_quick_news(limit)
-
-        return TriggerQuickNewsResponse(
-            success=True,
-            message="新闻快速分析任务已执行",
-            routes_processed=len(_ROUTE_TO_SOURCE),
-            limit=limit,
-        )
-
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"手动触发新闻快速分析失败: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail=f"执行失败: {str(e)}")
-
-
-@app.post("/api/feedback/trigger", response_model=TriggerFeedbackResponse)
-async def trigger_feedback_processing(limit: int = 1):
-    """
-    手动触发反馈处理任务（调试用）
-
-    立即处理指定数量的反馈
-
-    Query Parameters:
-        limit: 最多处理多少条反馈，默认 1
-    """
-    try:
-        from .iteration_loop.feedback import process as feedback_process
-        from .feedback.config import load_feedback_config
-
-        config = load_feedback_config()
-        if not config.enabled:
-            raise HTTPException(status_code=400, detail="反馈处理模块已禁用")
-
-        logger.info(f"手动触发反馈处理任务 (limit: {limit})")
-        processed = await feedback_process(limit=limit)
-
-        return TriggerFeedbackResponse(
-            success=True,
-            message="反馈处理已执行",
-            total_feedback=1 if processed else 0,
-            processed=1 if processed else 0,
-        )
-
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"手动触发反馈处理失败: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail=f"执行失败: {str(e)}")
-
-
-@app.post("/api/iteration/trigger", response_model=TriggerIterationResponse)
-async def trigger_iteration_loop():
-    """
-    手动触发 Iteration Loop（调试用）
-
-    立即执行一次完整的迭代循环（处理所有待办任务）
-    """
-    try:
-        from .iteration_loop.config import load_iteration_config
-        from .iteration_loop.jobs import run_iteration_cycle
-
-        config = load_iteration_config()
-        if not config.enabled:
-            raise HTTPException(status_code=400, detail="Iteration Loop 已禁用")
-
-        logger.info("手动触发 Iteration Loop")
-        await run_iteration_cycle()
-
-        return TriggerIterationResponse(
-            success=True,
-            message="Iteration Loop 已执行",
-        )
-
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"手动触发 Iteration Loop 失败: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail=f"执行失败: {str(e)}")

@@ -141,9 +141,6 @@ RSS 拉取 → 过滤已处理 → Agent 快速分析 → 高价值新闻关联�
 | 路由 | 方法 | 说明 |
 |------|------|------|
 | `/` | GET | 健康检查 |
-| `/api/news/quick-analyse` | POST | 手动触发快速新闻分析（`?limit=N`） |
-| `/api/feedback/trigger` | POST | 手动触发反馈处理（`?limit=N`） |
-| `/api/iteration/trigger` | POST | 手动触发迭代循环 |
 | `/api/config/*` | GET/PUT | 配置管理 |
 
 ## Gateway 通信

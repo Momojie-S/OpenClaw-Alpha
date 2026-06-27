@@ -125,6 +125,7 @@ data/news/{news_id}/
 ```yaml
 enabled: true
 interval_minutes: 30
+fetch_limit: 0  # 定时触发时最多处理多少条新闻，0=全部
 
 agent_id: alpha
 model: openrouter/qwen/qwen3.6-plus:free
@@ -144,14 +145,6 @@ cron:
 ---
 
 ## API & CLI
-
-### POST /api/news/quick-analyse
-
-手动触发快速新闻分析（主要用于调试）。
-
-| 参数 | 类型 | 默认值 | 说明 |
-|------|--------|--------|------|
-| limit | int | 1 | 全局最多处理多少条新闻 |
 
 ### CLI debug-quick-news
 

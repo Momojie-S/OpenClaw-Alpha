@@ -37,6 +37,7 @@ class QuickNewsConfig(BaseModel):
     model: str | None = None
     delivery: DeliveryConfig = DeliveryConfig()
     cron: CronConfig = CronConfig()
+    fetch_limit: int = 0
 
 
 def load_quick_news_config() -> QuickNewsConfig:

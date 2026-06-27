@@ -391,7 +391,7 @@ def register_quick_news_tasks(registry: 'TaskRegistry', scheduler: Scheduler) ->
 
     # 注册任务类型到 registry
     async def news_fetch_entry():
-        await fetch_all_quick_news(limit=0)
+        await fetch_all_quick_news(limit=config.fetch_limit)
 
     registry.register("news_fetch", news_fetch_entry, priority=2)
 

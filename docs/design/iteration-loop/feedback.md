@@ -359,44 +359,6 @@ delivery:
 
 ---
 
-## API 接口
-
-### POST /api/feedback/trigger
-
-手动触发反馈扫描，主要用于调试。
-
-**请求参数**：
-
-| 参数 | 类型 | 必需 | 默认值 | 说明 |
-|------|------|------|--------|------|
-| limit | int | 否 | 1 | 最多处理多少条反馈，0 表示全部 |
-
-**请求示例**：
-
-```bash
-# 调试：只处理 1 条
-curl -X POST http://localhost:8000/api/feedback/trigger
-
-# 调试：处理 3 条
-curl -X POST "http://localhost:8000/api/feedback/trigger?limit=3"
-
-# 全量处理
-curl -X POST "http://localhost:8000/api/feedback/trigger?limit=0"
-```
-
-**响应示例**：
-
-```json
-{
-  "success": true,
-  "message": "反馈扫描已执行",
-  "total_feedback": 5,
-  "processed": 3
-}
-```
-
----
-
 ## 配置
 
 **路径**：`runtime/feedback/config.yaml`
